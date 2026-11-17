@@ -69,6 +69,32 @@
       border-radius: 9999px;
     }
 
+    /* Left-right horizontal scrollbar for student/squad toggles */
+    .custom-h-scrollbar {
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #94a3b8 #f1f5f9;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .custom-h-scrollbar::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .custom-h-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+
+    .custom-h-scrollbar::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 9999px;
+    }
+
+    .custom-h-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+
     .safe-bottom {
       padding-bottom: env(safe-area-inset-bottom, 16px);
     }
@@ -97,7 +123,8 @@
 
     <!-- 2. MAIN NAVIGATION TABS (CENTERED PILL STYLE) -->
     <div class="flex justify-center mb-4">
-      <div class="bg-white border border-slate-200 rounded-full p-1 shadow-sm inline-flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full"
+      <div
+        class="bg-white border border-slate-200 rounded-full p-1 shadow-sm inline-flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full"
         role="tablist">
         <button onclick="switchTab('master')" id="tabBtn-master"
           class="tab-btn px-3 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm shrink-0">
@@ -130,16 +157,12 @@
         </div>
       </div>
 
-      <!-- Active Squad Quick Filter Strip -->
-      <div class="flex items-center justify-between text-xs px-1">
-        <div class="flex items-center gap-1.5">
-          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Squad:</span>
-          <div id="inlineSquadToggles" class="flex items-center gap-1.5">
-            <!-- Dhruba & Ajay quick pills -->
-          </div>
-        </div>
-        <div class="text-[11px] text-slate-400">
-          <span id="currentDayHeaderLabel" class="font-bold text-slate-700">Monday</span> (7 slots)
+      <!-- Active Squad Quick Filter Strip (Scrollable left to right) -->
+      <div class="flex items-center gap-2 text-xs px-1 py-1">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Squad:</span>
+        <div id="inlineSquadToggles"
+          class="flex items-center gap-1.5 overflow-x-auto pb-1.5 flex-nowrap flex-1 custom-h-scrollbar">
+          <!-- Injected dynamically by JS -->
         </div>
       </div>
 
@@ -238,11 +261,12 @@
     <!-- =================================================================== -->
     <main id="tabPanel-individual" class="hidden space-y-4 flex-1">
 
-      <!-- Friend Selector Pills -->
-      <div class="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm flex items-center justify-between gap-2">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Student:</span>
-        <div id="individualFriendSelector" class="flex items-center gap-1.5">
-          <!-- Populated by JS: Dhruba / Ajay -->
+      <!-- Friend Selector Pills (Scrollable left to right) -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm flex items-center gap-2">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">Student:</span>
+        <div id="individualFriendSelector"
+          class="flex items-center gap-1.5 overflow-x-auto pb-1 flex-nowrap flex-1 custom-h-scrollbar">
+          <!-- Populated by JS: Dhruba / Ajay / Siddhartha / Jaivardhan / Siddhant -->
         </div>
       </div>
 
@@ -297,20 +321,13 @@
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
             <i class="fa-solid fa-magnifying-glass text-xs"></i>
           </div>
-          <input
-            type="text"
-            id="teacherSearchInput"
-            placeholder="Search teacher (e.g. Vinod, Kannan, Abdur)..."
+          <input type="text" id="teacherSearchInput" placeholder="Search teacher (e.g. Vinod, Kannan, Abdur)..."
             oninput="handleTeacherSearchInput(this.value)"
             class="w-full pl-8 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold focus:outline-none focus:border-brandBlue focus:bg-white transition"
-            autocomplete="off"
-          />
-          <button
-            id="clearTeacherSearchBtn"
-            onclick="clearTeacherSearch()"
+            autocomplete="off" />
+          <button id="clearTeacherSearchBtn" onclick="clearTeacherSearch()"
             class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600"
-            title="Clear search"
-          >
+            title="Clear search">
             <i class="fa-solid fa-circle-xmark text-xs"></i>
           </button>
         </div>
@@ -336,13 +353,13 @@
   <script>
     /**
      * ========================================================================
-     * 1. VERIFIED TIMETABLE DATA: DHRUBA, AJAY, SIDDHARTHA & JAIVARDHAN
+     * 1. VERIFIED TIMETABLE DATA: DHRUBA, AJAY, SIDDHARTHA, JAIVARDHAN & SIDDHANT
      * ========================================================================
      */
     const FRIENDS_DATA = [
       {
         id: "dhruba",
-        name: "Dhruba Samal",
+        name: "Dhruba",
         tag: "Verified VTOP",
         color: "emerald",
         avatarBg: "from-blue-500 to-indigo-600",
@@ -468,7 +485,7 @@
       },
       {
         id: "ajay",
-        name: "Ajay Patel",
+        name: "Ajay",
         tag: "Verified VTOP",
         color: "blue",
         avatarBg: "from-sky-500 to-blue-600",
@@ -594,7 +611,7 @@
       },
       {
         id: "siddhartha",
-        name: "Siddhartha Das",
+        name: "Siddhartha",
         tag: "Verified VTOP",
         color: "amber",
         avatarBg: "from-amber-500 to-orange-600",
@@ -830,6 +847,132 @@
             faculty: "JUHI YASMEEN - SASL"
           }
         ]
+      },
+      {
+        id: "siddhant",
+        name: "Siddhant",
+        tag: "Verified VTOP",
+        color: "rose",
+        avatarBg: "from-rose-500 to-pink-600",
+        courses: [
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501294",
+            slots: ["B22", "B24", "F21"],
+            venue: "AB-007",
+            faculty: "A. SIRAJUDEEN - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501327",
+            slots: ["B13"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501344",
+            slots: ["B23"],
+            venue: "CR-010",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500946",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB02-323",
+            faculty: "IAMNEO 8 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500693",
+            slots: ["C21", "F11", "F12"],
+            venue: "AB-501",
+            faculty: "PAUL RAJ T - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500519",
+            slots: ["A12"],
+            venue: "AB-514",
+            faculty: "DEV BRAT GUPTA - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500401",
+            slots: ["B21", "E14", "E22"],
+            venue: "AB02-416",
+            faculty: "DONDU HARISH BABU - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500129",
+            slots: ["A21", "A22", "A23"],
+            venue: "AB-313",
+            faculty: "ABHINAV KUMAR - SASL"
+          },
+          {
+            group: "General",
+            code: "SST2003",
+            title: "Dynamics of workplace communication Skills",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500463",
+            slots: ["D11"],
+            venue: "AB-413",
+            faculty: "ANITA YADAV - SASL"
+          }
+        ]
       }
     ];
 
@@ -1017,6 +1160,7 @@
 
     function renderLiveStatusBanner() {
       const widget = document.getElementById("liveBannerWidget");
+      if (!widget) return;
       const { jsDay, currentMins } = getISTTime();
       const timeFormatted = minutesToTimeStr(currentMins);
 
@@ -1110,7 +1254,10 @@
         `;
       }).join("");
 
-      document.getElementById("currentDayHeaderLabel").textContent = DAY_FULL_NAMES[selectedMasterDay];
+      const dayLabel = document.getElementById("currentDayHeaderLabel");
+      if (dayLabel) {
+        dayLabel.textContent = DAY_FULL_NAMES[selectedMasterDay];
+      }
       renderInlineSquadToggles();
     }
 
@@ -1131,11 +1278,10 @@
       const allBtnHtml = `
         <button
           onclick="selectSquadFilter('all')"
-          class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition ${
-            isAll
-              ? 'bg-brandBlue text-white border-brandBlue shadow-xs'
-              : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-          }"
+          class="shrink-0 whitespace-nowrap px-3 py-1 rounded-full text-[11px] font-bold border transition ${isAll
+          ? 'bg-brandBlue text-white border-brandBlue shadow-xs'
+          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+        }"
         >
           All
         </button>
@@ -1146,11 +1292,10 @@
         return `
           <button
             onclick="selectSquadFilter('${f.id}')"
-            class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition ${
-              isSoleActive
-                ? 'bg-brandBlue text-white border-brandBlue shadow-xs'
-                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-            }"
+            class="shrink-0 whitespace-nowrap px-3 py-1 rounded-full text-[11px] font-bold border transition ${isSoleActive
+            ? 'bg-brandBlue text-white border-brandBlue shadow-xs'
+            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+          }"
           >
             ${f.name.split(" ")[0]}
           </button>
@@ -1485,7 +1630,7 @@
         return `
           <button
             onclick="selectIndividualFriend('${f.id}')"
-            class="px-3.5 py-1 rounded-full text-xs font-bold transition border ${isSelected
+            class="shrink-0 whitespace-nowrap px-3.5 py-1 rounded-full text-xs font-bold transition border ${isSelected
             ? 'bg-brandBlue text-white border-brandBlue shadow-2xs'
             : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
           }"
