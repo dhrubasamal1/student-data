@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Portfolio Dashboard — VITB Timetable</title>
+  <title>Class Data — VITB Timetable</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -82,68 +82,21 @@
   <!-- ===================================================================== -->
   <div class="max-w-md mx-auto min-h-screen px-4 pt-4 pb-20 flex flex-col">
 
-    <!-- 1. TOP HEADER (EXACT PORTFOLIO DASHBOARD DESIGN) -->
-    <header class="mb-4">
-      <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2 min-w-0">
-          <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 truncate">
-            Portfolio Dashboard
-          </h1>
-          <span
-            class="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#fef9c3] text-[#854d0e] border border-[#fef08a]">
-            DEV MODE
-          </span>
-        </div>
-
-        <!-- Right Button: Soft Green "Data Management" Style -->
-        <button onclick="toggleSquadFilterModal()"
-          class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#eafbee] text-[#166534] border border-[#bbf7d0] hover:bg-[#ddf7e3] active:scale-95 transition flex items-center gap-1.5 shadow-sm">
-          <i class="fa-solid fa-users text-[11px]"></i>
-          <span>Squad</span>
-        </button>
-      </div>
+    <!-- 1. TOP HEADER -->
+    <header class="mb-4 text-center">
+      <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+        Class data
+      </h1>
 
       <!-- Live Now Micro-Banner for Mobile -->
-      <div id="liveBannerWidget" class="mt-2 text-xs text-slate-500 flex items-center gap-2">
+      <div id="liveBannerWidget" class="mt-2 text-xs text-slate-500 flex items-center justify-center gap-2 flex-wrap">
         <!-- Injected dynamically by JS -->
       </div>
     </header>
 
-    <!-- 2. THREE SUMMARY CARDS (PORTFOLIO DASHBOARD PASTEL STYLE) -->
-    <section class="grid grid-cols-3 gap-2 sm:gap-2.5 mb-5">
-      <!-- Card 1: Pastel Blue -->
-      <div class="bg-cardBlue border border-cardBlueBorder rounded-2xl p-3 text-center shadow-sm">
-        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 truncate">
-          Total Slots
-        </div>
-        <div id="statTotalSlots" class="text-xl sm:text-2xl font-black text-slate-900">
-          42
-        </div>
-      </div>
 
-      <!-- Card 2: Pastel Pink -->
-      <div class="bg-cardPink border border-cardPinkBorder rounded-2xl p-3 text-center shadow-sm">
-        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 truncate">
-          Busy Slots
-        </div>
-        <div id="statBusySlots" class="text-xl sm:text-2xl font-black text-slate-900">
-          21
-        </div>
-      </div>
-
-      <!-- Card 3: Pastel Neutral / Gray -->
-      <div class="bg-cardNeutral border border-cardNeutralBorder rounded-2xl p-3 text-center shadow-sm">
-        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 truncate">
-          Free Slots
-        </div>
-        <div id="statFreeSlots" class="text-xl sm:text-2xl font-black text-slate-900">
-          21
-        </div>
-      </div>
-    </section>
-
-    <!-- 3. MAIN NAVIGATION TABS (CENTERED PILL STYLE) -->
-    <div class="flex justify-center mb-3">
+    <!-- 2. MAIN NAVIGATION TABS (CENTERED PILL STYLE) -->
+    <div class="flex justify-center mb-4">
       <div class="bg-white border border-slate-200 rounded-full p-1 shadow-sm inline-flex items-center gap-1"
         role="tablist">
         <button onclick="switchTab('master')" id="tabBtn-master"
@@ -157,20 +110,6 @@
         <button onclick="switchTab('individual')" id="tabBtn-individual"
           class="tab-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
           Individual
-        </button>
-      </div>
-    </div>
-
-    <!-- 4. SUB-FILTER CAPSULE (NET / TODAY STYLE FROM SCREENSHOT) -->
-    <div id="subFilterBar" class="flex justify-center mb-4">
-      <div class="bg-white border border-slate-200 rounded-full p-0.5 inline-flex text-xs font-medium shadow-sm">
-        <button onclick="setMasterViewFilter('today')" id="subFilter-today"
-          class="px-3.5 py-1 rounded-full text-xs font-semibold transition bg-slate-100 text-slate-900 shadow-xs">
-          Today
-        </button>
-        <button onclick="setMasterViewFilter('all')" id="subFilter-all"
-          class="px-3.5 py-1 rounded-full text-xs font-semibold transition text-slate-500 hover:text-slate-900">
-          All Days
         </button>
       </div>
     </div>
@@ -242,7 +181,7 @@
           <div>
             <label for="rangeStartTime"
               class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-              Start Time (X)
+              Start Time
             </label>
             <input type="time" id="rangeStartTime" value="10:05" min="08:00" max="20:00"
               onchange="calculateAndRenderFreeRange()"
@@ -250,7 +189,7 @@
           </div>
           <div>
             <label for="rangeEndTime" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-              End Time (Y)
+              End Time
             </label>
             <input type="time" id="rangeEndTime" value="16:20" min="08:00" max="20:00"
               onchange="calculateAndRenderFreeRange()"
@@ -328,42 +267,10 @@
       </div>
     </main>
 
-    <!-- SQUAD MANAGEMENT MODAL / POPUP -->
-    <div id="squadModal"
-      class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-3">
-      <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-xl space-y-4">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-          <h3 class="text-base font-bold text-slate-900">Manage Squad Sync</h3>
-          <button onclick="toggleSquadFilterModal()"
-            class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center">
-            <i class="fa-solid fa-xmark text-xs"></i>
-          </button>
-        </div>
-
-        <div class="space-y-2">
-          <p class="text-xs text-slate-500">Toggle friends to include or exclude from group timetable calculations:</p>
-          <div id="modalFriendCheckboxes" class="space-y-2 pt-1">
-            <!-- Injected by JS -->
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2 pt-2">
-          <button onclick="setAllFriendsActive(true); toggleSquadFilterModal();"
-            class="flex-1 py-2 rounded-xl bg-brandBlue text-white text-xs font-semibold shadow-sm">
-            Select Both
-          </button>
-          <button onclick="toggleSquadFilterModal()"
-            class="flex-1 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold">
-            Done
-          </button>
-        </div>
-      </div>
-    </div>
 
     <!-- Mobile Footer Info -->
-    <footer class="mt-8 text-center text-[11px] text-slate-400 space-y-1">
-      <div>VIT Bhopal Slot System • Mobile Optimized</div>
-      <div class="font-mono text-[10px] text-slate-400">Dhruba Samal &amp; Ajay Patel</div>
+    <footer class="mt-8 text-center text-[11px] text-slate-400">
+      <div>VIT Bhopal Slot System</div>
     </footer>
 
   </div>
@@ -682,10 +589,9 @@
     let selectedSlotIndex = null;
     let selectedRangeDay = "MON";
     let selectedIndividualFriendId = "dhruba";
-    let masterViewFilter = "today"; // 'today' | 'all'
 
-    // Detect today's day on startup
-    const currentJsDay = new Date().getDay();
+    // Detect today's day on startup (IST)
+    const { jsDay: currentJsDay } = getISTTime();
     if (currentJsDay >= 1 && currentJsDay <= 6) {
       selectedMasterDay = DAYS_ORDER[currentJsDay - 1];
       selectedRangeDay = selectedMasterDay;
@@ -696,6 +602,24 @@
      * 4. HELPER UTILITIES
      * ========================================================================
      */
+    function getISTTime() {
+      const now = new Date();
+      try {
+        const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+        const istDate = new Date(istString);
+        const jsDay = istDate.getDay();
+        const hours = istDate.getHours();
+        const minutes = istDate.getMinutes();
+        return { jsDay, hours, minutes, currentMins: hours * 60 + minutes };
+      } catch (e) {
+        const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const istDate = new Date(utcMs + (5.5 * 3600000));
+        const jsDay = istDate.getDay();
+        const hours = istDate.getHours();
+        const minutes = istDate.getMinutes();
+        return { jsDay, hours, minutes, currentMins: hours * 60 + minutes };
+      }
+    }
     function getFriendSlotMap(friend) {
       const map = {};
       if (!friend || !friend.courses) return map;
@@ -769,13 +693,18 @@
      * ========================================================================
      */
     function updateTopSummaryMetrics() {
+      const totalEl = document.getElementById("statTotalSlots");
+      const busyEl = document.getElementById("statBusySlots");
+      const freeEl = document.getElementById("statFreeSlots");
+      if (!totalEl || !busyEl || !freeEl) return;
+
       const totalWeekSlots = 42; // 6 days * 7 slots
       const activeFriends = getActiveFriendsList();
 
       if (activeFriends.length === 0) {
-        document.getElementById("statTotalSlots").textContent = "42";
-        document.getElementById("statBusySlots").textContent = "0";
-        document.getElementById("statFreeSlots").textContent = "42";
+        totalEl.textContent = "42";
+        busyEl.textContent = "0";
+        freeEl.textContent = "42";
         return;
       }
 
@@ -791,16 +720,14 @@
       });
 
       const freeCount = totalWeekSlots - busyCount;
-      document.getElementById("statTotalSlots").textContent = totalWeekSlots;
-      document.getElementById("statBusySlots").textContent = busyCount;
-      document.getElementById("statFreeSlots").textContent = freeCount;
+      totalEl.textContent = totalWeekSlots;
+      busyEl.textContent = busyCount;
+      freeEl.textContent = freeCount;
     }
 
     function renderLiveStatusBanner() {
       const widget = document.getElementById("liveBannerWidget");
-      const now = new Date();
-      const jsDay = now.getDay();
-      const currentMins = now.getHours() * 60 + now.getMinutes();
+      const { jsDay, currentMins } = getISTTime();
       const timeFormatted = minutesToTimeStr(currentMins);
 
       if (jsDay === 0) {
@@ -857,42 +784,15 @@
         }
       });
 
-      // Show/Hide sub-filter bar depending on tab
-      const subBar = document.getElementById("subFilterBar");
       if (tabId === "master") {
-        subBar.classList.remove("hidden");
         renderMasterDayPills();
         renderMobileSlotCards();
-      } else {
-        subBar.classList.add("hidden");
-      }
-
-      if (tabId === "range") {
+      } else if (tabId === "range") {
         renderRangeDayButtons();
         calculateAndRenderFreeRange();
       } else if (tabId === "individual") {
         renderIndividualView();
       }
-    }
-
-    function setMasterViewFilter(filter) {
-      masterViewFilter = filter;
-      const todayBtn = document.getElementById("subFilter-today");
-      const allBtn = document.getElementById("subFilter-all");
-
-      if (filter === "today") {
-        todayBtn.className = "px-3.5 py-1 rounded-full text-xs font-semibold transition bg-slate-100 text-slate-900 shadow-xs";
-        allBtn.className = "px-3.5 py-1 rounded-full text-xs font-semibold transition text-slate-500 hover:text-slate-900";
-        const jsDay = new Date().getDay();
-        if (jsDay >= 1 && jsDay <= 6) {
-          selectedMasterDay = DAYS_ORDER[jsDay - 1];
-        }
-      } else {
-        allBtn.className = "px-3.5 py-1 rounded-full text-xs font-semibold transition bg-slate-100 text-slate-900 shadow-xs";
-        todayBtn.className = "px-3.5 py-1 rounded-full text-xs font-semibold transition text-slate-500 hover:text-slate-900";
-      }
-      renderMasterDayPills();
-      renderMobileSlotCards();
     }
 
     /**
@@ -1116,12 +1016,11 @@
     }
 
     function setRangeToRightNow() {
-      const now = new Date();
-      const jsDay = now.getDay();
+      const { jsDay, currentMins } = getISTTime();
       if (jsDay >= 1 && jsDay <= 6) {
         selectedRangeDay = DAYS_ORDER[jsDay - 1];
       }
-      let startM = now.getHours() * 60 + now.getMinutes();
+      let startM = currentMins;
       if (startM < 510 || startM > 1110) startM = 510; // clamp to 8:30
       const endM = Math.min(startM + 120, 1170);
 
@@ -1141,7 +1040,7 @@
       if (endMin <= startMin) {
         resultsContainer.innerHTML = `
           <div class="p-4 rounded-2xl bg-rose-50 text-rose-600 text-xs font-semibold text-center border border-rose-200">
-            End Time (Y) must be later than Start Time (X).
+            End Time must be later than Start Time.
           </div>
         `;
         return;
@@ -1346,41 +1245,9 @@
 
     /**
      * ========================================================================
-     * 10. SQUAD SELECTION MODAL
+     * 10. SQUAD TOGGLE HELPERS
      * ========================================================================
      */
-    function toggleSquadFilterModal() {
-      const modal = document.getElementById("squadModal");
-      const isHidden = modal.classList.contains("hidden");
-      if (isHidden) {
-        modal.classList.remove("hidden");
-        renderSquadModalCheckboxes();
-      } else {
-        modal.classList.add("hidden");
-      }
-    }
-
-    function renderSquadModalCheckboxes() {
-      const container = document.getElementById("modalFriendCheckboxes");
-      container.innerHTML = FRIENDS_DATA.map(f => {
-        const active = activeFriendIds.has(f.id);
-        return `
-          <label class="flex items-center justify-between p-3 rounded-2xl border border-slate-200 cursor-pointer bg-slate-50 hover:bg-slate-100">
-            <div class="flex items-center gap-2.5">
-              <input
-                type="checkbox"
-                ${active ? 'checked' : ''}
-                onchange="toggleFriendActive('${f.id}')"
-                class="w-4 h-4 rounded text-brandBlue focus:ring-brandBlue"
-              />
-              <span class="font-bold text-xs text-slate-800">${f.name}</span>
-            </div>
-            <span class="text-[10px] font-mono text-slate-400">9 courses</span>
-          </label>
-        `;
-      }).join("");
-    }
-
     function toggleFriendActive(friendId) {
       if (activeFriendIds.has(friendId)) {
         if (activeFriendIds.size === 1) return;
