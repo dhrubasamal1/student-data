@@ -97,19 +97,23 @@
 
     <!-- 2. MAIN NAVIGATION TABS (CENTERED PILL STYLE) -->
     <div class="flex justify-center mb-4">
-      <div class="bg-white border border-slate-200 rounded-full p-1 shadow-sm inline-flex items-center gap-1"
+      <div class="bg-white border border-slate-200 rounded-full p-1 shadow-sm inline-flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full"
         role="tablist">
         <button onclick="switchTab('master')" id="tabBtn-master"
-          class="tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm">
+          class="tab-btn px-3 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm shrink-0">
           Schedule
         </button>
         <button onclick="switchTab('range')" id="tabBtn-range"
-          class="tab-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+          class="tab-btn px-3 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 transition shrink-0">
           Free Sorter
         </button>
         <button onclick="switchTab('individual')" id="tabBtn-individual"
-          class="tab-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+          class="tab-btn px-3 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 transition shrink-0">
           Individual
+        </button>
+        <button onclick="switchTab('teacher')" id="tabBtn-teacher"
+          class="tab-btn px-3 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 transition shrink-0">
+          Teacher Finder
         </button>
       </div>
     </div>
@@ -267,6 +271,57 @@
       </div>
     </main>
 
+    <!-- =================================================================== -->
+    <!-- TAB 4: TEACHER FINDER (FACULTY & STUDENT SEARCH)                    -->
+    <!-- =================================================================== -->
+    <main id="tabPanel-teacher" class="hidden space-y-4 flex-1">
+      <!-- Search & Suggestions Card -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-chalkboard-user text-brandBlue"></i>
+            <span>Teacher Finder</span>
+          </h2>
+          <span id="teacherCountBadge"
+            class="text-[10px] font-mono font-bold text-brandBlue bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
+            14 Teachers
+          </span>
+        </div>
+
+        <p class="text-xs text-slate-500">
+          Search any teacher to see which students have classes with them.
+        </p>
+
+        <!-- Search Bar -->
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+          </div>
+          <input
+            type="text"
+            id="teacherSearchInput"
+            placeholder="Search teacher (e.g. Vinod, Kannan, Abdur)..."
+            oninput="handleTeacherSearchInput(this.value)"
+            class="w-full pl-8 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold focus:outline-none focus:border-brandBlue focus:bg-white transition"
+            autocomplete="off"
+          />
+          <button
+            id="clearTeacherSearchBtn"
+            onclick="clearTeacherSearch()"
+            class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600"
+            title="Clear search"
+          >
+            <i class="fa-solid fa-circle-xmark text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Results Area -->
+      <div id="teacherSearchResults" class="space-y-3">
+        <!-- Populated dynamically by JS -->
+      </div>
+    </main>
+
 
     <!-- Mobile Footer Info -->
     <footer class="mt-8 text-center text-[11px] text-slate-400">
@@ -281,12 +336,8 @@
   <script>
     /**
      * ========================================================================
-     * 1. VERIFIED TIMETABLE DATA: DHRUBA SAMAL & AJAY PATEL
+     * 1. VERIFIED TIMETABLE DATA: DHRUBA SAMAL, AJAY PATEL & SIDDHARTHA DAS
      * ========================================================================
-     * - Only Ajay Patel & Dhruba Samal (Dummy sample friends removed)
-     * - C++ (CSE2001) faculty for BOTH is IAMNEO 5 - ACAD
-     * - Ajay Patel has exact same slots as Dhruba, except:
-     *   ENG2005 (Advanced Technical Communication) faculty is VINOD BHATT - SASL
      */
     const FRIENDS_DATA = [
       {
@@ -540,6 +591,119 @@
             faculty: "ABDUR RAHMAN M S - SASL"
           }
         ]
+      },
+      {
+        id: "siddhartha",
+        name: "Siddhartha Das",
+        tag: "Verified VTOP",
+        color: "amber",
+        avatarBg: "from-amber-500 to-orange-600",
+        courses: [
+          {
+            group: "General",
+            code: "CHY1001",
+            title: "ENGINEERING CHEMISTRY",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500159",
+            slots: ["B14", "B23", "D21"],
+            venue: "AB-128",
+            faculty: "ARINDAM GHOSH - SASL"
+          },
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501319",
+            slots: ["C21", "F11", "F12"],
+            venue: "AB-007",
+            faculty: "SANTHOSH KUMAR S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non - Graded Mandatory Courses",
+            classNo: "BL2026270501331",
+            slots: ["C12"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non - Graded Mandatory Courses",
+            classNo: "BL2026270501411",
+            slots: ["A23"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "ECE2002",
+            title: "Digital Logic Design",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500651",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB-216",
+            faculty: "V. SIVASANKARAN - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG1004",
+            title: "EFFECTIVE TECHNICAL COMMUNICATION",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500512",
+            slots: ["C11"],
+            venue: "AB-518",
+            faculty: "ANITA YADAV - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT2005",
+            title: "Transform Techniques and Difference Equations",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 3.0,
+            category: "University Elective - Natural Science Electives",
+            classNo: "BL2026270500412",
+            slots: ["A11", "A12"],
+            venue: "AB-415",
+            faculty: "VINOD KUMAR JATAV - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1001",
+            title: "ENGINEERING PHYSICS",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500112",
+            slots: ["B21", "E14", "E22"],
+            venue: "AB-102",
+            faculty: "AVIRUP DAS - SASL"
+          }
+        ]
       }
     ];
 
@@ -770,17 +934,18 @@
      */
     function switchTab(tabId) {
       activeTab = tabId;
-      const tabs = ["master", "range", "individual"];
+      const tabs = ["master", "range", "individual", "teacher"];
 
       tabs.forEach(t => {
         const panel = document.getElementById(`tabPanel-${t}`);
         const btn = document.getElementById(`tabBtn-${t}`);
+        if (!panel || !btn) return;
         if (t === tabId) {
           panel.classList.remove("hidden");
-          btn.className = "tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm";
+          btn.className = "tab-btn px-3 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm shrink-0";
         } else {
           panel.classList.add("hidden");
-          btn.className = "tab-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 transition";
+          btn.className = "tab-btn px-3 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 transition shrink-0";
         }
       });
 
@@ -792,6 +957,8 @@
         calculateAndRenderFreeRange();
       } else if (tabId === "individual") {
         renderIndividualView();
+      } else if (tabId === "teacher") {
+        renderTeacherFinder();
       }
     }
 
@@ -831,20 +998,40 @@
 
     function renderInlineSquadToggles() {
       const container = document.getElementById("inlineSquadToggles");
-      container.innerHTML = FRIENDS_DATA.map(f => {
-        const active = activeFriendIds.has(f.id);
+      if (!container) return;
+
+      const isAll = activeFriendIds.size === FRIENDS_DATA.length;
+
+      const allBtnHtml = `
+        <button
+          onclick="selectSquadFilter('all')"
+          class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition ${
+            isAll
+              ? 'bg-brandBlue text-white border-brandBlue shadow-xs'
+              : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+          }"
+        >
+          All
+        </button>
+      `;
+
+      const friendsHtml = FRIENDS_DATA.map(f => {
+        const isSoleActive = !isAll && activeFriendIds.size === 1 && activeFriendIds.has(f.id);
         return `
           <button
-            onclick="toggleFriendActive('${f.id}')"
-            class="px-2 py-0.5 rounded-full text-[10px] font-bold border transition ${active
-            ? 'bg-blue-50 text-brandBlue border-blue-200'
-            : 'bg-slate-50 text-slate-400 border-slate-200 opacity-60'
-          }"
+            onclick="selectSquadFilter('${f.id}')"
+            class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition ${
+              isSoleActive
+                ? 'bg-brandBlue text-white border-brandBlue shadow-xs'
+                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+            }"
           >
             ${f.name.split(" ")[0]}
           </button>
         `;
       }).join("");
+
+      container.innerHTML = allBtnHtml + friendsHtml;
     }
 
     function renderMobileSlotCards() {
@@ -854,7 +1041,7 @@
       if (activeFriends.length === 0) {
         container.innerHTML = `
           <div class="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-400 text-xs">
-            No friends selected in squad. Tap "Squad" at top to enable.
+            No friends selected in squad. Tap "All" to view schedule.
           </div>
         `;
         return;
@@ -872,10 +1059,10 @@
 
         if (allFree) {
           badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-200";
-          statusText = "Both Free";
+          statusText = total === 1 ? "Free" : (total === 2 ? "Both Free" : "All Free");
         } else if (allBusy) {
           badgeStyle = "bg-rose-50 text-rose-700 border-rose-200";
-          statusText = "Both In Class";
+          statusText = total === 1 ? "In Class" : (total === 2 ? "Both In Class" : "All In Class");
         }
 
         const isCurrentSlotSelected = selectedSlotIndex === idx;
@@ -1248,21 +1435,26 @@
      * 10. SQUAD TOGGLE HELPERS
      * ========================================================================
      */
-    function toggleFriendActive(friendId) {
-      if (activeFriendIds.has(friendId)) {
-        if (activeFriendIds.size === 1) return;
-        activeFriendIds.delete(friendId);
+    function selectSquadFilter(key) {
+      if (key === "all") {
+        activeFriendIds = new Set(FRIENDS_DATA.map(f => f.id));
       } else {
-        activeFriendIds.add(friendId);
+        // If clicking the only currently active individual, toggle back to 'all'
+        if (activeFriendIds.size === 1 && activeFriendIds.has(key)) {
+          activeFriendIds = new Set(FRIENDS_DATA.map(f => f.id));
+        } else {
+          activeFriendIds = new Set([key]);
+        }
       }
       refreshAllViews();
     }
 
+    function toggleFriendActive(friendId) {
+      selectSquadFilter(friendId);
+    }
+
     function setAllFriendsActive(val) {
-      if (val) {
-        FRIENDS_DATA.forEach(f => activeFriendIds.add(f.id));
-      }
-      refreshAllViews();
+      selectSquadFilter("all");
     }
 
     function refreshAllViews() {
@@ -1277,7 +1469,248 @@
         calculateAndRenderFreeRange();
       } else if (activeTab === "individual") {
         renderIndividualView();
+      } else if (activeTab === "teacher") {
+        renderTeacherFinder();
       }
+    }
+
+    /**
+     * ========================================================================
+     * 11. TAB 4: TEACHER FINDER
+     * ========================================================================
+     */
+    let teacherSearchQuery = "";
+    let selectedTeacherIndex = null;
+
+    function getTeacherDirectory() {
+      const teacherMap = new Map();
+
+      FRIENDS_DATA.forEach(friend => {
+        friend.courses.forEach(course => {
+          const rawFaculty = (course.faculty || "").trim();
+          if (!rawFaculty) return;
+
+          if (!teacherMap.has(rawFaculty)) {
+            const parts = rawFaculty.split(" - ");
+            const teacherName = parts[0]?.trim() || rawFaculty;
+            const school = parts[1]?.trim() || "";
+
+            teacherMap.set(rawFaculty, {
+              rawFaculty,
+              teacherName,
+              school,
+              studentRecords: {}
+            });
+          }
+
+          const entry = teacherMap.get(rawFaculty);
+          if (!entry.studentRecords[friend.id]) {
+            entry.studentRecords[friend.id] = {
+              friend,
+              courses: []
+            };
+          }
+          entry.studentRecords[friend.id].courses.push(course);
+        });
+      });
+
+      return Array.from(teacherMap.values()).sort((a, b) => a.teacherName.localeCompare(b.teacherName));
+    }
+
+    function handleTeacherSearchInput(val) {
+      teacherSearchQuery = (val || "").trim();
+      const clearBtn = document.getElementById("clearTeacherSearchBtn");
+      if (clearBtn) {
+        if (teacherSearchQuery) {
+          clearBtn.classList.remove("hidden");
+        } else {
+          clearBtn.classList.add("hidden");
+        }
+      }
+      renderTeacherFinder();
+    }
+
+    function clearTeacherSearch() {
+      const input = document.getElementById("teacherSearchInput");
+      if (input) input.value = "";
+      teacherSearchQuery = "";
+      const clearBtn = document.getElementById("clearTeacherSearchBtn");
+      if (clearBtn) clearBtn.classList.add("hidden");
+      renderTeacherFinder();
+    }
+
+    function renderTeacherFinder() {
+      const allTeachers = getTeacherDirectory();
+      const resultsContainer = document.getElementById("teacherSearchResults");
+      const countBadge = document.getElementById("teacherCountBadge");
+
+      if (!resultsContainer) return;
+
+      const q = teacherSearchQuery.toLowerCase();
+
+      // Filter teachers matching query
+      const matchingTeachers = allTeachers.filter(t => {
+        if (!q) return true;
+        const matchesName = t.teacherName.toLowerCase().includes(q);
+        const matchesRaw = t.rawFaculty.toLowerCase().includes(q);
+        const matchesSchool = t.school.toLowerCase().includes(q);
+        const matchesCourse = Object.values(t.studentRecords).some(sr =>
+          sr.courses.some(c => c.code.toLowerCase().includes(q) || c.title.toLowerCase().includes(q))
+        );
+        return matchesName || matchesRaw || matchesSchool || matchesCourse;
+      });
+
+      if (countBadge) {
+        countBadge.textContent = teacherSearchQuery
+          ? `${matchingTeachers.length} of ${allTeachers.length} Teachers`
+          : `${allTeachers.length} Teachers`;
+      }
+
+      // Render Search Results
+      if (matchingTeachers.length === 0) {
+        resultsContainer.innerHTML = `
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 text-center space-y-2.5 shadow-sm">
+            <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center text-sm">
+              <i class="fa-solid fa-user-slash"></i>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-slate-800">No Teacher Found</h3>
+              <p class="text-[11px] text-slate-500 mt-0.5">
+                No faculty matched <strong class="text-slate-700 font-mono">"${teacherSearchQuery}"</strong>.
+              </p>
+            </div>
+            <button
+              onclick="clearTeacherSearch()"
+              class="px-3 py-1 rounded-full text-xs font-semibold bg-brandBlue text-white hover:bg-brandBlueHover transition shadow-xs"
+            >
+              Show All Teachers
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      resultsContainer.innerHTML = matchingTeachers.map(t => {
+        const studentRecords = Object.values(t.studentRecords);
+        const enrolledFriendIds = new Set(Object.keys(t.studentRecords));
+        const totalFriends = FRIENDS_DATA.length;
+        const allEnrolled = enrolledFriendIds.size === totalFriends;
+
+        let matchBadgeHtml = "";
+        if (allEnrolled) {
+          matchBadgeHtml = `
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
+              <i class="fa-solid fa-users mr-1"></i>All Students (${totalFriends})
+            </span>
+          `;
+        } else {
+          const names = studentRecords.map(sr => sr.friend.name.split(" ")[0]).join(" & ");
+          matchBadgeHtml = `
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200 shrink-0">
+              <i class="fa-solid fa-user-check mr-1"></i>${names} (${studentRecords.length}/${totalFriends})
+            </span>
+          `;
+        }
+
+        // Check if other friends take this course with someone else
+        const comparisonNotes = [];
+        FRIENDS_DATA.forEach(otherFriend => {
+          if (!enrolledFriendIds.has(otherFriend.id)) {
+            studentRecords.forEach(sr => {
+              sr.courses.forEach(c => {
+                const otherCourse = otherFriend.courses.find(oc => oc.code === c.code);
+                if (otherCourse) {
+                  const otherFacultyShort = otherCourse.faculty.split(" - ")[0];
+                  comparisonNotes.push(
+                    `<strong>${otherFriend.name}</strong> takes ${otherCourse.code} (${otherCourse.title}) with <strong>${otherFacultyShort}</strong> instead.`
+                  );
+                }
+              });
+            });
+          }
+        });
+
+        return `
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+            <!-- Teacher Header -->
+            <div class="flex items-start justify-between gap-2 pb-2.5 border-b border-slate-100">
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <h3 class="text-sm font-black text-slate-900 tracking-tight">
+                    ${t.teacherName}
+                  </h3>
+                  ${t.school ? `
+                    <span class="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                      ${t.school}
+                    </span>
+                  ` : ''}
+                </div>
+                <div class="text-[11px] text-slate-400 font-mono truncate mt-0.5">
+                  ${t.rawFaculty}
+                </div>
+              </div>
+              ${matchBadgeHtml}
+            </div>
+
+            <!-- Student Cards List -->
+            <div class="space-y-2">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Students Enrolled (${studentRecords.length}/${totalFriends}):
+              </div>
+
+              ${studentRecords.map(sr => `
+                <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <div class="w-6 h-6 rounded-full bg-gradient-to-tr ${sr.friend.avatarBg} text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
+                        ${sr.friend.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div class="text-xs font-bold text-slate-900 leading-none">${sr.friend.name}</div>
+                        <div class="text-[10px] text-slate-400 font-mono mt-0.5">${sr.friend.tag}</div>
+                      </div>
+                    </div>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 font-mono">
+                      ${sr.courses.length} ${sr.courses.length === 1 ? 'course' : 'courses'}
+                    </span>
+                  </div>
+
+                  <!-- Course pills -->
+                  <div class="space-y-1.5 pt-1">
+                    ${sr.courses.map(c => `
+                      <div class="bg-white border border-slate-200/70 rounded-lg p-2.5 text-xs shadow-2xs">
+                        <div class="flex items-start justify-between gap-1">
+                          <div>
+                            <span class="font-mono font-bold text-brandBlue text-[11px] mr-1">${c.code}</span>
+                            <span class="font-bold text-slate-900">${c.title}</span>
+                          </div>
+                          <span class="font-mono font-bold text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 shrink-0">
+                            ${c.venue}
+                          </span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 mt-1 font-mono">
+                          <span>Slots: <strong class="text-slate-800">${c.slots.join(", ")}</strong></span>
+                          <span>${c.shortType} • ${c.credit} Cr</span>
+                        </div>
+                      </div>
+                    `).join("")}
+                  </div>
+                </div>
+              `).join("")}
+
+              ${comparisonNotes.length > 0 ? `
+                <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-900 space-y-1">
+                  <div class="flex items-center gap-1.5 font-bold">
+                    <i class="fa-solid fa-code-compare text-amber-600"></i>
+                    <span>Faculty Comparison:</span>
+                  </div>
+                  ${comparisonNotes.map(note => `<div>• ${note}</div>`).join("")}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join("");
     }
 
     /**
