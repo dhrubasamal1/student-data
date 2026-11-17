@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Portfolio Dashboard — VITB Timetable</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brandBlue: '#2563eb',
+            brandBlueHover: '#1d4ed8',
+            cardBlue: '#f0f6ff',
+            cardBlueBorder: '#dbeafe',
+            cardPink: '#fdf2f4',
+            cardPinkBorder: '#fce7eb',
+            cardNeutral: '#f8fafc',
+            cardNeutralBorder: '#e2e8f0',
+            tableHeader: '#e8f2fc',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Mobile-first touch enhancements */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #1e293b;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Clean custom scrollbar for horizontal containers */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom, 16px);
+    }
+  </style>
+</head>
+
+<body class="bg-white text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- ===================================================================== -->
+  <!-- MOBILE PHONE APP CONTAINER (MAX-W-MD)                                  -->
+  <!-- ===================================================================== -->
+  <div class="max-w-md mx-auto min-h-screen px-4 pt-4 pb-20 flex flex-col">
+
+    <!-- 1. TOP HEADER (EXACT PORTFOLIO DASHBOARD DESIGN) -->
+    <header class="mb-4">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 truncate">
+            Portfolio Dashboard
+          </h1>
+          <span
+            class="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#fef9c3] text-[#854d0e] border border-[#fef08a]">
+            DEV MODE
+          </span>
+        </div>
+
+        <!-- Right Button: Soft Green "Data Management" Style -->
+        <button onclick="toggleSquadFilterModal()"
+          class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#eafbee] text-[#166534] border border-[#bbf7d0] hover:bg-[#ddf7e3] active:scale-95 transition flex items-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-users text-[11px]"></i>
+          <span>Squad</span>
+        </button>
+      </div>
+
+      <!-- Live Now Micro-Banner for Mobile -->
+      <div id="liveBannerWidget" class="mt-2 text-xs text-slate-500 flex items-center gap-2">
+        <!-- Injected dynamically by JS -->
+      </div>
+    </header>
+
+    <!-- 2. THREE SUMMARY CARDS (PORTFOLIO DASHBOARD PASTEL STYLE) -->
+    <section class="grid grid-cols-3 gap-2 sm:gap-2.5 mb-5">
+      <!-- Card 1: Pastel Blue -->
+      <div class="bg-cardBlue border border-cardBlueBorder rounded-2xl p-3 text-center shadow-sm">
+        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 truncate">
+          Total Slots
+        </div>
+        <div id="statTotalSlots" class="text-xl sm:text-2xl font-black text-slate-900">
+          42
+        </div>
+      </div>
+
+      <!-- Card 2: Pastel Pink -->
+      <div class="bg-cardPink border border-cardPinkBorder rounded-2xl p-3 text-center shadow-sm">
+        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 truncate">
+          Busy Slots
+        </div>
+        <div id="statBusySlots" class="text-xl sm:text-2xl font-black text-slate-900">
+          21
+        </div>
+      </div>
+
+      <!-- Card 3: Pastel Neutral / Gray -->
+      <div class="bg-cardNeutral border border-cardNeutralBorder rounded-2xl p-3 text-center shadow-sm">
+        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 truncate">
+          Free Slots
+        </div>
+        <div id="statFreeSlots" class="text-xl sm:text-2xl font-black text-slate-900">
+          21
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. MAIN NAVIGATION TABS (CENTERED PILL STYLE) -->
+    <div class="flex justify-center mb-3">
+      <div class="bg-white border border-slate-200 rounded-full p-1 shadow-sm inline-flex items-center gap-1"
+        role="tablist">
+        <button onclick="switchTab('master')" id="tabBtn-master"
+          class="tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm">
+          Schedule
+        </button>
+        <button onclick="switchTab('range')" id="tabBtn-range"
+          class="tab-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+          Free Sorter
+        </button>
+        <button onclick="switchTab('individual')" id="tabBtn-individual"
+          class="tab-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+          Individual
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. SUB-FILTER CAPSULE (NET / TODAY STYLE FROM SCREENSHOT) -->
+    <div id="subFilterBar" class="flex justify-center mb-4">
+      <div class="bg-white border border-slate-200 rounded-full p-0.5 inline-flex text-xs font-medium shadow-sm">
+        <button onclick="setMasterViewFilter('today')" id="subFilter-today"
+          class="px-3.5 py-1 rounded-full text-xs font-semibold transition bg-slate-100 text-slate-900 shadow-xs">
+          Today
+        </button>
+        <button onclick="setMasterViewFilter('all')" id="subFilter-all"
+          class="px-3.5 py-1 rounded-full text-xs font-semibold transition text-slate-500 hover:text-slate-900">
+          All Days
+        </button>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: MASTER SCHEDULE (MOBILE OPTIMIZED PHONE VIEW)                -->
+    <!-- =================================================================== -->
+    <main id="tabPanel-master" class="space-y-4 flex-1">
+
+      <!-- Day Selector Capsule Bar (MON - SAT) -->
+      <div class="flex items-center justify-between gap-1 overflow-x-auto pb-1 no-scrollbar">
+        <div id="masterDayPills" class="flex items-center gap-1.5 w-full justify-between">
+          <!-- Populated by JS: MON, TUE, WED, THU, FRI, SAT -->
+        </div>
+      </div>
+
+      <!-- Active Squad Quick Filter Strip -->
+      <div class="flex items-center justify-between text-xs px-1">
+        <div class="flex items-center gap-1.5">
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Squad:</span>
+          <div id="inlineSquadToggles" class="flex items-center gap-1.5">
+            <!-- Dhruba & Ajay quick pills -->
+          </div>
+        </div>
+        <div class="text-[11px] text-slate-400">
+          <span id="currentDayHeaderLabel" class="font-bold text-slate-700">Monday</span> (7 slots)
+        </div>
+      </div>
+
+      <!-- Slot Cards List for Selected Day (Clean Mobile Card Feed) -->
+      <div id="mobileSlotCardFeed" class="space-y-2.5">
+        <!-- Injected dynamically by JS: Slot 1 to 7 with courses, times, venues -->
+      </div>
+
+      <!-- Quick Slot Inspector Bottom Sheet / Modal (When a card is tapped) -->
+      <div id="slotDetailCard" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+        <!-- Populated by JS -->
+      </div>
+    </main>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: FREE BETWEEN X & Y TIME SORTER (MOBILE PHONE OPTIMIZED)       -->
+    <!-- =================================================================== -->
+    <main id="tabPanel-range" class="hidden space-y-4 flex-1">
+      <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+            <i class="fa-solid fa-clock-rotate-left text-brandBlue"></i>
+            <span>Free Time Range Finder</span>
+          </h2>
+          <button onclick="setRangeToRightNow()"
+            class="px-2.5 py-1 rounded-full bg-blue-50 text-brandBlue text-[11px] font-semibold border border-blue-200 active:scale-95 transition">
+            <i class="fa-solid fa-bolt mr-1"></i>Next 2 hrs
+          </button>
+        </div>
+
+        <!-- Day Selection for Range -->
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+            Select Day
+          </label>
+          <div id="rangeDayPills" class="grid grid-cols-6 gap-1 text-center">
+            <!-- MON - SAT buttons -->
+          </div>
+        </div>
+
+        <!-- Time Pickers -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label for="rangeStartTime"
+              class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+              Start Time (X)
+            </label>
+            <input type="time" id="rangeStartTime" value="10:05" min="08:00" max="20:00"
+              onchange="calculateAndRenderFreeRange()"
+              class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-semibold focus:outline-none focus:border-brandBlue" />
+          </div>
+          <div>
+            <label for="rangeEndTime" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+              End Time (Y)
+            </label>
+            <input type="time" id="rangeEndTime" value="16:20" min="08:00" max="20:00"
+              onchange="calculateAndRenderFreeRange()"
+              class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-semibold focus:outline-none focus:border-brandBlue" />
+          </div>
+        </div>
+
+        <!-- Quick Presets -->
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+            Quick Time Presets
+          </label>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="setTimePreset('08:30', '13:10')"
+              class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-[11px] font-medium text-slate-700">
+              Morning (8:30–13:10)
+            </button>
+            <button onclick="setTimePreset('13:15', '16:20')"
+              class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-[11px] font-medium text-slate-700">
+              Afternoon (13:15–16:20)
+            </button>
+            <button onclick="setTimePreset('16:25', '19:30')"
+              class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-[11px] font-medium text-slate-700">
+              Evening (16:25–19:30)
+            </button>
+            <button onclick="setTimePreset('08:30', '19:30')"
+              class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-[11px] font-medium text-slate-700">
+              Full Day
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Range Results List -->
+      <div id="rangeSortedResults" class="space-y-2.5">
+        <!-- Injected by JS -->
+      </div>
+    </main>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: INDIVIDUAL TIMETABLE & REGISTERED COURSES (MOBILE)           -->
+    <!-- =================================================================== -->
+    <main id="tabPanel-individual" class="hidden space-y-4 flex-1">
+
+      <!-- Friend Selector Pills -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm flex items-center justify-between gap-2">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Student:</span>
+        <div id="individualFriendSelector" class="flex items-center gap-1.5">
+          <!-- Populated by JS: Dhruba / Ajay -->
+        </div>
+      </div>
+
+      <!-- Individual Stats 2x2 Grid -->
+      <div id="individualStatsRow" class="grid grid-cols-2 gap-2">
+        <!-- Injected dynamically by JS -->
+      </div>
+
+      <!-- Registered Courses Container (Styled Exactly Like Portfolio Table) -->
+      <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+        <!-- Table Header (Portfolio Baby Blue Strip) -->
+        <div class="bg-tableHeader px-3.5 py-2.5 border-b border-blue-100 flex items-center justify-between">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">
+            Registered Courses (No Status Row)
+          </span>
+          <span id="individualCourseCountBadge"
+            class="text-[10px] font-mono font-bold text-brandBlue bg-white px-2 py-0.5 rounded-full shadow-2xs">
+            9 Courses
+          </span>
+        </div>
+
+        <!-- Mobile Clean Course Feed -->
+        <div id="individualCourseCardsFeed" class="divide-y divide-slate-100 p-2 space-y-1">
+          <!-- Injected dynamically by JS (Clean, without the useless status row!) -->
+        </div>
+      </div>
+    </main>
+
+    <!-- SQUAD MANAGEMENT MODAL / POPUP -->
+    <div id="squadModal"
+      class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-3">
+      <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+          <h3 class="text-base font-bold text-slate-900">Manage Squad Sync</h3>
+          <button onclick="toggleSquadFilterModal()"
+            class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
+
+        <div class="space-y-2">
+          <p class="text-xs text-slate-500">Toggle friends to include or exclude from group timetable calculations:</p>
+          <div id="modalFriendCheckboxes" class="space-y-2 pt-1">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button onclick="setAllFriendsActive(true); toggleSquadFilterModal();"
+            class="flex-1 py-2 rounded-xl bg-brandBlue text-white text-xs font-semibold shadow-sm">
+            Select Both
+          </button>
+          <button onclick="toggleSquadFilterModal()"
+            class="flex-1 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Footer Info -->
+    <footer class="mt-8 text-center text-[11px] text-slate-400 space-y-1">
+      <div>VIT Bhopal Slot System • Mobile Optimized</div>
+      <div class="font-mono text-[10px] text-slate-400">Dhruba Samal &amp; Ajay Patel</div>
+    </footer>
+
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION SCRIPT & HARDCODED TIMETABLE DATA                         -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * ========================================================================
+     * 1. VERIFIED TIMETABLE DATA: DHRUBA SAMAL & AJAY PATEL
+     * ========================================================================
+     * - Only Ajay Patel & Dhruba Samal (Dummy sample friends removed)
+     * - C++ (CSE2001) faculty for BOTH is IAMNEO 5 - ACAD
+     * - Ajay Patel has exact same slots as Dhruba, except:
+     *   ENG2005 (Advanced Technical Communication) faculty is VINOD BHATT - SASL
+     */
+    const FRIENDS_DATA = [
+      {
+        id: "dhruba",
+        name: "Dhruba Samal",
+        tag: "Verified VTOP",
+        color: "emerald",
+        avatarBg: "from-blue-500 to-indigo-600",
+        courses: [
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Open Elective",
+            classNo: "BL2026270500828",
+            slots: ["A24", "E21", "F22"],
+            venue: "AB-102",
+            faculty: "G.PRABU KANNA - O/o-COE"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Open Elective",
+            classNo: "BL2026270501333",
+            slots: ["F11"],
+            venue: "CR-021",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Open Elective",
+            classNo: "BL2026270501408",
+            slots: ["D21"],
+            venue: "CR-016",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500900",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB02-216",
+            faculty: "IAMNEO 5 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Open Elective",
+            classNo: "BL2026270500696",
+            slots: ["A11", "A12", "A13"],
+            venue: "AB-315",
+            faculty: "ARINDAM DUTTA - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science",
+            classNo: "BL2026270500530",
+            slots: ["B13"],
+            venue: "AB-501",
+            faculty: "ABDUR RAHMAN M S - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500379",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-101",
+            faculty: "KUMAR ABHISHEK - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500138",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB-230",
+            faculty: "ASHOK KUMAR BARAL - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500557",
+            slots: ["B11"],
+            venue: "AB-530",
+            faculty: "ABDUR RAHMAN M S - SASL"
+          }
+        ]
+      },
+      {
+        id: "ajay",
+        name: "Ajay Patel",
+        tag: "Verified VTOP",
+        color: "blue",
+        avatarBg: "from-sky-500 to-blue-600",
+        courses: [
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Open Elective",
+            classNo: "BL2026270500828",
+            slots: ["A24", "E21", "F22"],
+            venue: "AB-102",
+            faculty: "G.PRABU KANNA - O/o-COE"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Open Elective",
+            classNo: "BL2026270501333",
+            slots: ["F11"],
+            venue: "CR-021",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Open Elective",
+            classNo: "BL2026270501408",
+            slots: ["D21"],
+            venue: "CR-016",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500900",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB02-216",
+            faculty: "IAMNEO 5 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Open Elective",
+            classNo: "BL2026270500696",
+            slots: ["A11", "A12", "A13"],
+            venue: "AB-315",
+            faculty: "ARINDAM DUTTA - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science",
+            classNo: "BL2026270500530",
+            slots: ["B13"],
+            venue: "AB-429",
+            faculty: "VINOD BHATT - SASL" // Single different teacher
+          },
+          {
+            group: "General",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500379",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-101",
+            faculty: "KUMAR ABHISHEK - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500138",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB-230",
+            faculty: "ASHOK KUMAR BARAL - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500557",
+            slots: ["B11"],
+            venue: "AB-530",
+            faculty: "ABDUR RAHMAN M S - SASL"
+          }
+        ]
+      }
+    ];
+
+    /**
+     * ========================================================================
+     * 2. VIT BHOPAL 7-SLOT MATRIX (LUNCH COMPLETELY REMOVED!)
+     * ========================================================================
+     */
+    const TIME_COLUMNS = [
+      { index: 0, start: "08:30", end: "10:00", startMin: 510, endMin: 600, label: "Slot 1" },
+      { index: 1, start: "10:05", end: "11:35", startMin: 605, endMin: 695, label: "Slot 2" },
+      { index: 2, start: "11:40", end: "13:10", startMin: 700, endMin: 790, label: "Slot 3" },
+      { index: 3, start: "13:15", end: "14:45", startMin: 795, endMin: 885, label: "Slot 4" },
+      { index: 4, start: "14:50", end: "16:20", startMin: 890, endMin: 980, label: "Slot 5" },
+      { index: 5, start: "16:25", end: "17:55", startMin: 985, endMin: 1075, label: "Slot 6" },
+      { index: 6, start: "18:00", end: "19:30", startMin: 1080, endMin: 1170, label: "Slot 7" }
+    ];
+
+    // Exactly 7 theory slots per day, lunch row completely removed
+    const DAY_MATRIX = {
+      MON: ["A11", "B11", "C11", "A21", "A14", "B21", "C21"],
+      TUE: ["D11", "E11", "F11", "D21", "E14", "E21", "F21"],
+      WED: ["A12", "B12", "C12", "A22", "B14", "B22", "A24"],
+      THU: ["D12", "E12", "F12", "D22", "F14", "E22", "F22"],
+      FRI: ["A13", "B13", "C13", "A23", "C14", "B23", "B24"],
+      SAT: ["D13", "E13", "F13", "D23", "D14", "D24", "E23"]
+    };
+
+    const DAYS_ORDER = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const DAY_FULL_NAMES = {
+      MON: "Monday",
+      TUE: "Tuesday",
+      WED: "Wednesday",
+      THU: "Thursday",
+      FRI: "Friday",
+      SAT: "Saturday"
+    };
+
+    /**
+     * ========================================================================
+     * 3. APPLICATION STATE
+     * ========================================================================
+     */
+    let activeTab = "master";
+    let activeFriendIds = new Set(FRIENDS_DATA.map(f => f.id));
+    let selectedMasterDay = "MON";
+    let selectedSlotIndex = null;
+    let selectedRangeDay = "MON";
+    let selectedIndividualFriendId = "dhruba";
+    let masterViewFilter = "today"; // 'today' | 'all'
+
+    // Detect today's day on startup
+    const currentJsDay = new Date().getDay();
+    if (currentJsDay >= 1 && currentJsDay <= 6) {
+      selectedMasterDay = DAYS_ORDER[currentJsDay - 1];
+      selectedRangeDay = selectedMasterDay;
+    }
+
+    /**
+     * ========================================================================
+     * 4. HELPER UTILITIES
+     * ========================================================================
+     */
+    function getFriendSlotMap(friend) {
+      const map = {};
+      if (!friend || !friend.courses) return map;
+      for (const course of friend.courses) {
+        for (const slot of course.slots) {
+          map[slot.trim().toUpperCase()] = course;
+        }
+      }
+      return map;
+    }
+
+    function timeStrToMinutes(timeStr) {
+      if (!timeStr || !timeStr.includes(":")) return 0;
+      const [h, m] = timeStr.split(":").map(Number);
+      return h * 60 + m;
+    }
+
+    function minutesToTimeStr(totalMinutes) {
+      const h = Math.floor(totalMinutes / 60);
+      const m = Math.round(totalMinutes % 60);
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    }
+
+    function formatDuration(mins) {
+      if (mins <= 0) return "0m";
+      const h = Math.floor(mins / 60);
+      const m = Math.round(mins % 60);
+      if (h > 0 && m > 0) return `${h}h ${m}m`;
+      if (h > 0) return `${h}h`;
+      return `${m}m`;
+    }
+
+    function getActiveFriendsList() {
+      return FRIENDS_DATA.filter(f => activeFriendIds.has(f.id));
+    }
+
+    function getSlotOccupancy(day, colIndex) {
+      const col = TIME_COLUMNS[colIndex];
+      const slotCode = DAY_MATRIX[day][colIndex];
+      const activeFriends = getActiveFriendsList();
+
+      const freeFriends = [];
+      const busyFriends = [];
+
+      for (const friend of activeFriends) {
+        const slotMap = getFriendSlotMap(friend);
+        const course = slotMap[slotCode];
+        if (course) {
+          busyFriends.push({ friend, course });
+        } else {
+          freeFriends.push(friend);
+        }
+      }
+
+      return {
+        day,
+        colIndex,
+        slotCode,
+        timeRange: `${col.start} - ${col.end}`,
+        start: col.start,
+        end: col.end,
+        label: col.label,
+        freeFriends,
+        busyFriends
+      };
+    }
+
+    /**
+     * ========================================================================
+     * 5. TOP CARDS & LIVE STATUS METRICS
+     * ========================================================================
+     */
+    function updateTopSummaryMetrics() {
+      const totalWeekSlots = 42; // 6 days * 7 slots
+      const activeFriends = getActiveFriendsList();
+
+      if (activeFriends.length === 0) {
+        document.getElementById("statTotalSlots").textContent = "42";
+        document.getElementById("statBusySlots").textContent = "0";
+        document.getElementById("statFreeSlots").textContent = "42";
+        return;
+      }
+
+      // Calculate unique busy slots across active friends
+      let busyCount = 0;
+      DAYS_ORDER.forEach(day => {
+        for (let i = 0; i < 7; i++) {
+          const occ = getSlotOccupancy(day, i);
+          if (occ.busyFriends.length > 0) {
+            busyCount++;
+          }
+        }
+      });
+
+      const freeCount = totalWeekSlots - busyCount;
+      document.getElementById("statTotalSlots").textContent = totalWeekSlots;
+      document.getElementById("statBusySlots").textContent = busyCount;
+      document.getElementById("statFreeSlots").textContent = freeCount;
+    }
+
+    function renderLiveStatusBanner() {
+      const widget = document.getElementById("liveBannerWidget");
+      const now = new Date();
+      const jsDay = now.getDay();
+      const currentMins = now.getHours() * 60 + now.getMinutes();
+      const timeFormatted = minutesToTimeStr(currentMins);
+
+      if (jsDay === 0) {
+        widget.innerHTML = `
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Sunday (${timeFormatted}) — No classes today, full free day!</span>
+        `;
+        return;
+      }
+
+      const dayCode = DAYS_ORDER[jsDay - 1];
+      const activeCol = TIME_COLUMNS.find(c => currentMins >= c.startMin && currentMins <= c.endMin);
+
+      if (!activeCol) {
+        widget.innerHTML = `
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span class="font-semibold text-slate-800">${dayCode} ${timeFormatted}</span>
+          <span class="text-slate-400">• Outside class hours</span>
+        `;
+        return;
+      }
+
+      const occ = getSlotOccupancy(dayCode, activeCol.index);
+      const total = occ.freeFriends.length + occ.busyFriends.length;
+
+      widget.innerHTML = `
+        <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+        <span class="font-bold text-blue-600 font-mono">${dayCode} • ${occ.slotCode}</span>
+        <span class="text-slate-500 text-[11px]">(${occ.timeRange})</span>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${occ.freeFriends.length === total ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">
+          ${occ.freeFriends.length}/${total} Free Now
+        </span>
+      `;
+    }
+
+    /**
+     * ========================================================================
+     * 6. NAVIGATION & TABS
+     * ========================================================================
+     */
+    function switchTab(tabId) {
+      activeTab = tabId;
+      const tabs = ["master", "range", "individual"];
+
+      tabs.forEach(t => {
+        const panel = document.getElementById(`tabPanel-${t}`);
+        const btn = document.getElementById(`tabBtn-${t}`);
+        if (t === tabId) {
+          panel.classList.remove("hidden");
+          btn.className = "tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm";
+        } else {
+          panel.classList.add("hidden");
+          btn.className = "tab-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 transition";
+        }
+      });
+
+      // Show/Hide sub-filter bar depending on tab
+      const subBar = document.getElementById("subFilterBar");
+      if (tabId === "master") {
+        subBar.classList.remove("hidden");
+        renderMasterDayPills();
+        renderMobileSlotCards();
+      } else {
+        subBar.classList.add("hidden");
+      }
+
+      if (tabId === "range") {
+        renderRangeDayButtons();
+        calculateAndRenderFreeRange();
+      } else if (tabId === "individual") {
+        renderIndividualView();
+      }
+    }
+
+    function setMasterViewFilter(filter) {
+      masterViewFilter = filter;
+      const todayBtn = document.getElementById("subFilter-today");
+      const allBtn = document.getElementById("subFilter-all");
+
+      if (filter === "today") {
+        todayBtn.className = "px-3.5 py-1 rounded-full text-xs font-semibold transition bg-slate-100 text-slate-900 shadow-xs";
+        allBtn.className = "px-3.5 py-1 rounded-full text-xs font-semibold transition text-slate-500 hover:text-slate-900";
+        const jsDay = new Date().getDay();
+        if (jsDay >= 1 && jsDay <= 6) {
+          selectedMasterDay = DAYS_ORDER[jsDay - 1];
+        }
+      } else {
+        allBtn.className = "px-3.5 py-1 rounded-full text-xs font-semibold transition bg-slate-100 text-slate-900 shadow-xs";
+        todayBtn.className = "px-3.5 py-1 rounded-full text-xs font-semibold transition text-slate-500 hover:text-slate-900";
+      }
+      renderMasterDayPills();
+      renderMobileSlotCards();
+    }
+
+    /**
+     * ========================================================================
+     * 7. TAB 1: MOBILE TIMETABLE FEED & DAY SELECTOR
+     * ========================================================================
+     */
+    function renderMasterDayPills() {
+      const container = document.getElementById("masterDayPills");
+      container.innerHTML = DAYS_ORDER.map(day => {
+        const isSelected = day === selectedMasterDay;
+        return `
+          <button
+            onclick="selectMasterDay('${day}')"
+            class="flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition text-center ${isSelected
+            ? 'bg-brandBlue text-white shadow-sm'
+            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }"
+          >
+            ${day}
+          </button>
+        `;
+      }).join("");
+
+      document.getElementById("currentDayHeaderLabel").textContent = DAY_FULL_NAMES[selectedMasterDay];
+      renderInlineSquadToggles();
+    }
+
+    function selectMasterDay(day) {
+      selectedMasterDay = day;
+      selectedSlotIndex = null;
+      renderMasterDayPills();
+      renderMobileSlotCards();
+      document.getElementById("slotDetailCard").classList.add("hidden");
+    }
+
+    function renderInlineSquadToggles() {
+      const container = document.getElementById("inlineSquadToggles");
+      container.innerHTML = FRIENDS_DATA.map(f => {
+        const active = activeFriendIds.has(f.id);
+        return `
+          <button
+            onclick="toggleFriendActive('${f.id}')"
+            class="px-2 py-0.5 rounded-full text-[10px] font-bold border transition ${active
+            ? 'bg-blue-50 text-brandBlue border-blue-200'
+            : 'bg-slate-50 text-slate-400 border-slate-200 opacity-60'
+          }"
+          >
+            ${f.name.split(" ")[0]}
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderMobileSlotCards() {
+      const container = document.getElementById("mobileSlotCardFeed");
+      const activeFriends = getActiveFriendsList();
+
+      if (activeFriends.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-400 text-xs">
+            No friends selected in squad. Tap "Squad" at top to enable.
+          </div>
+        `;
+        return;
+      }
+
+      // Render 7 slots for the chosen day
+      container.innerHTML = TIME_COLUMNS.map((col, idx) => {
+        const occ = getSlotOccupancy(selectedMasterDay, idx);
+        const total = occ.freeFriends.length + occ.busyFriends.length;
+        const allFree = occ.freeFriends.length === total;
+        const allBusy = occ.freeFriends.length === 0;
+
+        let badgeStyle = "bg-amber-50 text-amber-700 border-amber-200";
+        let statusText = `${occ.freeFriends.length}/${total} Free`;
+
+        if (allFree) {
+          badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-200";
+          statusText = "Both Free";
+        } else if (allBusy) {
+          badgeStyle = "bg-rose-50 text-rose-700 border-rose-200";
+          statusText = "Both In Class";
+        }
+
+        const isCurrentSlotSelected = selectedSlotIndex === idx;
+
+        return `
+          <div
+            onclick="inspectMobileSlot(${idx})"
+            class="bg-white border rounded-2xl p-3.5 shadow-2xs transition active:scale-[0.99] cursor-pointer ${isCurrentSlotSelected
+            ? 'border-brandBlue ring-2 ring-blue-100'
+            : 'border-slate-200/90 hover:border-slate-300'
+          }"
+          >
+            <!-- Card Header: Slot Name + Time + Status Badge -->
+            <div class="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-black text-sm px-2 py-0.5 rounded-lg bg-slate-100 text-slate-800">
+                  ${occ.slotCode}
+                </span>
+                <span class="text-xs font-semibold text-slate-500 font-mono">
+                  ${col.start} – ${col.end}
+                </span>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badgeStyle}">
+                ${statusText}
+              </span>
+            </div>
+
+            <!-- Card Body: Busy/Free Course Information -->
+            <div class="space-y-1.5">
+              ${occ.busyFriends.length > 0
+            ? occ.busyFriends.map(({ friend, course }) => `
+                    <div class="flex items-center justify-between text-xs py-1 px-2 rounded-xl bg-slate-50">
+                      <div class="min-w-0 pr-2">
+                        <div class="font-bold text-slate-900 truncate">
+                          ${friend.name.split(" ")[0]}: <span class="text-brandBlue font-mono">${course.code}</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 truncate">
+                          ${course.title} • <span class="font-medium text-slate-600">${course.faculty.split(" - ")[0]}</span>
+                        </div>
+                      </div>
+                      <span class="font-mono font-bold text-[11px] px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 shrink-0">
+                        ${course.venue}
+                      </span>
+                    </div>
+                  `).join("")
+            : `
+                    <div class="py-1.5 px-2 rounded-xl bg-emerald-50/60 text-emerald-700 text-xs font-medium flex items-center gap-2">
+                      <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                      <span>Free slot! Perfect time to hang out or study.</span>
+                    </div>
+                  `
+          }
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function inspectMobileSlot(colIndex) {
+      selectedSlotIndex = colIndex;
+      renderMobileSlotCards();
+
+      const occ = getSlotOccupancy(selectedMasterDay, colIndex);
+      const detailEl = document.getElementById("slotDetailCard");
+      detailEl.classList.remove("hidden");
+
+      detailEl.innerHTML = `
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-mono font-black text-base text-brandBlue">${occ.slotCode}</span>
+              <span class="font-bold text-sm text-slate-800">${DAY_FULL_NAMES[selectedMasterDay]}</span>
+            </div>
+            <div class="text-xs text-slate-500 font-mono">${occ.timeRange} (90 mins)</div>
+          </div>
+          <button onclick="document.getElementById('slotDetailCard').classList.add('hidden')" class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          ${occ.busyFriends.length > 0 ? `
+            <div class="font-bold text-slate-700">Class Details:</div>
+            ${occ.busyFriends.map(({ friend, course }) => `
+              <div class="p-2.5 rounded-xl bg-white border border-slate-200 space-y-1">
+                <div class="flex items-center justify-between font-bold">
+                  <span>${friend.name}</span>
+                  <span class="font-mono text-amber-600">${course.venue}</span>
+                </div>
+                <div class="text-slate-600 font-mono">${course.code} • ${course.title}</div>
+                <div class="text-[11px] text-slate-500"><i class="fa-solid fa-user-tie mr-1"></i>${course.faculty}</div>
+              </div>
+            `).join("")}
+          ` : `
+            <div class="p-3 text-center text-emerald-700 font-medium bg-emerald-50 rounded-xl">
+              Nobody in class during ${occ.slotCode}! Both Dhruba and Ajay are free.
+            </div>
+          `}
+        </div>
+      `;
+
+      detailEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /**
+     * ========================================================================
+     * 8. TAB 2: FREE BETWEEN X & Y TIME (MOBILE SORTER)
+     * ========================================================================
+     */
+    function renderRangeDayButtons() {
+      const container = document.getElementById("rangeDayPills");
+      container.innerHTML = DAYS_ORDER.map(day => {
+        const active = day === selectedRangeDay;
+        return `
+          <button
+            onclick="selectRangeDay('${day}')"
+            class="py-1.5 rounded-xl font-bold text-xs transition ${active
+            ? 'bg-brandBlue text-white shadow-xs'
+            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }"
+          >
+            ${day}
+          </button>
+        `;
+      }).join("");
+    }
+
+    function selectRangeDay(day) {
+      selectedRangeDay = day;
+      renderRangeDayButtons();
+      calculateAndRenderFreeRange();
+    }
+
+    function setTimePreset(startStr, endStr) {
+      document.getElementById("rangeStartTime").value = startStr;
+      document.getElementById("rangeEndTime").value = endStr;
+      calculateAndRenderFreeRange();
+    }
+
+    function setRangeToRightNow() {
+      const now = new Date();
+      const jsDay = now.getDay();
+      if (jsDay >= 1 && jsDay <= 6) {
+        selectedRangeDay = DAYS_ORDER[jsDay - 1];
+      }
+      let startM = now.getHours() * 60 + now.getMinutes();
+      if (startM < 510 || startM > 1110) startM = 510; // clamp to 8:30
+      const endM = Math.min(startM + 120, 1170);
+
+      document.getElementById("rangeStartTime").value = minutesToTimeStr(startM);
+      document.getElementById("rangeEndTime").value = minutesToTimeStr(endM);
+      renderRangeDayButtons();
+      calculateAndRenderFreeRange();
+    }
+
+    function calculateAndRenderFreeRange() {
+      const startStr = document.getElementById("rangeStartTime").value || "08:30";
+      const endStr = document.getElementById("rangeEndTime").value || "13:10";
+      let startMin = timeStrToMinutes(startStr);
+      let endMin = timeStrToMinutes(endStr);
+      const resultsContainer = document.getElementById("rangeSortedResults");
+
+      if (endMin <= startMin) {
+        resultsContainer.innerHTML = `
+          <div class="p-4 rounded-2xl bg-rose-50 text-rose-600 text-xs font-semibold text-center border border-rose-200">
+            End Time (Y) must be later than Start Time (X).
+          </div>
+        `;
+        return;
+      }
+
+      const totalWindowMinutes = endMin - startMin;
+      const daySlots = DAY_MATRIX[selectedRangeDay];
+
+      // Identify which slots overlap
+      const overlappingCols = [];
+      TIME_COLUMNS.forEach((col, idx) => {
+        const overlapStart = Math.max(startMin, col.startMin);
+        const overlapEnd = Math.min(endMin, col.endMin);
+        const overlapMins = Math.max(0, overlapEnd - overlapStart);
+        if (overlapMins > 0) {
+          overlappingCols.push({
+            col,
+            slotCode: daySlots[idx],
+            overlapStart,
+            overlapEnd,
+            overlapMins
+          });
+        }
+      });
+
+      const activeFriends = getActiveFriendsList();
+      const friendEvaluations = activeFriends.map(friend => {
+        const slotMap = getFriendSlotMap(friend);
+        let busyMinutes = 0;
+        const busyConflicts = [];
+        const freeSlotsInWindow = [];
+
+        for (const item of overlappingCols) {
+          const course = slotMap[item.slotCode];
+          if (course) {
+            busyMinutes += item.overlapMins;
+            busyConflicts.push({
+              slotCode: item.slotCode,
+              course,
+              slotStartStr: item.col.start,
+              slotEndStr: item.col.end,
+              overlapMins: item.overlapMins
+            });
+          } else {
+            freeSlotsInWindow.push({
+              slotCode: item.slotCode,
+              slotStartStr: item.col.start,
+              slotEndStr: item.col.end
+            });
+          }
+        }
+
+        const freeMinutes = Math.max(0, totalWindowMinutes - busyMinutes);
+        const freePercent = Math.round((freeMinutes / totalWindowMinutes) * 100);
+
+        return {
+          friend,
+          freeMinutes,
+          busyMinutes,
+          freePercent,
+          busyConflicts,
+          freeSlotsInWindow
+        };
+      });
+
+      friendEvaluations.sort((a, b) => b.freeMinutes - a.freeMinutes);
+
+      resultsContainer.innerHTML = `
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
+          Availability Rankings (${selectedRangeDay} • ${startStr} to ${endStr})
+        </div>
+        ${friendEvaluations.map((item, idx) => `
+          <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-2xs space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                  <span>#${idx + 1}</span>
+                  <span>${item.friend.name}</span>
+                </div>
+                <div class="text-[11px] text-slate-500 font-mono">
+                  Free: <strong class="text-brandBlue">${formatDuration(item.freeMinutes)}</strong> of ${formatDuration(totalWindowMinutes)}
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold font-mono ${item.freePercent === 100 ? 'bg-emerald-100 text-emerald-800' : (item.freePercent > 0 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800')
+        }">
+                ${item.freePercent}% Free
+              </span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div class="h-full bg-brandBlue transition-all duration-300" style="width: ${item.freePercent}%"></div>
+            </div>
+
+            <!-- Details -->
+            ${item.busyConflicts.length > 0 ? `
+              <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500 space-y-1">
+                <span class="font-bold text-slate-600">Conflicts in window:</span>
+                ${item.busyConflicts.map(c => `
+                  <div class="flex items-center justify-between bg-slate-50 px-2 py-1 rounded-lg">
+                    <span><strong class="font-mono text-rose-600">${c.slotCode}</strong> (${c.course.code})</span>
+                    <span class="font-mono font-semibold text-amber-700">${c.course.venue}</span>
+                  </div>
+                `).join("")}
+              </div>
+            ` : `
+              <div class="text-[11px] text-emerald-700 font-medium">
+                <i class="fa-solid fa-check mr-1"></i>No class conflicts in this time window!
+              </div>
+            `}
+          </div>
+        `).join("")}
+      `;
+    }
+
+    /**
+     * ========================================================================
+     * 9. TAB 3: INDIVIDUAL TIMETABLE & REGISTERED COURSES (NO STATUS ROW)
+     * ========================================================================
+     */
+    function renderIndividualView() {
+      const friend = FRIENDS_DATA.find(f => f.id === selectedIndividualFriendId) || FRIENDS_DATA[0];
+      const slotMap = getFriendSlotMap(friend);
+
+      // Render Friend Selector Buttons
+      const selectorContainer = document.getElementById("individualFriendSelector");
+      selectorContainer.innerHTML = FRIENDS_DATA.map(f => {
+        const isSelected = f.id === friend.id;
+        return `
+          <button
+            onclick="selectIndividualFriend('${f.id}')"
+            class="px-3.5 py-1 rounded-full text-xs font-bold transition border ${isSelected
+            ? 'bg-brandBlue text-white border-brandBlue shadow-2xs'
+            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+          }"
+          >
+            ${f.name.split(" ")[0]}
+          </button>
+        `;
+      }).join("");
+
+      // Stats 2x2 Grid
+      const totalCourses = friend.courses.length;
+      const totalCredits = friend.courses.reduce((sum, c) => sum + Number(c.credit || 0), 0);
+      const registeredSlotCount = Object.keys(slotMap).length;
+      const totalWeekSlots = 42;
+      const freeSlotCount = totalWeekSlots - registeredSlotCount;
+
+      document.getElementById("individualStatsRow").innerHTML = `
+        <div class="bg-cardBlue border border-cardBlueBorder p-3 rounded-2xl text-center">
+          <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Courses &amp; Credits</div>
+          <div class="text-lg font-black font-mono text-slate-900 mt-0.5">${totalCourses} • ${totalCredits.toFixed(1)} Cr</div>
+        </div>
+        <div class="bg-cardPink border border-cardPinkBorder p-3 rounded-2xl text-center">
+          <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Weekly Busy</div>
+          <div class="text-lg font-black font-mono text-slate-900 mt-0.5">${registeredSlotCount} / 42 Slots</div>
+        </div>
+      `;
+
+      document.getElementById("individualCourseCountBadge").textContent = `${totalCourses} Courses`;
+
+      // Render Registered Courses List - Clean mobile card items WITHOUT status row!
+      const cardsFeed = document.getElementById("individualCourseCardsFeed");
+      cardsFeed.innerHTML = friend.courses.map((c, i) => `
+        <div class="p-3 bg-white hover:bg-slate-50 transition rounded-xl space-y-1.5">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-mono font-bold text-xs px-2 py-0.5 rounded-md bg-blue-50 text-brandBlue">
+                  ${c.code}
+                </span>
+                <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                  ${c.shortType}
+                </span>
+                <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                  ${c.credit} Cr
+                </span>
+              </div>
+              <h4 class="text-xs font-bold text-slate-900 mt-1">
+                ${c.title}
+              </h4>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="font-mono font-extrabold text-xs px-2 py-1 rounded-lg bg-amber-100 text-amber-800">
+                ${c.venue}
+              </span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+            <span class="truncate"><i class="fa-solid fa-user-tie text-slate-400 mr-1"></i>${c.faculty}</span>
+            <span class="font-mono font-bold text-brandBlue shrink-0 ml-2">Slots: ${c.slots.join("+")}</span>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function selectIndividualFriend(friendId) {
+      selectedIndividualFriendId = friendId;
+      renderIndividualView();
+    }
+
+    /**
+     * ========================================================================
+     * 10. SQUAD SELECTION MODAL
+     * ========================================================================
+     */
+    function toggleSquadFilterModal() {
+      const modal = document.getElementById("squadModal");
+      const isHidden = modal.classList.contains("hidden");
+      if (isHidden) {
+        modal.classList.remove("hidden");
+        renderSquadModalCheckboxes();
+      } else {
+        modal.classList.add("hidden");
+      }
+    }
+
+    function renderSquadModalCheckboxes() {
+      const container = document.getElementById("modalFriendCheckboxes");
+      container.innerHTML = FRIENDS_DATA.map(f => {
+        const active = activeFriendIds.has(f.id);
+        return `
+          <label class="flex items-center justify-between p-3 rounded-2xl border border-slate-200 cursor-pointer bg-slate-50 hover:bg-slate-100">
+            <div class="flex items-center gap-2.5">
+              <input
+                type="checkbox"
+                ${active ? 'checked' : ''}
+                onchange="toggleFriendActive('${f.id}')"
+                class="w-4 h-4 rounded text-brandBlue focus:ring-brandBlue"
+              />
+              <span class="font-bold text-xs text-slate-800">${f.name}</span>
+            </div>
+            <span class="text-[10px] font-mono text-slate-400">9 courses</span>
+          </label>
+        `;
+      }).join("");
+    }
+
+    function toggleFriendActive(friendId) {
+      if (activeFriendIds.has(friendId)) {
+        if (activeFriendIds.size === 1) return;
+        activeFriendIds.delete(friendId);
+      } else {
+        activeFriendIds.add(friendId);
+      }
+      refreshAllViews();
+    }
+
+    function setAllFriendsActive(val) {
+      if (val) {
+        FRIENDS_DATA.forEach(f => activeFriendIds.add(f.id));
+      }
+      refreshAllViews();
+    }
+
+    function refreshAllViews() {
+      updateTopSummaryMetrics();
+      renderLiveStatusBanner();
+      renderInlineSquadToggles();
+      if (activeTab === "master") {
+        renderMasterDayPills();
+        renderMobileSlotCards();
+      } else if (activeTab === "range") {
+        renderRangeDayButtons();
+        calculateAndRenderFreeRange();
+      } else if (activeTab === "individual") {
+        renderIndividualView();
+      }
+    }
+
+    /**
+     * ========================================================================
+     * INITIALIZATION
+     * ========================================================================
+     */
+    window.onload = function () {
+      updateTopSummaryMetrics();
+      renderLiveStatusBanner();
+      switchTab("master");
+      setInterval(renderLiveStatusBanner, 30000);
+    };
+  </script>
+</body>
+
+</html>
