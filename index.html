@@ -330,9 +330,10 @@
         </button>
       </div>
       <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-        Made by <span class="text-slate-800 dark:text-slate-200 font-bold">Dhruba</span> and <span class="text-slate-800 dark:text-slate-200 font-bold">Ajay</span>
+        Made by <span class="text-slate-800 dark:text-slate-200 font-bold">Dhruba</span> and <span
+          class="text-slate-800 dark:text-slate-200 font-bold">Ajay</span>
       </div>
-      <div class="text-[10px] text-slate-400 dark:text-slate-600">Offline-ready Progressive Web App (PWA)</div>
+      <div class="text-[10px] text-slate-400 dark:text-slate-600">Offline ready Progressive Web App</div>
     </footer>
 
     <!-- Install Help / iOS Modal -->
@@ -2940,13 +2941,13 @@
               ${occ.busyFriends.length > 0 ? `
                 <div class="space-y-1.5">
                   ${occ.busyFriends.map(({ friend, course }) => {
-                    const fKey = (course.faculty || "").trim().toLowerCase();
-                    const borderTheme = teacherThemeMap[fKey];
-                    const cardBorder = borderTheme
-                      ? `${borderTheme} border-y border-r border-slate-100/80 dark:border-slate-700/60`
-                      : `border border-slate-100/80 dark:border-slate-700/60`;
+            const fKey = (course.faculty || "").trim().toLowerCase();
+            const borderTheme = teacherThemeMap[fKey];
+            const cardBorder = borderTheme
+              ? `${borderTheme} border-y border-r border-slate-100/80 dark:border-slate-700/60`
+              : `border border-slate-100/80 dark:border-slate-700/60`;
 
-                    return `
+            return `
                     <div class="flex items-start justify-between text-xs py-2 px-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 ${cardBorder}">
                       <div class="min-w-0 pr-2 space-y-0.5">
                         <div class="font-bold text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
@@ -2966,7 +2967,7 @@
                       </span>
                     </div>
                   `;
-                  }).join("")}
+          }).join("")}
                 </div>
               ` : ''}
 
