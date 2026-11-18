@@ -611,15 +611,6 @@
               class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-xs font-mono font-bold focus:outline-none focus:border-brandBlue" />
           </div>
 
-          <!-- Location Badge Notice -->
-          <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 rounded-xl p-2.5 text-[11px] flex items-start gap-2">
-            <i class="fa-solid fa-location-dot text-amber-600 dark:text-amber-400 mt-0.5 text-xs"></i>
-            <div>
-              <span class="font-bold text-amber-900 dark:text-amber-300">Pickup Counter:</span>
-              <p class="text-amber-800/90 dark:text-amber-400/90 text-[10.5px]">Located in the open passage between Academic Block (AB) and AB02.</p>
-            </div>
-          </div>
-
           <!-- Packet Description / Note -->
           <div>
             <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
@@ -629,19 +620,17 @@
               class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-xs font-medium focus:outline-none focus:border-brandBlue" />
           </div>
 
-          <!-- Squad Notification Notice -->
-          <div class="bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/70 dark:border-blue-900/50 rounded-xl p-2.5 text-[11px] flex items-center gap-2">
-            <i class="fa-solid fa-bell text-blue-600 dark:text-blue-400 text-xs shrink-0"></i>
-            <span class="text-blue-800/90 dark:text-blue-300 text-[10.5px]">Squad members with alerts enabled will be notified instantly when you post this request.</span>
-          </div>
-
           <!-- Submit Button -->
-          <div class="pt-1">
+          <div class="pt-2">
             <button type="submit" id="submitParcelRequestBtn"
               class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 active:scale-98">
               <i class="fa-solid fa-bullhorn text-xs"></i>
               <span id="submitParcelBtnText">Post Request to Squad</span>
             </button>
+            <p class="text-center text-[10.5px] text-slate-400 dark:text-slate-500 mt-2 flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-bell text-[10px] text-amber-500"></i>
+              <span>Squad members with alerts enabled will be notified</span>
+            </p>
           </div>
         </form>
       </div>
@@ -4697,57 +4686,57 @@
           priority = 100;
           category = "leaving_ab02";
           badgeLabel = "🌟 Prime Match • Leaving AB02";
-          badgeStyle = "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800";
-          borderClass = "border-l-[4px] border-l-emerald-500 border-y border-r border-slate-100/80 dark:border-slate-700/60";
-          routeNote = `In ${curVenue} (${curCourse.code}). Class ends at ${curCol.end}, next slot is free! Walks right past parcel area.`;
+          badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800";
+          borderClass = "border border-emerald-300/80 dark:border-emerald-800/80";
+          routeNote = `In ${curVenue} (${curCourse.code}) • Next slot free`;
         } else if (curCourse && curBlock === "AB02" && nextBlock === "AB") {
           // Walking from AB02 to AB -> crosses parcel area
           priority = 95;
           category = "leaving_ab02";
-          badgeLabel = "🚶 Moving AB02 ➔ AB";
-          badgeStyle = "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800";
-          borderClass = "border-l-[4px] border-l-blue-500 border-y border-r border-slate-100/80 dark:border-slate-700/60";
-          routeNote = `In ${curVenue} (${curCourse.code}), moving to ${nextVenue} in AB. Crosses through parcel area!`;
+          badgeLabel = "🚶 Moving AB02 → AB";
+          badgeStyle = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800";
+          borderClass = "border border-blue-300/80 dark:border-blue-800/80";
+          routeNote = `Moving from ${curVenue} to ${nextVenue} in AB`;
         } else if (curCourse && curBlock === "AB" && nextBlock === "AB02") {
           // Walking from AB to AB02 -> crosses parcel area
           priority = 90;
           category = "leaving_ab02";
-          badgeLabel = "🚶 Moving AB ➔ AB02";
-          badgeStyle = "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800";
-          borderClass = "border-l-[4px] border-l-blue-500 border-y border-r border-slate-100/80 dark:border-slate-700/60";
-          routeNote = `In ${curVenue} (${curCourse.code}), moving to ${nextVenue} in AB02. Crosses through parcel area!`;
+          badgeLabel = "🚶 Moving AB → AB02";
+          badgeStyle = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800";
+          borderClass = "border border-blue-300/80 dark:border-blue-800/80";
+          routeNote = `Moving from ${curVenue} to ${nextVenue} in AB02`;
         } else if (!curCourse && !nextCourse) {
           // Free now and next slot
           priority = 85;
           category = "free_now";
-          badgeLabel = "⚡ Free Now & Next Slot";
+          badgeLabel = "⚡ Free Now & Next";
           badgeStyle = "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800";
-          borderClass = "border-l-[4px] border-l-teal-500 border-y border-r border-slate-100/80 dark:border-slate-700/60";
-          routeNote = `Completely free right now (${curCol.start}–${curCol.end}) and next slot also free.`;
+          borderClass = "border border-teal-300/80 dark:border-teal-800/80";
+          routeNote = `Completely free now & next slot`;
         } else if (!curCourse && nextCourse) {
           // Free now, class next
           priority = 75;
           category = "free_now";
           badgeLabel = "🟢 Free Right Now";
           badgeStyle = "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800";
-          borderClass = "border-l-[4px] border-l-teal-500 border-y border-r border-slate-100/80 dark:border-slate-700/60";
-          routeNote = `Free right now! Next class starts at ${nextCol.start} in ${nextVenue} (${nextCourse.code}).`;
+          borderClass = "border border-teal-300/80 dark:border-teal-800/80";
+          routeNote = `Free now • Next class ${nextCol ? nextCol.start : ''} in ${nextVenue}`;
         } else if (curCourse && !nextCourse) {
           // In class now, free next
           priority = 65;
           category = "free_next";
           badgeLabel = "⏳ Free Next Slot";
           badgeStyle = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800";
-          borderClass = "border-l-[4px] border-l-amber-500 border-y border-r border-slate-100/80 dark:border-slate-700/60";
-          routeNote = `In class now in ${curVenue} (${curCourse.code}). Free starting next slot at ${nextCol ? nextCol.start : curCol.end}!`;
+          borderClass = "border border-amber-300/80 dark:border-amber-800/80";
+          routeNote = `In class now in ${curVenue} • Free next slot (${nextCol ? nextCol.start : curCol.end})`;
         } else {
           // In class back-to-back
           priority = 10;
           category = "busy";
-          badgeLabel = "📚 In Class (Back-to-back)";
+          badgeLabel = "In Class";
           badgeStyle = "bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800/60 dark:text-slate-400 dark:border-slate-700";
-          borderClass = "border border-slate-100/80 dark:border-slate-700/60";
-          routeNote = `In ${curVenue} (${curCourse.code}) now, next in ${nextVenue} (${nextCourse.code}).`;
+          borderClass = "border border-slate-200/60 dark:border-slate-800/60";
+          routeNote = `In ${curVenue} (${curCourse.code}) → ${nextVenue} (${nextCourse.code})`;
         }
 
         return {
@@ -5114,9 +5103,12 @@
       const ab02Count = allHelpers.filter(h => h.category === "leaving_ab02").length;
       const freeNowCount = allHelpers.filter(h => h.category === "free_now").length;
       const freeNextCount = allHelpers.filter(h => h.category === "free_next").length;
+      const availableCount = allHelpers.filter(h => h.category !== "busy").length;
 
       let filteredHelpers = allHelpers;
-      if (selectedParcelFilter === "leaving_ab02") {
+      if (selectedParcelFilter === "available") {
+        filteredHelpers = allHelpers.filter(h => h.category !== "busy");
+      } else if (selectedParcelFilter === "leaving_ab02") {
         filteredHelpers = allHelpers.filter(h => h.category === "leaving_ab02");
       } else if (selectedParcelFilter === "free_now") {
         filteredHelpers = allHelpers.filter(h => h.category === "free_now");
@@ -5125,132 +5117,134 @@
       }
 
       container.innerHTML = `
-        <!-- Campus Location & Route Info Banner -->
-        <div class="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-200/80 dark:border-amber-900/60 rounded-2xl p-3.5 space-y-2">
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+        <!-- Sleek Header Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-base shadow-xs shrink-0">
                 <i class="fa-solid fa-box-open"></i>
               </div>
-              <div>
-                <h2 class="text-sm font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-1.5">
-                  <span>Campus Parcel Helper</span>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
+                    Campus Parcel Helper
+                  </h2>
                   ${isParcelLoading ? `
-                    <span class="relative flex h-2 w-2 ml-0.5 inline-flex" title="Syncing parcel requests with Firebase...">
+                    <span class="relative flex h-2 w-2 shrink-0" title="Syncing parcel requests...">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                     </span>
                   ` : (parcelSyncError ? `
-                    <span class="relative flex h-2 w-2 ml-0.5 inline-flex" title="Offline / Local Cache">
+                    <span class="relative flex h-2 w-2 shrink-0" title="Offline / Local Cache">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
                     </span>
                   ` : `
-                    <span class="relative flex h-2 w-2 ml-0.5 inline-flex" title="Live Firebase Connected">
+                    <span class="relative flex h-2 w-2 shrink-0" title="Live Connected">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
                   `)}
-                </h2>
-                <p class="text-[11px] text-slate-600 dark:text-slate-400">
-                  Parcel counter is in between <strong>AB</strong> &amp; <strong>AB02</strong> blocks.
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+                  ${availableCount > 0
+                    ? `<span class="text-emerald-600 dark:text-emerald-400 font-semibold">${availableCount} squad members</span> free to help`
+                    : `No squad members free in this slot`}
                 </p>
               </div>
             </div>
-            <div class="flex items-center gap-1.5 shrink-0">
+
+            <!-- Action Controls -->
+            <div class="flex items-center gap-2 shrink-0">
               <button
                 onclick="toggleParcelNotifications()"
                 id="parcelNotificationToggleBtn"
                 title="${isParcelNotificationEnabled() ? 'Parcel notifications enabled (Click to mute)' : 'Enable parcel request notifications'}"
-                class="px-2 py-1 rounded-xl font-bold text-xs transition shadow-xs flex items-center gap-1 active:scale-95 ${
+                class="px-2.5 py-1.5 rounded-xl font-bold text-xs transition shadow-xs flex items-center gap-1.5 active:scale-95 ${
                   isParcelNotificationEnabled()
                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
                     : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
                 }"
               >
-                <i class="fa-solid ${isParcelNotificationEnabled() ? 'fa-bell text-emerald-600 dark:text-emerald-400' : 'fa-bell-slash text-slate-400'} text-[11px]"></i>
+                <i class="fa-solid ${isParcelNotificationEnabled() ? 'fa-bell text-emerald-600 dark:text-emerald-400' : 'fa-bell-slash text-slate-400'} text-xs"></i>
                 <span class="hidden sm:inline">${isParcelNotificationEnabled() ? 'Alerts On' : 'Alerts'}</span>
               </button>
               <button
                 onclick="openParcelRequestModal()"
-                class="px-2.5 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition shadow-xs flex items-center gap-1 shrink-0 active:scale-95"
+                class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition shadow-xs flex items-center gap-1.5 shrink-0 active:scale-95"
               >
-                <i class="fa-solid fa-plus text-[10px]"></i>
+                <i class="fa-solid fa-plus text-[11px]"></i>
                 <span>Request</span>
               </button>
             </div>
           </div>
-          <p class="text-[10.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-            Detects squad members who are free right now or travelling from <strong>AB02</strong> and have their next class free, so they can grab your delivery on their way!
-          </p>
         </div>
 
-        <!-- Day Selector Capsule Bar -->
-        <div class="flex items-center justify-between gap-1 overflow-x-auto pb-1 no-scrollbar">
-          <div class="flex items-center gap-1.5 w-full justify-between">
-            ${DAYS_ORDER.map(day => {
-              const isSelected = day === selectedParcelDay;
-              return `
-                <button
-                  onclick="selectParcelDay('${day}')"
-                  class="flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition text-center ${isSelected
-                  ? 'bg-amber-500 text-white shadow-sm'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                }"
-                >
-                  ${day}
-                </button>
-              `;
-            }).join("")}
-          </div>
-        </div>
-
-        <!-- Slot Time Selector (With Live Slot Follower) -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 space-y-2.5 shadow-2xs">
+        <!-- Unified Day & Slot Control Panel -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3 sm:p-3.5 space-y-3 shadow-xs">
+          <!-- Day Segmented Switcher + Live Badge -->
           <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-1.5 min-w-0">
-              <i class="fa-solid fa-clock text-amber-500 text-xs"></i>
-              <span class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-                Slot: <span class="font-mono text-brandBlue">${DAY_MATRIX[selectedParcelDay][activeSlotIdx]}</span> (${activeCol.start}–${activeCol.end})
-              </span>
+            <div class="flex items-center gap-1 flex-1 overflow-x-auto no-scrollbar">
+              ${DAYS_ORDER.map(day => {
+                const isSelected = day === selectedParcelDay;
+                return `
+                  <button
+                    onclick="selectParcelDay('${day}')"
+                    class="flex-1 min-w-[40px] py-1.5 rounded-xl text-xs font-bold transition text-center ${isSelected
+                    ? 'bg-amber-500 text-white shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }"
+                  >
+                    ${day}
+                  </button>
+                `;
+              }).join("")}
             </div>
-            <div class="flex items-center gap-1 shrink-0">
+
+            <!-- Snap Live / Live status -->
+            <div class="shrink-0">
               ${!isAutoLive ? `
                 <button
                   onclick="resetParcelToLiveSlot()"
-                  class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-400 border border-blue-200 dark:border-blue-900/60 hover:underline flex items-center gap-1"
+                  class="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-400 border border-blue-200 dark:border-blue-900/60 hover:bg-blue-100 dark:hover:bg-blue-900/80 transition flex items-center gap-1.5 active:scale-95"
                 >
                   <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
                   <span>Snap Live</span>
                 </button>
               ` : `
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60 flex items-center gap-1">
+                <span class="text-[10.5px] font-bold px-2 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800 flex items-center gap-1.5">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>Live Time</span>
+                  <span>Live</span>
                 </span>
               `}
             </div>
           </div>
 
-          <!-- Slot Pills Strip -->
-          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 custom-h-scrollbar">
-            ${TIME_COLUMNS.map((col, idx) => {
-              const isSelected = (idx === activeSlotIdx);
-              const isLive = (idx === liveSlotIdx);
-              return `
-                <button
-                  onclick="selectParcelSlot(${idx})"
-                  class="shrink-0 px-2.5 py-1 rounded-xl text-[11px] font-bold border transition ${isSelected
-                  ? 'bg-amber-500 text-white border-amber-500 shadow-2xs'
-                  : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }"
-                >
-                  <span class="font-mono">${DAY_MATRIX[selectedParcelDay][idx]}</span>
-                  <span class="font-normal text-[10px] ml-0.5">(${col.start.split(" ")[0]})</span>
-                  ${isLive && !isSelected ? `<span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 ml-1"></span>` : ''}
-                </button>
-              `;
-            }).join("")}
+          <!-- Active Slot Strip with Timings -->
+          <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80">
+            <div class="flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5 px-0.5">
+              <span>Slot: <strong class="font-mono text-slate-800 dark:text-slate-200">${DAY_MATRIX[selectedParcelDay][activeSlotIdx]}</strong></span>
+              <span class="font-mono text-[10.5px] text-slate-400">${activeCol.start} – ${activeCol.end}</span>
+            </div>
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 custom-h-scrollbar">
+              ${TIME_COLUMNS.map((col, idx) => {
+                const isSelected = (idx === activeSlotIdx);
+                const isLive = (idx === liveSlotIdx);
+                return `
+                  <button
+                    onclick="selectParcelSlot(${idx})"
+                    class="shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition flex items-center gap-1 ${isSelected
+                    ? 'bg-amber-500 text-white border-amber-500 font-bold shadow-xs'
+                    : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  }"
+                  >
+                    <span class="font-mono">${DAY_MATRIX[selectedParcelDay][idx]}</span>
+                    <span class="text-[10px] opacity-75 font-normal">(${col.start.split(" ")[0]})</span>
+                    ${isLive && !isSelected ? `<span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 ml-0.5 animate-pulse"></span>` : ''}
+                  </button>
+                `;
+              }).join("")}
+            </div>
           </div>
         </div>
 
@@ -5265,15 +5259,15 @@
             </div>
             <div class="space-y-2">
               ${PARCEL_REQUESTS.map(req => `
-                <div class="bg-white dark:bg-slate-900 border ${req.status === 'claimed' ? 'border-emerald-300 dark:border-emerald-800' : 'border-amber-300 dark:border-amber-800'} rounded-2xl p-3 shadow-2xs space-y-2">
+                <div class="bg-white dark:bg-slate-900 border ${req.status === 'claimed' ? 'border-emerald-300 dark:border-emerald-800' : 'border-amber-300 dark:border-amber-800'} rounded-2xl p-3 shadow-xs space-y-2">
                   <div class="flex items-start justify-between gap-2">
                     <div class="flex items-center gap-2">
-                      <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                      <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center font-bold text-xs shadow-xs">
                         ${req.requester.charAt(0)}
                       </div>
                       <div>
                         <div class="text-xs font-bold text-slate-900 dark:text-slate-100">${req.requester}</div>
-                        <div class="text-[10px] text-slate-400 dark:text-slate-500">${formatReviewTime(req.timestamp)} • ${req.courier}</div>
+                        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">${formatReviewTime(req.timestamp)} • ${req.courier}</div>
                       </div>
                     </div>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${req.status === 'claimed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-900' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900'}">
@@ -5282,35 +5276,29 @@
                   </div>
 
                   ${req.note || req.otp ? `
-                    <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2 text-xs text-slate-700 dark:text-slate-300 space-y-0.5">
-                      ${req.otp ? `<div class="font-mono text-[11px] font-bold text-amber-600 dark:text-amber-400">OTP: ${req.otp}</div>` : ''}
-                      ${req.note ? `<div class="text-[11px] text-slate-600 dark:text-slate-400">${req.note}</div>` : ''}
+                    <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2 text-xs text-slate-700 dark:text-slate-300 flex flex-wrap items-center gap-2">
+                      ${req.otp ? `<span class="font-mono text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-md border border-amber-200/60 dark:border-amber-900/60">OTP: ${req.otp}</span>` : ''}
+                      ${req.note ? `<span class="text-xs text-slate-600 dark:text-slate-300">${req.note}</span>` : ''}
                     </div>
                   ` : ''}
 
-                  <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
-                    <span class="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                      <i class="fa-solid fa-location-dot text-amber-500 text-[10px]"></i>
-                      <span>Between AB &amp; AB02</span>
-                    </span>
-                    <div class="flex items-center gap-1.5">
-                      ${req.status !== 'claimed' ? `
-                        <button
-                          onclick="claimParcelRequest('${req.id}')"
-                          class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition shadow-xs flex items-center gap-1 active:scale-95"
-                        >
-                          <i class="fa-solid fa-handshake text-[10px]"></i>
-                          <span>I Can Bring It!</span>
-                        </button>
-                      ` : ''}
+                  <div class="flex items-center justify-end gap-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-800">
+                    ${req.status !== 'claimed' ? `
                       <button
-                        onclick="completeParcelRequest('${req.id}')"
-                        class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-[10.5px] transition"
-                        title="Mark received or dismiss"
+                        onclick="claimParcelRequest('${req.id}')"
+                        class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-xs flex items-center gap-1 active:scale-95"
                       >
-                        <i class="fa-solid fa-check text-[10px] mr-1"></i>Received
+                        <i class="fa-solid fa-handshake text-xs"></i>
+                        <span>I Can Bring It!</span>
                       </button>
-                    </div>
+                    ` : ''}
+                    <button
+                      onclick="completeParcelRequest('${req.id}')"
+                      class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs transition active:scale-95"
+                      title="Mark received or dismiss"
+                    >
+                      <i class="fa-solid fa-check text-[11px] mr-1"></i>Received
+                    </button>
                   </div>
                 </div>
               `).join("")}
@@ -5318,103 +5306,135 @@
           </div>
         ` : ''}
 
-        <!-- Filter Chips Strip -->
+        <!-- Filter Pills Strip -->
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 custom-h-scrollbar">
           <button
             onclick="setParcelFilter('all')"
             class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition ${selectedParcelFilter === 'all'
             ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-xs'
-            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
           }"
           >
-            All Helpers (${allHelpers.length})
+            All (${allHelpers.length})
+          </button>
+          <button
+            onclick="setParcelFilter('available')"
+            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-1.5 ${selectedParcelFilter === 'available'
+            ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
+            : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/80 hover:bg-amber-100 dark:hover:bg-amber-900/40'
+          }"
+          >
+            <span>⚡ Available</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full ${selectedParcelFilter === 'available' ? 'bg-white/20 text-white' : 'bg-amber-200/60 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200'}">${availableCount}</span>
           </button>
           <button
             onclick="setParcelFilter('leaving_ab02')"
-            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-1 ${selectedParcelFilter === 'leaving_ab02'
+            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-1.5 ${selectedParcelFilter === 'leaving_ab02'
             ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-            : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/80'
+            : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/80 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
           }"
           >
-            <span>🚶 Leaving AB02 / Moving</span>
+            <span>🚶 Leaving AB02</span>
             <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full ${selectedParcelFilter === 'leaving_ab02' ? 'bg-white/20 text-white' : 'bg-emerald-200/60 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200'}">${ab02Count}</span>
           </button>
           <button
             onclick="setParcelFilter('free_now')"
-            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-1 ${selectedParcelFilter === 'free_now'
+            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-1.5 ${selectedParcelFilter === 'free_now'
             ? 'bg-teal-600 text-white border-teal-600 shadow-xs'
-            : 'bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800/80'
+            : 'bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800/80 hover:bg-teal-100 dark:hover:bg-teal-900/40'
           }"
           >
-            <span>🟢 Free Right Now</span>
+            <span>🟢 Free Now</span>
             <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full ${selectedParcelFilter === 'free_now' ? 'bg-white/20 text-white' : 'bg-teal-200/60 dark:bg-teal-900/60 text-teal-800 dark:text-teal-200'}">${freeNowCount}</span>
-          </button>
-          <button
-            onclick="setParcelFilter('free_next')"
-            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-1 ${selectedParcelFilter === 'free_next'
-            ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-            : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/80'
-          }"
-          >
-            <span>⏳ Free Next Slot</span>
-            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full ${selectedParcelFilter === 'free_next' ? 'bg-white/20 text-white' : 'bg-amber-200/60 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200'}">${freeNextCount}</span>
           </button>
         </div>
 
         <!-- Helpers List -->
         <div class="space-y-2">
           ${filteredHelpers.length === 0 ? `
-            <div class="p-8 text-center bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-xs">
-              No squad members match this filter in Slot ${activeSlotIdx + 1}. Try viewing 'All Helpers'.
+            <div class="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-xs">
+              No squad members match this filter in Slot ${activeSlotIdx + 1}. Try viewing 'All'.
             </div>
-          ` : filteredHelpers.map(h => `
-            <div class="bg-white dark:bg-slate-900 ${h.borderClass} rounded-2xl p-3 shadow-2xs space-y-2">
-              <div class="flex items-start justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-full bg-gradient-to-tr ${h.friend.avatarBg} text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
-                    ${h.friend.name.charAt(0)}
+          ` : filteredHelpers.map(h => {
+            const isBusy = h.category === "busy";
+
+            if (isBusy) {
+              return `
+                <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60 rounded-xl p-2.5 transition opacity-60 hover:opacity-100 flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-6 h-6 rounded-full bg-gradient-to-tr ${h.friend.avatarBg} text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                      ${h.friend.name.charAt(0)}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">${h.friend.name}</div>
+                      <div class="text-[10px] text-slate-400 font-mono truncate">${h.routeNote}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                      <span>${h.friend.name}</span>
-                    </div>
-                    <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
-                      ${h.curCourse ? `Now: ${h.curVenue}` : 'Now: Free'} • ${h.nextCourse ? `Next: ${h.nextVenue}` : 'Next: Free'}
-                    </div>
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700">
+                      In Class
+                    </span>
+                    <button
+                      type="button"
+                      onclick="askHelperOnWhatsApp('${h.friend.name}')"
+                      class="px-2 py-1 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] font-medium transition"
+                      title="Ask on WhatsApp"
+                    >
+                      <i class="fa-brands fa-whatsapp text-xs"></i>
+                    </button>
                   </div>
                 </div>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${h.badgeStyle} shrink-0 text-right">
-                  ${h.badgeLabel}
-                </span>
-              </div>
+              `;
+            }
 
-              <!-- Route Note -->
-              <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-normal pl-0.5">
-                ${h.routeNote}
-              </p>
+            return `
+              <div class="bg-white dark:bg-slate-900 ${h.borderClass} rounded-2xl p-3 sm:p-3.5 shadow-xs space-y-2.5">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr ${h.friend.avatarBg} text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+                      ${h.friend.name.charAt(0)}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">${h.friend.name}</div>
+                      <div class="text-[10.5px] text-slate-500 dark:text-slate-400 font-mono truncate">
+                        ${h.curCourse ? `Now: ${h.curVenue}` : 'Now: Free'} • ${h.nextCourse ? `Next: ${h.nextVenue}` : 'Next: Free'}
+                      </div>
+                    </div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${h.badgeStyle} shrink-0 text-right">
+                    ${h.badgeLabel}
+                  </span>
+                </div>
 
-              <!-- Action Buttons -->
-              <div class="flex items-center justify-end gap-1.5 pt-1 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  type="button"
-                  onclick="copyHelperMessage('${h.friend.name}')"
-                  class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-semibold transition flex items-center gap-1"
-                  title="Copy pickup request text"
-                >
-                  <i class="fa-solid fa-copy text-[10px]"></i>
-                  <span>Copy</span>
-                </button>
-                <button
-                  type="button"
-                  onclick="askHelperOnWhatsApp('${h.friend.name}')"
-                  class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition shadow-xs flex items-center gap-1 active:scale-95"
-                >
-                  <i class="fa-brands fa-whatsapp text-xs"></i>
-                  <span>Ask on WhatsApp</span>
-                </button>
+                <!-- Route Note -->
+                <div class="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5 pl-0.5">
+                  <i class="fa-solid fa-location-arrow text-amber-500 text-[10px] shrink-0"></i>
+                  <span class="truncate">${h.routeNote}</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onclick="copyHelperMessage('${h.friend.name}')"
+                    class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold transition flex items-center gap-1.5 active:scale-95"
+                    title="Copy pickup request text"
+                  >
+                    <i class="fa-solid fa-copy text-[10px]"></i>
+                    <span>Copy</span>
+                  </button>
+                  <button
+                    type="button"
+                    onclick="askHelperOnWhatsApp('${h.friend.name}')"
+                    class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 active:scale-95"
+                  >
+                    <i class="fa-brands fa-whatsapp text-xs"></i>
+                    <span>Ask on WhatsApp</span>
+                  </button>
+                </div>
               </div>
-            </div>
-          `).join("")}
+            `;
+          }).join("")}
         </div>
       `;
     }
