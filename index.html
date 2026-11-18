@@ -200,6 +200,11 @@
           class="tab-btn px-3 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
           Teachers
         </button>
+        <button onclick="switchTab('parcel')" id="tabBtn-parcel"
+          class="tab-btn px-3 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0 flex items-center gap-1.5">
+          <i class="fa-solid fa-box text-[11px] text-amber-500"></i>
+          <span>Parcels</span>
+        </button>
       </div>
     </div>
 
@@ -317,6 +322,13 @@
       </div>
     </main>
 
+    <!-- =================================================================== -->
+    <!-- TAB 4: PARCEL HELPER (CAMPUS DELIVERY BUDDY)                        -->
+    <!-- =================================================================== -->
+    <main id="tabPanel-parcel" class="hidden space-y-4 flex-1">
+      <!-- Injected dynamically by renderParcelHelper() -->
+    </main>
+
 
     <!-- Mobile Footer Info -->
     <footer class="mt-8 text-center text-[11px] text-slate-400 dark:text-slate-500 space-y-1.5 pb-6">
@@ -330,7 +342,8 @@
         </button>
       </div>
       <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-        Made by <span class="text-slate-800 dark:text-slate-200 font-bold">Dhruba</span> and <span
+        Made by <span class="text-slate-800 dark:text-slate-200 font-bold">Dhruba</span>, <span
+          class="text-slate-800 dark:text-slate-200 font-bold">Suvayan</span> and <span
           class="text-slate-800 dark:text-slate-200 font-bold">Ajay</span>
       </div>
       <div class="text-[10px] text-slate-400 dark:text-slate-600">Offline ready Progressive Web App</div>
@@ -536,6 +549,92 @@
               class="w-full py-2.5 rounded-xl bg-brandBlue hover:bg-brandBlueHover text-white text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 active:scale-98">
               <i class="fa-solid fa-paper-plane text-xs"></i>
               <span id="submitReviewBtnText">Submit Review</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Parcel Request Modal -->
+    <div id="parcelRequestModal"
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-4 animate-fadeIn">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <div
+              class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+              <i class="fa-solid fa-box-open"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white">Request Parcel Pickup</h3>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Between AB &amp; AB02 Counter</p>
+            </div>
+          </div>
+          <button onclick="closeParcelRequestModal()"
+            class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
+
+        <form id="parcelRequestForm" onsubmit="event.preventDefault(); submitParcelRequest();" class="space-y-3">
+          <!-- Requester selection -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Who is requesting? *</label>
+            <select id="parcelRequesterSelect" required
+              class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-brandBlue">
+              <option value="">Select your name...</option>
+            </select>
+          </div>
+
+          <!-- Courier Platform -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Delivery Service / Platform *</label>
+            <select id="parcelCourierInput"
+              class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-brandBlue">
+              <option value="Amazon">Amazon</option>
+              <option value="Flipkart">Flipkart</option>
+              <option value="Myntra">Myntra</option>
+              <option value="Swiggy / Zomato">Swiggy / Zomato</option>
+              <option value="SpeedPost / IndiaPost">SpeedPost / IndiaPost</option>
+              <option value="BlueDart / Delhivery">BlueDart / Delhivery</option>
+              <option value="Courier / Other">Courier / Other</option>
+            </select>
+          </div>
+
+          <!-- OTP or Tracking digits -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+              Delivery OTP / Security Code <span class="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <input type="text" id="parcelOtpInput" placeholder="e.g. 4921"
+              class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-xs font-mono font-bold focus:outline-none focus:border-brandBlue" />
+          </div>
+
+          <!-- Location Badge Notice -->
+          <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 rounded-xl p-2.5 text-[11px] flex items-start gap-2">
+            <i class="fa-solid fa-location-dot text-amber-600 dark:text-amber-400 mt-0.5 text-xs"></i>
+            <div>
+              <span class="font-bold text-amber-900 dark:text-amber-300">Pickup Counter:</span>
+              <p class="text-amber-800/90 dark:text-amber-400/90 text-[10.5px]">Located in the open passage between Academic Block (AB) and AB02.</p>
+            </div>
+          </div>
+
+          <!-- Packet Description / Note -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+              Packet Description / Notes <span class="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <input type="text" id="parcelNoteInput" placeholder="e.g. Small cardboard box under my name"
+              class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-xs font-medium focus:outline-none focus:border-brandBlue" />
+          </div>
+
+          <!-- Submit Button -->
+          <div class="pt-1">
+            <button type="submit" id="submitParcelRequestBtn"
+              class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 active:scale-98">
+              <i class="fa-solid fa-bullhorn text-xs"></i>
+              <span id="submitParcelBtnText">Post Request to Squad</span>
             </button>
           </div>
         </form>
@@ -2708,7 +2807,7 @@
      */
     function switchTab(tabId) {
       activeTab = tabId;
-      const tabs = ["master", "individual", "teacher"];
+      const tabs = ["master", "individual", "teacher", "parcel"];
 
       tabs.forEach(t => {
         const panel = document.getElementById(`tabPanel-${t}`);
@@ -2732,6 +2831,9 @@
         // Teacher reviews are lazy-loaded ONLY when Teacher Finder is opened
         initFirebaseReviews();
         renderTeacherFinder();
+      } else if (tabId === "parcel") {
+        initFirebaseParcelRequests();
+        renderParcelHelper();
       }
     }
 
@@ -3120,6 +3222,8 @@
         renderIndividualView();
       } else if (activeTab === "teacher") {
         renderTeacherFinder();
+      } else if (activeTab === "parcel") {
+        renderParcelHelper();
       }
     }
 
@@ -3932,9 +4036,652 @@
 
     /**
      * ========================================================================
-     * 11. DARK MODE MANAGEMENT
+     * 10.5. TAB 4: CAMPUS PARCEL HELPER & SQUAD ROUTE DETECTOR
      * ========================================================================
      */
+    let selectedParcelDay = DAYS_ORDER[new Date().getDay() - 1] || "MON";
+    let selectedParcelSlotIndex = null; // null follows current live slot
+    let selectedParcelFilter = "all"; // "all", "leaving_ab02", "free_now", "free_next"
+    let PARCEL_REQUESTS = [];
+    let isFirebaseParcelListenerActive = false;
+
+    // Load initial cached parcel requests from localStorage
+    try {
+      const cached = localStorage.getItem("vitb_parcel_requests");
+      if (cached) PARCEL_REQUESTS = JSON.parse(cached);
+    } catch (e) { }
+
+    function getVenueBlock(venue) {
+      if (!venue) return "Unknown";
+      const v = venue.trim().toUpperCase();
+      if (v.startsWith("AB02-") || v.startsWith("AB02")) return "AB02";
+      if (v.startsWith("AB-") || v.startsWith("AB1-")) return "AB";
+      if (v.startsWith("CR-")) return "CR";
+      if (v.startsWith("AR-")) return "AR";
+      return "Other";
+    }
+
+    function getParcelHelpers(day, colIndex) {
+      const curCol = TIME_COLUMNS[colIndex] || TIME_COLUMNS[0];
+      const nextColIndex = (colIndex + 1 < TIME_COLUMNS.length) ? (colIndex + 1) : null;
+      const nextCol = nextColIndex !== null ? TIME_COLUMNS[nextColIndex] : null;
+
+      const curSlotCode = DAY_MATRIX[day][colIndex];
+      const nextSlotCode = nextColIndex !== null ? DAY_MATRIX[day][nextColIndex] : null;
+
+      return FRIENDS_DATA.map(friend => {
+        const slotMap = getFriendSlotMap(friend);
+        const curCourse = slotMap[curSlotCode] || null;
+        const nextCourse = nextSlotCode ? (slotMap[nextSlotCode] || null) : null;
+
+        const curVenue = curCourse ? curCourse.venue : null;
+        const nextVenue = nextCourse ? nextCourse.venue : null;
+
+        const curBlock = getVenueBlock(curVenue);
+        const nextBlock = getVenueBlock(nextVenue);
+
+        let priority = 0;
+        let category = "busy";
+        let badgeLabel = "In Class";
+        let badgeStyle = "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700";
+        let borderClass = "border border-slate-100/80 dark:border-slate-700/60";
+        let routeNote = "";
+
+        if (curCourse && curBlock === "AB02" && !nextCourse) {
+          // In AB02 now, next slot is FREE -> walks past parcel counter
+          priority = 100;
+          category = "leaving_ab02";
+          badgeLabel = "🌟 Prime Match • Leaving AB02";
+          badgeStyle = "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800";
+          borderClass = "border-l-[4px] border-l-emerald-500 border-y border-r border-slate-100/80 dark:border-slate-700/60";
+          routeNote = `In ${curVenue} (${curCourse.code}). Class ends at ${curCol.end}, next slot is free! Walks right past parcel area.`;
+        } else if (curCourse && curBlock === "AB02" && nextBlock === "AB") {
+          // Walking from AB02 to AB -> crosses parcel area
+          priority = 95;
+          category = "leaving_ab02";
+          badgeLabel = "🚶 Moving AB02 ➔ AB";
+          badgeStyle = "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800";
+          borderClass = "border-l-[4px] border-l-blue-500 border-y border-r border-slate-100/80 dark:border-slate-700/60";
+          routeNote = `In ${curVenue} (${curCourse.code}), moving to ${nextVenue} in AB. Crosses through parcel area!`;
+        } else if (curCourse && curBlock === "AB" && nextBlock === "AB02") {
+          // Walking from AB to AB02 -> crosses parcel area
+          priority = 90;
+          category = "leaving_ab02";
+          badgeLabel = "🚶 Moving AB ➔ AB02";
+          badgeStyle = "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800";
+          borderClass = "border-l-[4px] border-l-blue-500 border-y border-r border-slate-100/80 dark:border-slate-700/60";
+          routeNote = `In ${curVenue} (${curCourse.code}), moving to ${nextVenue} in AB02. Crosses through parcel area!`;
+        } else if (!curCourse && !nextCourse) {
+          // Free now and next slot
+          priority = 85;
+          category = "free_now";
+          badgeLabel = "⚡ Free Now & Next Slot";
+          badgeStyle = "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800";
+          borderClass = "border-l-[4px] border-l-teal-500 border-y border-r border-slate-100/80 dark:border-slate-700/60";
+          routeNote = `Completely free right now (${curCol.start}–${curCol.end}) and next slot also free.`;
+        } else if (!curCourse && nextCourse) {
+          // Free now, class next
+          priority = 75;
+          category = "free_now";
+          badgeLabel = "🟢 Free Right Now";
+          badgeStyle = "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800";
+          borderClass = "border-l-[4px] border-l-teal-500 border-y border-r border-slate-100/80 dark:border-slate-700/60";
+          routeNote = `Free right now! Next class starts at ${nextCol.start} in ${nextVenue} (${nextCourse.code}).`;
+        } else if (curCourse && !nextCourse) {
+          // In class now, free next
+          priority = 65;
+          category = "free_next";
+          badgeLabel = "⏳ Free Next Slot";
+          badgeStyle = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800";
+          borderClass = "border-l-[4px] border-l-amber-500 border-y border-r border-slate-100/80 dark:border-slate-700/60";
+          routeNote = `In class now in ${curVenue} (${curCourse.code}). Free starting next slot at ${nextCol ? nextCol.start : curCol.end}!`;
+        } else {
+          // In class back-to-back
+          priority = 10;
+          category = "busy";
+          badgeLabel = "📚 In Class (Back-to-back)";
+          badgeStyle = "bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800/60 dark:text-slate-400 dark:border-slate-700";
+          borderClass = "border border-slate-100/80 dark:border-slate-700/60";
+          routeNote = `In ${curVenue} (${curCourse.code}) now, next in ${nextVenue} (${nextCourse.code}).`;
+        }
+
+        return {
+          friend,
+          curCourse,
+          nextCourse,
+          curVenue,
+          nextVenue,
+          curBlock,
+          nextBlock,
+          priority,
+          category,
+          badgeLabel,
+          badgeStyle,
+          borderClass,
+          routeNote
+        };
+      }).sort((a, b) => b.priority - a.priority || a.friend.name.localeCompare(b.friend.name));
+    }
+
+    function initFirebaseParcelRequests() {
+      if (isFirebaseParcelListenerActive) return;
+      const firestore = getDb();
+      if (!firestore) return;
+
+      isFirebaseParcelListenerActive = true;
+      try {
+        firestore.collection("parcel_requests")
+          .limit(25)
+          .onSnapshot((snapshot) => {
+            const reqs = [];
+            snapshot.forEach(doc => {
+              const data = doc.data();
+              reqs.push({
+                id: doc.id,
+                ...data,
+                timestamp: data.timestamp || Date.now()
+              });
+            });
+            reqs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            PARCEL_REQUESTS = reqs;
+            try {
+              localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
+            } catch (e) { }
+            if (activeTab === "parcel") {
+              renderParcelHelper();
+            }
+          }, (err) => {
+            console.warn("Firestore parcel listener note:", err);
+          });
+      } catch (e) {
+        console.warn("Firestore parcel setup error:", e);
+      }
+    }
+
+    function openParcelRequestModal() {
+      const modal = document.getElementById("parcelRequestModal");
+      if (!modal) return;
+
+      const select = document.getElementById("parcelRequesterSelect");
+      if (select && select.options.length <= 1) {
+        const sorted = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
+        select.innerHTML = '<option value="">Select your name...</option>' + sorted.map(f => `
+          <option value="${f.name}">${f.name}</option>
+        `).join("");
+      }
+
+      modal.classList.remove("hidden");
+    }
+
+    function closeParcelRequestModal() {
+      const modal = document.getElementById("parcelRequestModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    async function submitParcelRequest() {
+      const select = document.getElementById("parcelRequesterSelect");
+      const courierInput = document.getElementById("parcelCourierInput");
+      const otpInput = document.getElementById("parcelOtpInput");
+      const noteInput = document.getElementById("parcelNoteInput");
+      const submitBtn = document.getElementById("submitParcelRequestBtn");
+      const btnText = document.getElementById("submitParcelBtnText");
+
+      const requesterName = select ? select.value : "";
+      const courier = courierInput ? courierInput.value : "Amazon";
+      const otp = otpInput ? otpInput.value.trim() : "";
+      const note = noteInput ? noteInput.value.trim() : "";
+
+      if (!requesterName) {
+        alert("Please select your name.");
+        return;
+      }
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Posting...';
+
+      const newReq = {
+        requester: requesterName,
+        courier: courier || "Delivery",
+        otp: otp || "",
+        note: note || "",
+        status: "open",
+        claimedBy: "",
+        location: "Between AB & AB02 Counter",
+        timestamp: Date.now()
+      };
+
+      const firestore = getDb();
+      if (firestore) {
+        try {
+          await firestore.collection("parcel_requests").add({
+            ...newReq,
+            createdAt: (typeof firebase !== "undefined" && firebase.firestore && firebase.firestore.FieldValue)
+              ? firebase.firestore.FieldValue.serverTimestamp()
+              : new Date()
+          });
+        } catch (e) {
+          console.warn("Firestore save fallback to local:", e);
+          newReq.id = "local_" + Date.now();
+          PARCEL_REQUESTS.unshift(newReq);
+          try {
+            localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
+          } catch (err) { }
+        }
+      } else {
+        newReq.id = "local_" + Date.now();
+        PARCEL_REQUESTS.unshift(newReq);
+        try {
+          localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
+        } catch (err) { }
+      }
+
+      if (submitBtn) submitBtn.disabled = false;
+      if (btnText) btnText.textContent = "Post Request to Squad";
+      closeParcelRequestModal();
+      showReviewToast("Parcel request posted to squad board!");
+      renderParcelHelper();
+    }
+
+    async function claimParcelRequest(reqId) {
+      const sorted = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
+      const friendName = prompt("Enter your name to claim this pickup (e.g. Ajay):", sorted[0].name.split(" ")[0]);
+      if (!friendName || !friendName.trim()) return;
+
+      const target = PARCEL_REQUESTS.find(r => r.id === reqId);
+      if (target) {
+        target.status = "claimed";
+        target.claimedBy = friendName.trim();
+        try {
+          localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
+        } catch (e) { }
+      }
+
+      const firestore = getDb();
+      if (firestore && reqId && !reqId.startsWith("local_")) {
+        try {
+          await firestore.collection("parcel_requests").doc(reqId).update({
+            status: "claimed",
+            claimedBy: friendName.trim()
+          });
+        } catch (e) {
+          console.warn("Firestore update error:", e);
+        }
+      }
+
+      showReviewToast(`You claimed this parcel! Thanks for helping ${target ? target.requester : "your friend"}!`);
+      renderParcelHelper();
+    }
+
+    async function completeParcelRequest(reqId) {
+      PARCEL_REQUESTS = PARCEL_REQUESTS.filter(r => r.id !== reqId);
+      try {
+        localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
+      } catch (e) { }
+
+      const firestore = getDb();
+      if (firestore && reqId && !reqId.startsWith("local_")) {
+        try {
+          await firestore.collection("parcel_requests").doc(reqId).delete();
+        } catch (e) {
+          console.warn("Firestore delete error:", e);
+        }
+      }
+
+      showReviewToast("Parcel marked as received / delivered!");
+      renderParcelHelper();
+    }
+
+    function askHelperOnWhatsApp(friendName) {
+      const select = document.getElementById("parcelRequesterSelect");
+      const requester = (select && select.value) ? select.value : "your squad friend";
+
+      const courierInput = document.getElementById("parcelCourierInput");
+      const courier = (courierInput && courierInput.value) ? courierInput.value : "a parcel";
+
+      const otpInput = document.getElementById("parcelOtpInput");
+      const otp = (otpInput && otpInput.value.trim()) ? ` (OTP: ${otpInput.value.trim()})` : "";
+
+      const msg = `Hey ${friendName.split(" ")[0]}! 👋 Are you near the Parcel Area between AB and AB02? Could you please pick up my ${courier} delivery${otp} if you're free? Thank you so much! 🙏 - ${requester}`;
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+      window.open(url, "_blank");
+    }
+
+    function copyHelperMessage(friendName) {
+      const select = document.getElementById("parcelRequesterSelect");
+      const requester = (select && select.value) ? select.value : "your friend";
+
+      const courierInput = document.getElementById("parcelCourierInput");
+      const courier = (courierInput && courierInput.value) ? courierInput.value : "a parcel";
+
+      const otpInput = document.getElementById("parcelOtpInput");
+      const otp = (otpInput && otpInput.value.trim()) ? ` (OTP: ${otpInput.value.trim()})` : "";
+
+      const msg = `Hey ${friendName.split(" ")[0]}! 👋 Are you near the Parcel Area between AB and AB02? Could you please pick up my ${courier} delivery${otp} if you're free? Thank you so much! 🙏 - ${requester}`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(msg).then(() => {
+          showReviewToast("Pickup message copied to clipboard!");
+        }).catch(() => {
+          showReviewToast("Copied to clipboard!");
+        });
+      } else {
+        showReviewToast("Copied to clipboard!");
+      }
+    }
+
+    function selectParcelDay(day) {
+      selectedParcelDay = day;
+      renderParcelHelper();
+    }
+
+    function selectParcelSlot(slotIdx) {
+      selectedParcelSlotIndex = slotIdx;
+      renderParcelHelper();
+    }
+
+    function resetParcelToLiveSlot() {
+      selectedParcelSlotIndex = null;
+      const today = DAYS_ORDER[new Date().getDay() - 1];
+      if (today) selectedParcelDay = today;
+      renderParcelHelper();
+    }
+
+    function setParcelFilter(filterKey) {
+      selectedParcelFilter = filterKey;
+      renderParcelHelper();
+    }
+
+    function renderParcelHelper() {
+      const container = document.getElementById("tabPanel-parcel");
+      if (!container) return;
+
+      const liveSlotIdx = getCurrentLiveSlotIndex();
+      const isAutoLive = (selectedParcelSlotIndex === null);
+      const activeSlotIdx = isAutoLive ? (liveSlotIdx !== -1 ? liveSlotIdx : 0) : selectedParcelSlotIndex;
+      const activeCol = TIME_COLUMNS[activeSlotIdx] || TIME_COLUMNS[0];
+      const nextColIdx = (activeSlotIdx + 1 < TIME_COLUMNS.length) ? (activeSlotIdx + 1) : null;
+      const nextCol = nextColIdx !== null ? TIME_COLUMNS[nextColIdx] : null;
+
+      const allHelpers = getParcelHelpers(selectedParcelDay, activeSlotIdx);
+
+      const ab02Count = allHelpers.filter(h => h.category === "leaving_ab02").length;
+      const freeNowCount = allHelpers.filter(h => h.category === "free_now").length;
+      const freeNextCount = allHelpers.filter(h => h.category === "free_next").length;
+
+      let filteredHelpers = allHelpers;
+      if (selectedParcelFilter === "leaving_ab02") {
+        filteredHelpers = allHelpers.filter(h => h.category === "leaving_ab02");
+      } else if (selectedParcelFilter === "free_now") {
+        filteredHelpers = allHelpers.filter(h => h.category === "free_now");
+      } else if (selectedParcelFilter === "free_next") {
+        filteredHelpers = allHelpers.filter(h => h.category === "free_next");
+      }
+
+      container.innerHTML = `
+        <!-- Campus Location & Route Info Banner -->
+        <div class="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-200/80 dark:border-amber-900/60 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+                <i class="fa-solid fa-box-open"></i>
+              </div>
+              <div>
+                <h2 class="text-sm font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-1.5">
+                  <span>Campus Parcel Helper</span>
+                  <span class="text-[9.5px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60">AB ↔ AB02</span>
+                </h2>
+                <p class="text-[11px] text-slate-600 dark:text-slate-400">
+                  Parcel counter is in between <strong>AB</strong> &amp; <strong>AB02</strong> blocks.
+                </p>
+              </div>
+            </div>
+            <button
+              onclick="openParcelRequestModal()"
+              class="px-2.5 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition shadow-xs flex items-center gap-1 shrink-0 active:scale-95"
+            >
+              <i class="fa-solid fa-plus text-[10px]"></i>
+              <span>Request</span>
+            </button>
+          </div>
+          <p class="text-[10.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
+            Detects squad members who are free right now or travelling from <strong>AB02</strong> and have their next class free, so they can grab your delivery on their way!
+          </p>
+        </div>
+
+        <!-- Day Selector Capsule Bar -->
+        <div class="flex items-center justify-between gap-1 overflow-x-auto pb-1 no-scrollbar">
+          <div class="flex items-center gap-1.5 w-full justify-between">
+            ${DAYS_ORDER.map(day => {
+              const isSelected = day === selectedParcelDay;
+              return `
+                <button
+                  onclick="selectParcelDay('${day}')"
+                  class="flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition text-center ${isSelected
+                  ? 'bg-amber-500 text-white shadow-sm'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }"
+                >
+                  ${day}
+                </button>
+              `;
+            }).join("")}
+          </div>
+        </div>
+
+        <!-- Slot Time Selector (With Live Slot Follower) -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 space-y-2.5 shadow-2xs">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <i class="fa-solid fa-clock text-amber-500 text-xs"></i>
+              <span class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                Slot: <span class="font-mono text-brandBlue">${DAY_MATRIX[selectedParcelDay][activeSlotIdx]}</span> (${activeCol.start}–${activeCol.end})
+              </span>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              ${!isAutoLive ? `
+                <button
+                  onclick="resetParcelToLiveSlot()"
+                  class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-400 border border-blue-200 dark:border-blue-900/60 hover:underline flex items-center gap-1"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                  <span>Snap Live</span>
+                </button>
+              ` : `
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Live Time</span>
+                </span>
+              `}
+            </div>
+          </div>
+
+          <!-- Slot Pills Strip -->
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 custom-h-scrollbar">
+            ${TIME_COLUMNS.map((col, idx) => {
+              const isSelected = (idx === activeSlotIdx);
+              const isLive = (idx === liveSlotIdx);
+              return `
+                <button
+                  onclick="selectParcelSlot(${idx})"
+                  class="shrink-0 px-2.5 py-1 rounded-xl text-[11px] font-bold border transition ${isSelected
+                  ? 'bg-amber-500 text-white border-amber-500 shadow-2xs'
+                  : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }"
+                >
+                  <span class="font-mono">${DAY_MATRIX[selectedParcelDay][idx]}</span>
+                  <span class="font-normal text-[10px] ml-0.5">(${col.start.split(" ")[0]})</span>
+                  ${isLive && !isSelected ? `<span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 ml-1"></span>` : ''}
+                </button>
+              `;
+            }).join("")}
+          </div>
+        </div>
+
+        <!-- Active Squad Parcel Requests (Board) -->
+        ${PARCEL_REQUESTS.length > 0 ? `
+          <div class="space-y-2">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                <i class="fa-solid fa-bullhorn text-amber-500 text-xs"></i>
+                <span>Active Squad Requests (${PARCEL_REQUESTS.length})</span>
+              </span>
+            </div>
+            <div class="space-y-2">
+              ${PARCEL_REQUESTS.map(req => `
+                <div class="bg-white dark:bg-slate-900 border ${req.status === 'claimed' ? 'border-emerald-300 dark:border-emerald-800' : 'border-amber-300 dark:border-amber-800'} rounded-2xl p-3 shadow-2xs space-y-2">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                        ${req.requester.charAt(0)}
+                      </div>
+                      <div>
+                        <div class="text-xs font-bold text-slate-900 dark:text-slate-100">${req.requester}</div>
+                        <div class="text-[10px] text-slate-400 dark:text-slate-500">${formatReviewTime(req.timestamp)} • ${req.courier}</div>
+                      </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${req.status === 'claimed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-900' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900'}">
+                      ${req.status === 'claimed' ? `✅ Claimed by ${req.claimedBy}` : '📦 Needs Pickup'}
+                    </span>
+                  </div>
+
+                  ${req.note || req.otp ? `
+                    <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2 text-xs text-slate-700 dark:text-slate-300 space-y-0.5">
+                      ${req.otp ? `<div class="font-mono text-[11px] font-bold text-amber-600 dark:text-amber-400">OTP: ${req.otp}</div>` : ''}
+                      ${req.note ? `<div class="text-[11px] text-slate-600 dark:text-slate-400">${req.note}</div>` : ''}
+                    </div>
+                  ` : ''}
+
+                  <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                      <i class="fa-solid fa-location-dot text-amber-500 text-[10px]"></i>
+                      <span>Between AB &amp; AB02</span>
+                    </span>
+                    <div class="flex items-center gap-1.5">
+                      ${req.status !== 'claimed' ? `
+                        <button
+                          onclick="claimParcelRequest('${req.id}')"
+                          class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition shadow-xs flex items-center gap-1 active:scale-95"
+                        >
+                          <i class="fa-solid fa-handshake text-[10px]"></i>
+                          <span>I Can Bring It!</span>
+                        </button>
+                      ` : ''}
+                      <button
+                        onclick="completeParcelRequest('${req.id}')"
+                        class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-[10.5px] transition"
+                        title="Mark received or dismiss"
+                      >
+                        <i class="fa-solid fa-check text-[10px] mr-1"></i>Received
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- Filter Chips Strip -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 custom-h-scrollbar">
+          <button
+            onclick="setParcelFilter('all')"
+            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition ${selectedParcelFilter === 'all'
+            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-xs'
+            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+          }"
+          >
+            All Helpers (${allHelpers.length})
+          </button>
+          <button
+            onclick="setParcelFilter('leaving_ab02')"
+            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-1 ${selectedParcelFilter === 'leaving_ab02'
+            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+            : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/80'
+          }"
+          >
+            <span>🚶 Leaving AB02 / Moving</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full ${selectedParcelFilter === 'leaving_ab02' ? 'bg-white/20 text-white' : 'bg-emerald-200/60 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200'}">${ab02Count}</span>
+          </button>
+          <button
+            onclick="setParcelFilter('free_now')"
+            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-1 ${selectedParcelFilter === 'free_now'
+            ? 'bg-teal-600 text-white border-teal-600 shadow-xs'
+            : 'bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800/80'
+          }"
+          >
+            <span>🟢 Free Right Now</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full ${selectedParcelFilter === 'free_now' ? 'bg-white/20 text-white' : 'bg-teal-200/60 dark:bg-teal-900/60 text-teal-800 dark:text-teal-200'}">${freeNowCount}</span>
+          </button>
+          <button
+            onclick="setParcelFilter('free_next')"
+            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-1 ${selectedParcelFilter === 'free_next'
+            ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+            : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/80'
+          }"
+          >
+            <span>⏳ Free Next Slot</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full ${selectedParcelFilter === 'free_next' ? 'bg-white/20 text-white' : 'bg-amber-200/60 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200'}">${freeNextCount}</span>
+          </button>
+        </div>
+
+        <!-- Helpers List -->
+        <div class="space-y-2">
+          ${filteredHelpers.length === 0 ? `
+            <div class="p-8 text-center bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-xs">
+              No squad members match this filter in Slot ${activeSlotIdx + 1}. Try viewing 'All Helpers'.
+            </div>
+          ` : filteredHelpers.map(h => `
+            <div class="bg-white dark:bg-slate-900 ${h.borderClass} rounded-2xl p-3 shadow-2xs space-y-2">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-full bg-gradient-to-tr ${h.friend.avatarBg} text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+                    ${h.friend.name.charAt(0)}
+                  </div>
+                  <div>
+                    <div class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                      <span>${h.friend.name}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
+                      ${h.curCourse ? `Now: ${h.curVenue}` : 'Now: Free'} • ${h.nextCourse ? `Next: ${h.nextVenue}` : 'Next: Free'}
+                    </div>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${h.badgeStyle} shrink-0 text-right">
+                  ${h.badgeLabel}
+                </span>
+              </div>
+
+              <!-- Route Note -->
+              <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-normal pl-0.5">
+                ${h.routeNote}
+              </p>
+
+              <!-- Action Buttons -->
+              <div class="flex items-center justify-end gap-1.5 pt-1 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onclick="copyHelperMessage('${h.friend.name}')"
+                  class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-semibold transition flex items-center gap-1"
+                  title="Copy pickup request text"
+                >
+                  <i class="fa-solid fa-copy text-[10px]"></i>
+                  <span>Copy</span>
+                </button>
+                <button
+                  type="button"
+                  onclick="askHelperOnWhatsApp('${h.friend.name}')"
+                  class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition shadow-xs flex items-center gap-1 active:scale-95"
+                >
+                  <i class="fa-brands fa-whatsapp text-xs"></i>
+                  <span>Ask on WhatsApp</span>
+                </button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
     function updateThemeToggleIcon() {
       const isDark = document.documentElement.classList.contains("dark");
       const icon = document.getElementById("themeToggleIcon");
@@ -4054,7 +4801,7 @@
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const requestedTab = urlParams.get("tab");
-        if (requestedTab && ["master", "individual", "teacher"].includes(requestedTab)) {
+        if (requestedTab && ["master", "individual", "teacher", "parcel"].includes(requestedTab)) {
           switchTab(requestedTab);
         } else {
           switchTab("master");
@@ -4067,6 +4814,8 @@
         renderLiveStatusBanner();
         if (activeTab === "master") {
           renderMobileSlotCards();
+        } else if (activeTab === "parcel") {
+          renderParcelHelper();
         }
       }, 30000);
     };
