@@ -228,11 +228,7 @@
         <!-- Injected dynamically by JS: Slot 1 to 7 with courses, times, venues -->
       </div>
 
-      <!-- Quick Slot Inspector Bottom Sheet / Modal (When a card is tapped) -->
-      <div id="slotDetailCard"
-        class="hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
-        <!-- Populated by JS -->
-      </div>
+
     </main>
 
     <!-- =================================================================== -->
@@ -288,7 +284,7 @@
             <span>Teachers</span>
           </h2>
           <span id="teacherCountBadge"
-            class="text-[10px] font-mono font-bold text-brandBlue bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 px-2 py-0.5 rounded-full">
+            class="text-[10px] font-mono font-bold text-brandBlue bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 px-2 py-0.5 rounded-full inline-flex items-center gap-1.5">
             21 Teachers
           </span>
         </div>
@@ -521,14 +517,7 @@
             </div>
           </div>
 
-          <!-- Reviewer Identity -->
-          <div class="space-y-1">
-            <label class="block text-[11px] font-bold text-slate-800 dark:text-slate-200">
-              Reviewer Name (Optional)
-            </label>
-            <input type="text" id="reviewerNameInput" placeholder="Anonymous Student"
-              class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-brandBlue focus:bg-white dark:focus:bg-slate-800 transition" />
-          </div>
+
 
           <!-- Comment / Tips -->
           <div class="space-y-1">
@@ -2794,7 +2783,6 @@
       selectedSlotIndex = null;
       renderMasterDayPills();
       renderMobileSlotCards();
-      document.getElementById("slotDetailCard").classList.add("hidden");
     }
 
     function renderInlineSquadToggles() {
@@ -2836,6 +2824,29 @@
       container.innerHTML = allBtnHtml + friendsHtml;
     }
 
+    function getCurrentLiveSlotIndex(forDay = selectedMasterDay) {
+      const { jsDay, currentMins } = getISTTime();
+      if (jsDay === 0) return -1; // Sunday
+      const todayDayCode = DAYS_ORDER[jsDay - 1];
+      if (forDay !== todayDayCode) return -1;
+
+      // Before classes start in the morning, highlight upcoming first slot
+      if (currentMins < TIME_COLUMNS[0].startMin) {
+        return 0;
+      }
+
+      // Check which slot covers currentMins (including transition period up to next slot)
+      for (let i = 0; i < TIME_COLUMNS.length; i++) {
+        const col = TIME_COLUMNS[i];
+        const nextStart = (i < TIME_COLUMNS.length - 1) ? TIME_COLUMNS[i + 1].startMin : col.endMin;
+        if (currentMins >= col.startMin && currentMins <= nextStart) {
+          return i;
+        }
+      }
+
+      return -1;
+    }
+
     function renderMobileSlotCards() {
       const container = document.getElementById("mobileSlotCardFeed");
       const activeFriends = getActiveFriendsList();
@@ -2848,6 +2859,8 @@
         `;
         return;
       }
+
+      const currentLiveSlotIdx = getCurrentLiveSlotIndex(selectedMasterDay);
 
       // Render 7 slots for the chosen day
       container.innerHTML = TIME_COLUMNS.map((col, idx) => {
@@ -2867,13 +2880,16 @@
           statusText = total === 1 ? "In Class" : "All In Class";
         }
 
-        const isCurrentSlotSelected = selectedSlotIndex === idx;
+        const isCurrentSlotLive = (currentLiveSlotIdx === idx);
+        const isHighlighted = (selectedSlotIndex !== null)
+          ? (selectedSlotIndex === idx)
+          : isCurrentSlotLive;
 
         return `
           <div
-            onclick="inspectMobileSlot(${idx})"
-            class="bg-white dark:bg-slate-900 border rounded-2xl p-3.5 shadow-2xs transition active:scale-[0.99] cursor-pointer ${isCurrentSlotSelected
-            ? 'border-brandBlue ring-2 ring-blue-100 dark:ring-blue-950'
+            onclick="selectMobileSlot(${idx})"
+            class="bg-white dark:bg-slate-900 border rounded-2xl p-3.5 shadow-2xs transition active:scale-[0.99] cursor-pointer ${isHighlighted
+            ? 'border-brandBlue ring-2 ring-blue-100 dark:ring-blue-950 shadow-[0_0_18px_rgba(37,99,235,0.28)] dark:shadow-[0_0_22px_rgba(59,130,246,0.25)]'
             : 'border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
           }"
           >
@@ -2946,72 +2962,18 @@
       }).join("");
     }
 
-    function inspectMobileSlot(colIndex) {
-      selectedSlotIndex = colIndex;
-      renderMobileSlotCards();
-
-      const occ = getSlotOccupancy(selectedMasterDay, colIndex);
-      const detailEl = document.getElementById("slotDetailCard");
-      detailEl.classList.remove("hidden");
-
-      detailEl.innerHTML = `
-        <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="font-mono font-black text-base text-brandBlue">${occ.slotCode}</span>
-              <span class="font-bold text-sm text-slate-800 dark:text-slate-100">${DAY_FULL_NAMES[selectedMasterDay]}</span>
-            </div>
-            <div class="text-xs text-slate-500 dark:text-slate-400 font-mono">${occ.timeRange} (90 mins)</div>
-          </div>
-          <button onclick="document.getElementById('slotDetailCard').classList.add('hidden')" class="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 flex items-center justify-center text-xs">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-
-        <div class="space-y-2.5 text-xs">
-          ${occ.busyFriends.length > 0 ? `
-            <div class="space-y-1.5">
-              <div class="font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                <span>In Class (${occ.busyFriends.length})</span>
-              </div>
-              ${occ.busyFriends.map(({ friend, course }) => `
-                <div class="p-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1">
-                  <div class="flex items-center justify-between font-bold">
-                    <span class="text-slate-900 dark:text-slate-100">${friend.name}</span>
-                    <span class="font-mono text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-900/60 px-2 py-0.5 rounded text-[11px]">${course.venue}</span>
-                  </div>
-                  <div class="text-slate-700 dark:text-slate-300 font-mono text-[11px]">${course.code} • ${course.title}</div>
-                  <div class="text-[11px] text-slate-500 dark:text-slate-400"><i class="fa-solid fa-user-tie mr-1 text-slate-400 dark:text-slate-500"></i>${course.faculty}</div>
-                </div>
-              `).join("")}
-            </div>
-          ` : ''}
-
-          ${occ.freeFriends.length > 0 ? `
-            <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-900/60 space-y-1.5">
-              <div class="font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400"></i>
-                <span>Free Students (${occ.freeFriends.length}):</span>
-              </div>
-              <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
-                ${occ.freeFriends.map(f => `
-                  <span class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold shadow-2xs">
-                    ${f.name}
-                  </span>
-                `).join("")}
-              </div>
-            </div>
-          ` : `
-            <div class="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-400 text-center font-medium">
-              No students free during ${occ.slotCode}.
-            </div>
-          `}
-        </div>
-      `;
-
-      if (detailEl.scrollIntoView) {
-        detailEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    function selectMobileSlot(colIndex) {
+      if (selectedSlotIndex === colIndex) {
+        selectedSlotIndex = null;
+      } else {
+        selectedSlotIndex = colIndex;
       }
+      renderMobileSlotCards();
+    }
+
+    // Alias for backwards compatibility
+    function inspectMobileSlot(colIndex) {
+      selectMobileSlot(colIndex);
     }
 
     /**
@@ -3269,16 +3231,38 @@
       });
 
       if (countBadge) {
-        let statusText = teacherSearchQuery
+        const countText = teacherSearchQuery
           ? `${matchingTeachers.length} of ${allTeachers.length} Teachers`
           : `${allTeachers.length} Teachers`;
+
+        let dotHtml = "";
         if (isReviewsLoading) {
-          countBadge.innerHTML = `${statusText} <span class="text-amber-500 font-normal ml-1 inline-flex items-center gap-0.5"><i class="fa-solid fa-spinner fa-spin text-[9px]"></i> Syncing</span>`;
+          // Blinking Amber dot for syncing state
+          dotHtml = `
+            <span class="relative flex h-2 w-2 ml-1.5 inline-flex" title="Syncing from Firebase...">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            </span>
+          `;
         } else if (reviewsSyncError) {
-          countBadge.innerHTML = `${statusText} <span class="text-rose-500 font-normal ml-1 inline-flex items-center gap-0.5"><i class="fa-solid fa-cloud-slash text-[9px]"></i> Offline</span>`;
+          // Blinking Red dot for error/offline state
+          dotHtml = `
+            <span class="relative flex h-2 w-2 ml-1.5 inline-flex" title="Firebase Offline / Rules Error">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+            </span>
+          `;
         } else {
-          countBadge.innerHTML = `${statusText} <span class="text-emerald-600 dark:text-emerald-400 font-normal ml-1 inline-flex items-center gap-0.5"><i class="fa-solid fa-cloud-check text-[9px]"></i> Live</span>`;
+          // Blinking Green dot for live Firebase sync
+          dotHtml = `
+            <span class="relative flex h-2 w-2 ml-1.5 inline-flex" title="Live Firebase Connected">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+          `;
         }
+
+        countBadge.innerHTML = `<span class="inline-flex items-center">${countText}${dotHtml}</span>`;
       }
 
       let errorBannerHtml = "";
@@ -3385,9 +3369,6 @@
                       ${t.school}
                     </span>
                   ` : ''}
-                </div>
-                <div class="text-[11px] text-slate-400 dark:text-slate-500 font-mono truncate mt-0.5">
-                  ${t.rawFaculty}
                 </div>
               </div>
               ${isExtraOnly ? matchBadgeHtml : ''}
@@ -3563,7 +3544,7 @@
                       <div class="bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-700/80 rounded-xl p-2.5 text-xs shadow-2xs space-y-1.5">
                         <div class="flex items-center justify-between">
                           <div class="flex items-center gap-1.5">
-                            <span class="font-bold text-slate-900 dark:text-slate-100 text-[11px]">${r.reviewerName || 'Anonymous Student'}</span>
+                            <span class="font-bold text-slate-900 dark:text-slate-100 text-[11px]">${r.reviewerName || 'Student Review'}</span>
                             <span class="text-[10px] text-slate-400 dark:text-slate-500">• ${formatReviewTime(r.timestamp)}</span>
                           </div>
                           <!-- Star Rating -->
@@ -3729,11 +3710,6 @@
       const commentInput = document.getElementById("reviewCommentInput");
       if (commentInput) commentInput.value = "";
 
-      const reviewerInput = document.getElementById("reviewerNameInput");
-      if (reviewerInput) {
-        reviewerInput.value = localStorage.getItem("vitb_last_reviewer") || "";
-      }
-
       const modal = document.getElementById("reviewModal");
       if (modal) modal.classList.remove("hidden");
     }
@@ -3835,11 +3811,6 @@
       const submitBtn = document.getElementById("submitReviewBtn");
       const submitText = document.getElementById("submitReviewBtnText");
       const comment = (document.getElementById("reviewCommentInput")?.value || "").trim();
-      const reviewer = (document.getElementById("reviewerNameInput")?.value || "").trim() || "Anonymous Student";
-
-      try {
-        localStorage.setItem("vitb_last_reviewer", reviewer);
-      } catch (e) { }
 
       if (submitBtn) submitBtn.disabled = true;
       if (submitText) submitText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving to Firebase...';
@@ -3853,7 +3824,6 @@
         behavior: currentReview.behavior,
         lateEntry: currentReview.lateEntry,
         comment: comment,
-        reviewerName: reviewer,
         timestamp: Date.now()
       };
 
@@ -4066,7 +4036,12 @@
         switchTab("master");
       }
 
-      setInterval(renderLiveStatusBanner, 30000);
+      setInterval(() => {
+        renderLiveStatusBanner();
+        if (activeTab === "master") {
+          renderMobileSlotCards();
+        }
+      }, 30000);
     };
   </script>
 </body>
