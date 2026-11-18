@@ -2885,11 +2885,35 @@
           ? (selectedSlotIndex === idx)
           : isCurrentSlotLive;
 
+        // Identify classmates sharing the exact same teacher in this slot
+        const teacherCounts = {};
+        occ.busyFriends.forEach(({ course }) => {
+          const fKey = (course.faculty || "").trim().toLowerCase();
+          if (fKey) {
+            teacherCounts[fKey] = (teacherCounts[fKey] || 0) + 1;
+          }
+        });
+
+        // Minimal, elegant theme palette for shared classmate groups (muted colored left stripe)
+        const CLASSMATE_BORDER_THEMES = [
+          "border-l-[3.5px] border-l-blue-500 dark:border-l-blue-400",
+          "border-l-[3.5px] border-l-emerald-500 dark:border-l-emerald-400",
+          "border-l-[3.5px] border-l-purple-500 dark:border-l-purple-400",
+          "border-l-[3.5px] border-l-amber-500 dark:border-l-amber-400",
+          "border-l-[3.5px] border-l-rose-500 dark:border-l-rose-400"
+        ];
+
+        const sharedTeachers = Object.keys(teacherCounts).filter(k => teacherCounts[k] > 1);
+        const teacherThemeMap = {};
+        sharedTeachers.forEach((k, tIdx) => {
+          teacherThemeMap[k] = CLASSMATE_BORDER_THEMES[tIdx % CLASSMATE_BORDER_THEMES.length];
+        });
+
         return `
           <div
             onclick="selectMobileSlot(${idx})"
             class="bg-white dark:bg-slate-900 border rounded-2xl p-3.5 shadow-2xs transition active:scale-[0.99] cursor-pointer ${isHighlighted
-            ? 'border-brandBlue ring-2 ring-blue-100 dark:ring-blue-950 shadow-[0_0_18px_rgba(37,99,235,0.28)] dark:shadow-[0_0_22px_rgba(59,130,246,0.25)]'
+            ? 'border-brandBlue ring-2 ring-blue-100 dark:ring-blue-950'
             : 'border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
           }"
           >
@@ -2912,8 +2936,15 @@
             <div class="space-y-2">
               ${occ.busyFriends.length > 0 ? `
                 <div class="space-y-1.5">
-                  ${occ.busyFriends.map(({ friend, course }) => `
-                    <div class="flex items-start justify-between text-xs py-2 px-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100/80 dark:border-slate-700/60">
+                  ${occ.busyFriends.map(({ friend, course }) => {
+                    const fKey = (course.faculty || "").trim().toLowerCase();
+                    const borderTheme = teacherThemeMap[fKey];
+                    const cardBorder = borderTheme
+                      ? `${borderTheme} border-y border-r border-slate-100/80 dark:border-slate-700/60`
+                      : `border border-slate-100/80 dark:border-slate-700/60`;
+
+                    return `
+                    <div class="flex items-start justify-between text-xs py-2 px-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 ${cardBorder}">
                       <div class="min-w-0 pr-2 space-y-0.5">
                         <div class="font-bold text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
                           <span>${friend.name.split(" ")[0]}</span>
@@ -2931,7 +2962,8 @@
                         ${course.venue}
                       </span>
                     </div>
-                  `).join("")}
+                  `;
+                  }).join("")}
                 </div>
               ` : ''}
 
@@ -3119,14 +3151,21 @@
       return (rawFaculty || "").toLowerCase().replace(/[^a-z0-9]/g, "_");
     }
 
+    // Exclude non-professor training/coding platforms (FACE TRAINER, IAMNEO) from reviews & Teachers directory
+    function isExcludedReviewFaculty(nameOrRaw) {
+      if (!nameOrRaw) return false;
+      const s = String(nameOrRaw).trim().toLowerCase();
+      return /^(iamneo|face\s*trainer)/i.test(s) || s.includes("iamneo") || s.includes("face_trainer") || s.includes("facetrainer") || s.includes("face trainer");
+    }
+
     function getTeacherDirectory() {
       const teacherMap = new Map();
 
-      // 1. Ingest faculty registered in squad timetables
+      // 1. Ingest faculty registered in squad timetables (excluding training platforms like IAMNEO/FACE TRAINER)
       FRIENDS_DATA.forEach(friend => {
         friend.courses.forEach(course => {
           const rawFaculty = (course.faculty || "").trim();
-          if (!rawFaculty) return;
+          if (!rawFaculty || isExcludedReviewFaculty(rawFaculty)) return;
 
           if (!teacherMap.has(rawFaculty)) {
             const parts = rawFaculty.split(" - ");
@@ -3158,6 +3197,7 @@
       if (typeof EXTRA_FACULTY_DATA !== "undefined" && Array.isArray(EXTRA_FACULTY_DATA)) {
         EXTRA_FACULTY_DATA.forEach(extra => {
           if (!extra || !extra.name) return;
+          if (isExcludedReviewFaculty(extra.name) || isExcludedReviewFaculty(extra.rawFaculty)) return;
           const teacherName = extra.name.trim();
           const school = (extra.school || "").trim();
           const rawFaculty = extra.rawFaculty ? extra.rawFaculty.trim() : (school ? `${teacherName} - ${school}` : teacherName);
@@ -3629,7 +3669,7 @@
           snapshot.forEach((doc) => {
             const data = doc.data();
             const key = data.teacherId || getTeacherStorageKey(data.rawFaculty || data.teacherName || "");
-            if (!key) return;
+            if (!key || isExcludedReviewFaculty(key) || isExcludedReviewFaculty(data.rawFaculty) || isExcludedReviewFaculty(data.teacherName)) return;
             if (!newMap[key]) newMap[key] = [];
             newMap[key].push({
               id: doc.id,
@@ -3672,7 +3712,7 @@
     function openReviewModal(safeTeacherKey) {
       const allTeachers = getTeacherDirectory();
       const teacher = allTeachers.find(t => getTeacherStorageKey(t.rawFaculty) === safeTeacherKey);
-      if (!teacher) return;
+      if (!teacher || isExcludedReviewFaculty(teacher.rawFaculty) || isExcludedReviewFaculty(teacher.teacherName)) return;
 
       currentReview = {
         teacherKey: safeTeacherKey,
@@ -3806,7 +3846,10 @@
     }
 
     async function submitFacultyReview() {
-      if (!currentReview.teacherKey) return;
+      if (!currentReview.teacherKey || isExcludedReviewFaculty(currentReview.teacherKey) || isExcludedReviewFaculty(currentReview.rawFaculty) || isExcludedReviewFaculty(currentReview.teacherName)) {
+        alert("Reviews cannot be submitted for this entry.");
+        return;
+      }
 
       const submitBtn = document.getElementById("submitReviewBtn");
       const submitText = document.getElementById("submitReviewBtnText");
@@ -4004,6 +4047,7 @@
         navigator.serviceWorker.register("./sw.js")
           .then((reg) => {
             console.log("PWA Service Worker registered:", reg.scope);
+            reg.update();
           })
           .catch((err) => {
             console.log("PWA Service Worker registration note:", err);
