@@ -1,5 +1,5 @@
 // Service Worker for VIT Bhopal Timetable & Squad Sync PWA
-const CACHE_NAME = 'vitb-timetable-v9';
+const CACHE_NAME = 'vitb-timetable-v14';
 
 const STATIC_ASSETS = [
   './',
@@ -78,6 +78,25 @@ self.addEventListener('fetch', (event) => {
       });
 
       return cachedRes || fetchPromise;
+    })
+  );
+});
+
+// Notification click: Focus or open window to the parcel tab
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || './?tab=parcel';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url && 'focus' in client) {
+          client.postMessage({ action: 'navigate_tab', tab: 'parcel' });
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
     })
   );
 });

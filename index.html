@@ -440,39 +440,39 @@
           <div
             class="space-y-1.5 text-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
             <div class="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-              Overall Rating
+              Overall Rating *
             </div>
             <div id="starContainer" class="flex items-center justify-center gap-2 py-1">
               <button type="button" onclick="setReviewRating(1)"
-                class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="1">
-                <i class="fa-solid fa-star"></i>
+                class="star-btn text-2xl text-slate-300 dark:text-slate-600 hover:scale-110 transition active:scale-95" data-val="1">
+                <i class="fa-regular fa-star"></i>
               </button>
               <button type="button" onclick="setReviewRating(2)"
-                class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="2">
-                <i class="fa-solid fa-star"></i>
+                class="star-btn text-2xl text-slate-300 dark:text-slate-600 hover:scale-110 transition active:scale-95" data-val="2">
+                <i class="fa-regular fa-star"></i>
               </button>
               <button type="button" onclick="setReviewRating(3)"
-                class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="3">
-                <i class="fa-solid fa-star"></i>
+                class="star-btn text-2xl text-slate-300 dark:text-slate-600 hover:scale-110 transition active:scale-95" data-val="3">
+                <i class="fa-regular fa-star"></i>
               </button>
               <button type="button" onclick="setReviewRating(4)"
-                class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="4">
-                <i class="fa-solid fa-star"></i>
+                class="star-btn text-2xl text-slate-300 dark:text-slate-600 hover:scale-110 transition active:scale-95" data-val="4">
+                <i class="fa-regular fa-star"></i>
               </button>
               <button type="button" onclick="setReviewRating(5)"
-                class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="5">
-                <i class="fa-solid fa-star"></i>
+                class="star-btn text-2xl text-slate-300 dark:text-slate-600 hover:scale-110 transition active:scale-95" data-val="5">
+                <i class="fa-regular fa-star"></i>
               </button>
             </div>
-            <div id="reviewRatingLabel" class="text-[11px] font-bold text-amber-600 dark:text-amber-400">
-              5 Stars — Excellent
+            <div id="reviewRatingLabel" class="text-[11px] font-bold text-slate-400 dark:text-slate-500">
+              Tap a star to rate
             </div>
           </div>
 
           <!-- 1. Class Average -->
           <div class="space-y-1.5">
             <label class="block text-[11px] font-bold text-slate-800 dark:text-slate-200">
-              1. Class Average
+              1. Class Average <span class="text-slate-400 dark:text-slate-500 font-normal">(Optional)</span>
             </label>
             <div class="grid grid-cols-3 gap-1.5">
               <button type="button" id="classAvgBtn-low" onclick="setReviewClassAvg('low')"
@@ -481,8 +481,8 @@
                 <span>Low</span>
               </button>
               <button type="button" id="classAvgBtn-medium" onclick="setReviewClassAvg('medium')"
-                class="class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-blue-600 border-blue-600 text-white shadow-xs">
-                <i class="fa-solid fa-chart-simple text-white text-xs"></i>
+                class="class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                <i class="fa-solid fa-chart-simple text-blue-500 text-xs"></i>
                 <span>Medium</span>
               </button>
               <button type="button" id="classAvgBtn-high" onclick="setReviewClassAvg('high')"
@@ -496,12 +496,12 @@
           <!-- 2. Behavior -->
           <div class="space-y-1.5">
             <label class="block text-[11px] font-bold text-slate-800 dark:text-slate-200">
-              2. Faculty Behavior
+              2. Faculty Behavior *
             </label>
             <div class="grid grid-cols-2 gap-2">
               <button type="button" id="behaviorBtn-good" onclick="setReviewBehavior('good')"
-                class="behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-emerald-600 border-emerald-600 text-white shadow-xs">
-                <i class="fa-solid fa-face-smile text-xs"></i>
+                class="behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                <i class="fa-solid fa-face-smile text-emerald-500 text-xs"></i>
                 <span>Good</span>
               </button>
               <button type="button" id="behaviorBtn-bad" onclick="setReviewBehavior('bad')"
@@ -515,12 +515,12 @@
           <!-- 3. Late Class Entering -->
           <div class="space-y-1.5">
             <label class="block text-[11px] font-bold text-slate-800 dark:text-slate-200">
-              3. Late Class Entering
+              3. Late Class Entering *
             </label>
             <div class="grid grid-cols-2 gap-2">
               <button type="button" id="lateEntryBtn-allowed" onclick="setReviewLateEntry('allowed')"
-                class="late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-sky-600 border-sky-600 text-white shadow-xs">
-                <i class="fa-solid fa-door-open text-xs"></i>
+                class="late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                <i class="fa-solid fa-door-open text-sky-500 text-xs"></i>
                 <span>Allowed</span>
               </button>
               <button type="button" id="lateEntryBtn-not" onclick="setReviewLateEntry('not')"
@@ -627,6 +627,12 @@
             </label>
             <input type="text" id="parcelNoteInput" placeholder="e.g. Small cardboard box under my name"
               class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-xs font-medium focus:outline-none focus:border-brandBlue" />
+          </div>
+
+          <!-- Squad Notification Notice -->
+          <div class="bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/70 dark:border-blue-900/50 rounded-xl p-2.5 text-[11px] flex items-center gap-2">
+            <i class="fa-solid fa-bell text-blue-600 dark:text-blue-400 text-xs shrink-0"></i>
+            <span class="text-blue-800/90 dark:text-blue-300 text-[10.5px]">Squad members with alerts enabled will be notified instantly when you post this request.</span>
           </div>
 
           <!-- Submit Button -->
@@ -987,29 +993,16 @@
         courses: [
           {
             group: "General",
-            code: "CHY1001",
-            title: "ENGINEERING CHEMISTRY",
-            type: "Lecture and Tutorial ,practical hours only",
-            shortType: "LTP",
-            credit: 4.0,
-            category: "University Core - Natural Science Core",
-            classNo: "BL2026270500159",
-            slots: ["B14", "B23", "D21"],
-            venue: "AB-128",
-            faculty: "ARINDAM GHOSH - SASL"
-          },
-          {
-            group: "General",
             code: "CSA2001",
             title: "Fundamentals in AI and ML",
             type: "Lecture and Tutorial ,practical hours only",
             shortType: "LTP",
             credit: 4.0,
             category: "University Core - Basic Engineering Sciences Core",
-            classNo: "BL2026270501319",
-            slots: ["C21", "F11", "F12"],
+            classNo: "BL2026270501294",
+            slots: ["B22", "B24", "F21"],
             venue: "AB-007",
-            faculty: "SANTHOSH KUMAR S - SCOPE"
+            faculty: "A. SIRAJUDEEN - SCAI"
           },
           {
             group: "General",
@@ -1018,9 +1011,9 @@
             type: "Lecture and Tutorial Hours Only",
             shortType: "LT",
             credit: 1.0,
-            category: "Non - Graded Mandatory Courses",
-            classNo: "BL2026270501331",
-            slots: ["C12"],
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501327",
+            slots: ["B13"],
             venue: "CR-018",
             faculty: "KANNAN S - SCOPE"
           },
@@ -1031,63 +1024,89 @@
             type: "Lecture and Tutorial Hours Only",
             shortType: "LT",
             credit: 2.0,
-            category: "Non - Graded Mandatory Courses",
-            classNo: "BL2026270501411",
-            slots: ["A23"],
-            venue: "CR-018",
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501344",
+            slots: ["B23"],
+            venue: "CR-010",
             faculty: "KANNAN S - SCOPE"
           },
           {
             group: "General",
-            code: "ECE2002",
-            title: "Digital Logic Design",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
             type: "Lecture and Tutorial ,practical hours only",
             shortType: "LTP",
             credit: 4.0,
             category: "Programme Core",
-            classNo: "BL2026270500651",
+            classNo: "BL2026270500946",
             slots: ["C14", "E11", "E12"],
-            venue: "AB-216",
-            faculty: "V. SIVASANKARAN - SEEE"
+            venue: "AB02-323",
+            faculty: "IAMNEO 8 - ACAD"
           },
           {
             group: "General",
-            code: "ENG1004",
-            title: "EFFECTIVE TECHNICAL COMMUNICATION",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500693",
+            slots: ["C21", "F11", "F12"],
+            venue: "AB-501",
+            faculty: "PAUL RAJ T - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
             type: "Lecture and Tutorial Hours Only",
             shortType: "LT",
             credit: 2.0,
             category: "University Core - Humanities Social Science and Management Core",
-            classNo: "BL2026270500512",
-            slots: ["C11"],
-            venue: "AB-518",
-            faculty: "ANITA YADAV - SASL"
+            classNo: "BL2026270500519",
+            slots: ["A12"],
+            venue: "AB-514",
+            faculty: "DEV BRAT GUPTA - SASL"
           },
           {
             group: "General",
-            code: "MAT2005",
-            title: "Transform Techniques and Difference Equations",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
             type: "Lecture and Tutorial Hours Only",
             shortType: "LT",
-            credit: 3.0,
-            category: "University Elective - Natural Science Electives",
-            classNo: "BL2026270500412",
-            slots: ["A11", "A12"],
-            venue: "AB-415",
-            faculty: "VINOD KUMAR JATAV - SASL"
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500409",
+            slots: ["B21", "E14", "E22"],
+            venue: "AB02-419",
+            faculty: "PAUL D - SASL"
           },
           {
             group: "General",
-            code: "PHY1001",
-            title: "ENGINEERING PHYSICS",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
             type: "Lecture and Tutorial ,practical hours only",
             shortType: "LTP",
             credit: 4.0,
             category: "University Core - Natural Science Core",
-            classNo: "BL2026270500112",
-            slots: ["B21", "E14", "E22"],
-            venue: "AB-102",
-            faculty: "AVIRUP DAS - SASL"
+            classNo: "BL2026270500130",
+            slots: ["A21", "A22", "A23"],
+            venue: "AB-318",
+            faculty: "JAYACHANDIRAN J - SASL"
+          },
+          {
+            group: "General",
+            code: "SST2003",
+            title: "Dynamics of workplace communication Skills",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500462",
+            slots: ["A11"],
+            venue: "AB-429",
+            faculty: "DEV BRAT GUPTA - SASL"
           }
         ]
       },
@@ -2564,6 +2583,381 @@
             faculty: "BALAGURU S - SMEC"
           }
         ]
+      },
+      {
+        id: "suryansh",
+        name: "Suryansh",
+        color: "indigo",
+        avatarBg: "from-indigo-600 to-blue-600",
+        courses: [
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501306",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB-023",
+            faculty: "RAKESH SRIVASTAVA - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501333",
+            slots: ["F11"],
+            venue: "CR-021",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501410",
+            slots: ["A22"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500924",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB02-218",
+            faculty: "IAMNEO 6 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500660",
+            slots: ["B11", "B12", "B13"],
+            venue: "AB-413",
+            faculty: "GOPAL SINGH - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500542",
+            slots: ["E14"],
+            venue: "AB-403",
+            faculty: "RAJEEV SAXENA - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500383",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-228",
+            faculty: "SALMAN ZAHEER - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500128",
+            slots: ["A11", "A12", "A13"],
+            venue: "AB-127",
+            faculty: "SUGAVANESHWAR R P - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500581",
+            slots: ["B14"],
+            venue: "AB-413",
+            faculty: "ABDUR RAHMAN M S - SASL"
+          }
+        ]
+      },
+      {
+        id: "divyansh",
+        name: "Divyansh",
+        color: "amber",
+        avatarBg: "from-amber-500 to-rose-600",
+        courses: [
+          {
+            group: "General",
+            code: "CHY1005",
+            title: "Introduction to Computational chemistry",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500193",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB-313",
+            faculty: "SAURABH MISHRA - SASL"
+          },
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270501295",
+            slots: ["A24", "E21", "F22"],
+            venue: "AB-023",
+            faculty: "G. VISHNUVARTHANAN - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501326",
+            slots: ["B12"],
+            venue: "CR-002",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501410",
+            slots: ["A22"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500948",
+            slots: ["B14", "B23", "D21"],
+            venue: "AB02-218",
+            faculty: "IAMNEO 8 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500697",
+            slots: ["B21", "E14", "E22"],
+            venue: "AB-230",
+            faculty: "LOKESH SONI - SEEE"
+          },
+          {
+            group: "General",
+            code: "MAT2005",
+            title: "Transform Techniques and Difference Equations",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 3.0,
+            category: "University Elective - Natural Science Electives",
+            classNo: "BL2026270500429",
+            slots: ["A21", "A23"],
+            venue: "AB-430",
+            faculty: "PALAS MANDAL - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500136",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-128",
+            faculty: "P. VAYUNANDANAKISHORE - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500565",
+            slots: ["B13"],
+            venue: "AB02-322",
+            faculty: "JUHI YASMEEN - SASL"
+          }
+        ]
+      },
+      {
+        id: "aditya",
+        name: "Aditya",
+        color: "sky",
+        avatarBg: "from-sky-500 to-indigo-600",
+        courses: [
+          {
+            group: "General",
+            code: "CHY1005",
+            title: "Introduction to Computational chemistry",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500190",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-230",
+            faculty: "HIMANSHU HARISH SHARMA - SASL"
+          },
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270501297",
+            slots: ["A24", "E21", "F22"],
+            venue: "AB-025",
+            faculty: "VIVEK PARASHAR - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501328",
+            slots: ["E11"],
+            venue: "CR-017",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501343",
+            slots: ["E22"],
+            venue: "CR-015",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500895",
+            slots: ["B22", "B24", "F21"],
+            venue: "AB02-205",
+            faculty: "IAMNEO 3 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500709",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB-329",
+            faculty: "DIPAK PRASAD - SEEE"
+          },
+          {
+            group: "General",
+            code: "MAT2005",
+            title: "Transform Techniques and Difference Equations",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 3.0,
+            category: "University Elective - Natural Science Electives",
+            classNo: "BL2026270500411",
+            slots: ["B11", "B12"],
+            venue: "AB-502",
+            faculty: "NAVNEET KUMAR VERMA - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500144",
+            slots: ["B14", "B23", "D21"],
+            venue: "AB-102",
+            faculty: "RAJDEEP SINGH PAYAL - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500574",
+            slots: ["A21"],
+            venue: "AB-503",
+            faculty: "SAMIKHYA DASH - SASL"
+          }
+        ]
       }
     ];
 
@@ -3453,10 +3847,11 @@
         const reviewsCount = reviews.length;
 
         let avgRating = 0;
-        let topClassAvg = "Medium";
+        let topClassAvg = null;
         let behaviorGoodPercent = 100;
         let lateAllowedPercent = 100;
         const avgCounts = { low: 0, medium: 0, high: 0 };
+        let totalClassAvgVotes = 0;
         let goodCount = 0;
         let allowedCount = 0;
 
@@ -3465,17 +3860,22 @@
           avgRating = totalRating / reviewsCount;
 
           reviews.forEach(r => {
-            if (r.classAvg && avgCounts[r.classAvg] !== undefined) avgCounts[r.classAvg]++;
+            if (r.classAvg && avgCounts[r.classAvg] !== undefined) {
+              avgCounts[r.classAvg]++;
+              totalClassAvgVotes++;
+            }
             if (r.behavior === "good") goodCount++;
             if (r.lateEntry === "allowed") allowedCount++;
           });
 
-          if (avgCounts.high >= avgCounts.medium && avgCounts.high >= avgCounts.low) {
-            topClassAvg = "High";
-          } else if (avgCounts.low > avgCounts.medium && avgCounts.low > avgCounts.high) {
-            topClassAvg = "Low";
-          } else {
-            topClassAvg = "Medium";
+          if (totalClassAvgVotes > 0) {
+            if (avgCounts.high >= avgCounts.medium && avgCounts.high >= avgCounts.low) {
+              topClassAvg = "High";
+            } else if (avgCounts.low > avgCounts.medium && avgCounts.low > avgCounts.high) {
+              topClassAvg = "Low";
+            } else {
+              topClassAvg = "Medium";
+            }
           }
 
           behaviorGoodPercent = Math.round((goodCount / reviewsCount) * 100);
@@ -3601,10 +4001,12 @@
                       <span>${avgRating.toFixed(1)}</span>
                       <span class="text-[10px] text-amber-600/80 dark:text-amber-400/80 font-normal">(${reviewsCount})</span>
                     </div>
-                    <!-- 1. Class Avg Badge -->
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50" title="Class Average">
-                      <i class="fa-solid fa-chart-simple text-[9px] mr-1"></i>Avg: ${topClassAvg}
-                    </span>
+                    <!-- 1. Class Avg Badge (Optional / only when reviews included it) -->
+                    ${topClassAvg ? `
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50" title="Class Average">
+                        <i class="fa-solid fa-chart-simple text-[9px] mr-1"></i>Avg: ${topClassAvg}
+                      </span>
+                    ` : ''}
                     <!-- 2. Behavior Badge -->
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${behaviorGoodPercent >= 50 ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900/50'} border" title="Faculty Behavior">
                       ${behaviorGoodPercent >= 50 ? '<i class="fa-solid fa-face-smile mr-1 text-[9px]"></i>Good' : '<i class="fa-solid fa-face-frown mr-1 text-[9px]"></i>Bad'}
@@ -3680,11 +4082,13 @@
                           </div>
                         </div>
 
-                        <!-- 3 Criteria Badges -->
+                        <!-- Criteria Badges -->
                         <div class="flex items-center gap-1 flex-wrap text-[10px]">
-                          <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">
-                            Avg: <strong class="capitalize">${r.classAvg || 'medium'}</strong>
-                          </span>
+                          ${r.classAvg ? `
+                            <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">
+                              Avg: <strong class="capitalize">${r.classAvg}</strong>
+                            </span>
+                          ` : ''}
                           <span class="px-1.5 py-0.5 rounded ${r.behavior === 'good' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300'} font-medium">
                             Behavior: <strong class="capitalize">${r.behavior || 'good'}</strong>
                           </span>
@@ -3729,10 +4133,10 @@
       teacherName: "",
       rawFaculty: "",
       school: "",
-      rating: 5,
-      classAvg: "medium",
-      behavior: "good",
-      lateEntry: "allowed"
+      rating: 0,
+      classAvg: null,
+      behavior: null,
+      lateEntry: null
     };
 
     function initFirebaseReviews() {
@@ -3755,6 +4159,7 @@
           const newMap = {};
           snapshot.forEach((doc) => {
             const data = doc.data();
+            if (data.docType === "parcel_request") return;
             const key = data.teacherId || getTeacherStorageKey(data.rawFaculty || data.teacherName || "");
             if (!key || isExcludedReviewFaculty(key) || isExcludedReviewFaculty(data.rawFaculty) || isExcludedReviewFaculty(data.teacherName)) return;
             if (!newMap[key]) newMap[key] = [];
@@ -3762,7 +4167,7 @@
               id: doc.id,
               ...data,
               rating: Number(data.rating) || 5,
-              classAvg: data.classAvg || "medium",
+              classAvg: data.classAvg || null,
               behavior: data.behavior || "good",
               lateEntry: data.lateEntry || "allowed",
               timestamp: data.timestamp || (data.createdAt && data.createdAt.toMillis ? data.createdAt.toMillis() : Date.now())
@@ -3806,10 +4211,10 @@
         teacherName: teacher.teacherName,
         rawFaculty: teacher.rawFaculty,
         school: teacher.school || "",
-        rating: 5,
-        classAvg: "medium",
-        behavior: "good",
-        lateEntry: "allowed"
+        rating: 0,
+        classAvg: null,
+        behavior: null,
+        lateEntry: null
       };
 
       const keyInput = document.getElementById("reviewTeacherKey");
@@ -3828,11 +4233,11 @@
         }
       }
 
-      // Reset form controls
-      setReviewRating(5);
-      setReviewClassAvg("medium");
-      setReviewBehavior("good");
-      setReviewLateEntry("allowed");
+      // Reset form controls - NO option selected by default
+      setReviewRating(0);
+      setReviewClassAvg(null);
+      setReviewBehavior(null);
+      setReviewLateEntry(null);
 
       const commentInput = document.getElementById("reviewCommentInput");
       if (commentInput) commentInput.value = "";
@@ -3847,12 +4252,12 @@
     }
 
     function setReviewRating(val) {
-      currentReview.rating = Number(val);
+      currentReview.rating = Number(val) || 0;
       const stars = document.querySelectorAll(".star-btn");
       stars.forEach((btn, idx) => {
         const starVal = idx + 1;
         const icon = btn.querySelector ? btn.querySelector("i") : null;
-        if (starVal <= currentReview.rating) {
+        if (currentReview.rating > 0 && starVal <= currentReview.rating) {
           btn.className = "star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95";
           if (icon) icon.className = "fa-solid fa-star";
         } else {
@@ -3862,6 +4267,7 @@
       });
 
       const labels = {
+        0: "Tap a star to rate",
         1: "1 Star — Poor",
         2: "2 Stars — Fair",
         3: "3 Stars — Good",
@@ -3869,15 +4275,28 @@
         5: "5 Stars — Excellent"
       };
       const labelEl = document.getElementById("reviewRatingLabel");
-      if (labelEl) labelEl.textContent = labels[val] || `${val} Stars`;
+      if (labelEl) {
+        labelEl.textContent = labels[currentReview.rating] || "Tap a star to rate";
+        if (currentReview.rating > 0) {
+          labelEl.className = "text-[11px] font-bold text-amber-600 dark:text-amber-400";
+        } else {
+          labelEl.className = "text-[11px] font-bold text-slate-400 dark:text-slate-500";
+        }
+      }
     }
 
     function setReviewClassAvg(val) {
-      currentReview.classAvg = val;
+      // Toggle off / deselect if tapped again because Class Average is optional
+      if (currentReview.classAvg === val) {
+        currentReview.classAvg = null;
+      } else {
+        currentReview.classAvg = val;
+      }
+
       ["low", "medium", "high"].forEach(opt => {
         const btn = document.getElementById(`classAvgBtn-${opt}`);
         if (!btn) return;
-        if (opt === val) {
+        if (currentReview.classAvg === opt) {
           const activeColors = {
             low: "bg-rose-600 border-rose-600 text-white shadow-xs",
             medium: "bg-blue-600 border-blue-600 text-white shadow-xs",
@@ -3906,13 +4325,29 @@
       currentReview.behavior = val;
       const goodBtn = document.getElementById("behaviorBtn-good");
       const badBtn = document.getElementById("behaviorBtn-bad");
+      const goodIcon = goodBtn ? goodBtn.querySelector("i") : null;
+      const badIcon = badBtn ? badBtn.querySelector("i") : null;
+
       if (goodBtn && badBtn) {
         if (val === "good") {
           goodBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-emerald-600 border-emerald-600 text-white shadow-xs";
+          if (goodIcon) goodIcon.className = "fa-solid fa-face-smile text-white text-xs";
+
           badBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
-        } else {
+          if (badIcon) badIcon.className = "fa-solid fa-face-frown text-rose-500 text-xs";
+        } else if (val === "bad") {
           goodBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (goodIcon) goodIcon.className = "fa-solid fa-face-smile text-emerald-500 text-xs";
+
           badBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-rose-600 border-rose-600 text-white shadow-xs";
+          if (badIcon) badIcon.className = "fa-solid fa-face-frown text-white text-xs";
+        } else {
+          // Unselected / Reset
+          goodBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (goodIcon) goodIcon.className = "fa-solid fa-face-smile text-emerald-500 text-xs";
+
+          badBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (badIcon) badIcon.className = "fa-solid fa-face-frown text-rose-500 text-xs";
         }
       }
     }
@@ -3921,13 +4356,29 @@
       currentReview.lateEntry = val;
       const allowedBtn = document.getElementById("lateEntryBtn-allowed");
       const notBtn = document.getElementById("lateEntryBtn-not");
+      const allowedIcon = allowedBtn ? allowedBtn.querySelector("i") : null;
+      const notIcon = notBtn ? notBtn.querySelector("i") : null;
+
       if (allowedBtn && notBtn) {
         if (val === "allowed") {
           allowedBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-sky-600 border-sky-600 text-white shadow-xs";
+          if (allowedIcon) allowedIcon.className = "fa-solid fa-door-open text-white text-xs";
+
           notBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
-        } else {
+          if (notIcon) notIcon.className = "fa-solid fa-ban text-amber-500 text-xs";
+        } else if (val === "not") {
           allowedBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (allowedIcon) allowedIcon.className = "fa-solid fa-door-open text-sky-500 text-xs";
+
           notBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-amber-600 border-amber-600 text-white shadow-xs";
+          if (notIcon) notIcon.className = "fa-solid fa-ban text-white text-xs";
+        } else {
+          // Unselected / Reset
+          allowedBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (allowedIcon) allowedIcon.className = "fa-solid fa-door-open text-sky-500 text-xs";
+
+          notBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (notIcon) notIcon.className = "fa-solid fa-ban text-amber-500 text-xs";
         }
       }
     }
@@ -3935,6 +4386,21 @@
     async function submitFacultyReview() {
       if (!currentReview.teacherKey || isExcludedReviewFaculty(currentReview.teacherKey) || isExcludedReviewFaculty(currentReview.rawFaculty) || isExcludedReviewFaculty(currentReview.teacherName)) {
         alert("Reviews cannot be submitted for this entry.");
+        return;
+      }
+
+      if (!currentReview.rating || currentReview.rating < 1) {
+        alert("Please select an overall rating (1 to 5 stars).");
+        return;
+      }
+
+      if (!currentReview.behavior) {
+        alert("Please select faculty behavior (Good or Bad).");
+        return;
+      }
+
+      if (!currentReview.lateEntry) {
+        alert("Please select whether late class entry is allowed or not.");
         return;
       }
 
@@ -3950,7 +4416,7 @@
         teacherName: currentReview.teacherName,
         rawFaculty: currentReview.rawFaculty,
         rating: Number(currentReview.rating),
-        classAvg: currentReview.classAvg,
+        classAvg: currentReview.classAvg || null,
         behavior: currentReview.behavior,
         lateEntry: currentReview.lateEntry,
         comment: comment,
@@ -4044,12 +4510,151 @@
     let selectedParcelFilter = "all"; // "all", "leaving_ab02", "free_now", "free_next"
     let PARCEL_REQUESTS = [];
     let isFirebaseParcelListenerActive = false;
+    let knownParcelDocIds = new Set();
+    let hasLoadedInitialParcels = false;
 
     // Load initial cached parcel requests from localStorage
     try {
       const cached = localStorage.getItem("vitb_parcel_requests");
-      if (cached) PARCEL_REQUESTS = JSON.parse(cached);
+      if (cached) {
+        PARCEL_REQUESTS = JSON.parse(cached);
+        PARCEL_REQUESTS.forEach(r => { if (r.id) knownParcelDocIds.add(r.id); });
+      }
     } catch (e) { }
+
+    function isParcelNotificationEnabled() {
+      if (typeof window === "undefined" || !("Notification" in window)) return false;
+      const pref = localStorage.getItem("vitb_parcel_notifications_enabled");
+      return Notification.permission === "granted" && pref === "true";
+    }
+
+    function playParcelAlertChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        // Note 1: 587.33 Hz (D5)
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = "sine";
+        osc1.frequency.setValueAtTime(587.33, now);
+        gain1.gain.setValueAtTime(0.15, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.22);
+
+        // Note 2: 880.00 Hz (A5)
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(880.0, now + 0.12);
+        gain2.gain.setValueAtTime(0.18, now + 0.12);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.12);
+        osc2.stop(now + 0.45);
+      } catch (e) {
+        // AudioContext might be restricted until user gesture; safe to ignore
+      }
+    }
+
+    async function toggleParcelNotifications() {
+      if (typeof window === "undefined" || !("Notification" in window)) {
+        alert("Web Notifications are not supported by this browser.");
+        return;
+      }
+
+      const isCurrentlyEnabled = isParcelNotificationEnabled();
+
+      if (isCurrentlyEnabled) {
+        localStorage.setItem("vitb_parcel_notifications_enabled", "false");
+        showReviewToast("🔕 Parcel request alerts muted.");
+        renderParcelHelper();
+        return;
+      }
+
+      if (Notification.permission === "denied") {
+        alert("Notifications are blocked in your browser settings. Please allow notifications for this site to receive parcel alerts.");
+        return;
+      }
+
+      try {
+        const perm = await Notification.requestPermission();
+        if (perm === "granted") {
+          localStorage.setItem("vitb_parcel_notifications_enabled", "true");
+          playParcelAlertChime();
+          showReviewToast("🔔 Parcel request alerts enabled!");
+          sendParcelNotification({
+            id: "welcome_" + Date.now(),
+            requester: "VITB Squad Bot",
+            courier: "Parcel Helper",
+            note: "You're all set! You will receive instant notifications when squad members post pickup requests.",
+            status: "open",
+            isTest: true
+          });
+          initFirebaseParcelRequests();
+          renderParcelHelper();
+        } else {
+          showReviewToast("Notification permission was not granted.");
+        }
+      } catch (err) {
+        console.warn("Notification request error:", err);
+      }
+    }
+
+    function sendParcelNotification(req) {
+      if (typeof window === "undefined" || !("Notification" in window)) return;
+      if (!isParcelNotificationEnabled() && !req.isTest) return;
+      if (Notification.permission !== "granted") return;
+
+      // Don't notify the author about their own parcel request
+      const myRequester = localStorage.getItem("vitb_last_requester_name") || "";
+      if (myRequester && req.requester && req.requester.toLowerCase() === myRequester.toLowerCase() && !req.isTest) {
+        return;
+      }
+
+      playParcelAlertChime();
+
+      const title = req.isTest
+        ? "🔔 Parcel Alerts Activated!"
+        : `📦 New Parcel Request: ${req.requester}`;
+      const body = req.isTest
+        ? (req.note || "You will receive instant alerts when someone asks for a parcel pickup.")
+        : `${req.courier || "Parcel"} delivery waiting between AB & AB02.${req.otp ? " OTP attached." : ""}`;
+
+      const options = {
+        body: body,
+        icon: "./icons/icon-192.png",
+        badge: "./icons/favicon.png",
+        tag: "parcel_req_" + (req.id || Date.now()),
+        renotify: true,
+        vibrate: [150, 80, 150],
+        data: { url: "./?tab=parcel" }
+      };
+
+      if ("serviceWorker" in navigator && navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then(reg => {
+          if (reg && reg.showNotification) {
+            reg.showNotification(title, options);
+          } else {
+            new Notification(title, options);
+          }
+        }).catch(() => {
+          try {
+            new Notification(title, options);
+          } catch (e) { }
+        });
+      } else {
+        try {
+          new Notification(title, options);
+        } catch (e) { }
+      }
+    }
 
     function getVenueBlock(venue) {
       if (!venue) return "Unknown";
@@ -4163,39 +4768,104 @@
       }).sort((a, b) => b.priority - a.priority || a.friend.name.localeCompare(b.friend.name));
     }
 
+    let parcelCollectionName = "parcel_requests";
+    let isParcelLoading = false;
+    let parcelSyncError = null;
+
     function initFirebaseParcelRequests() {
       if (isFirebaseParcelListenerActive) return;
       const firestore = getDb();
       if (!firestore) return;
 
       isFirebaseParcelListenerActive = true;
-      try {
-        firestore.collection("parcel_requests")
-          .limit(25)
-          .onSnapshot((snapshot) => {
-            const reqs = [];
-            snapshot.forEach(doc => {
-              const data = doc.data();
-              reqs.push({
-                id: doc.id,
-                ...data,
-                timestamp: data.timestamp || Date.now()
-              });
-            });
-            reqs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-            PARCEL_REQUESTS = reqs;
-            try {
-              localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
-            } catch (e) { }
-            if (activeTab === "parcel") {
-              renderParcelHelper();
-            }
-          }, (err) => {
-            console.warn("Firestore parcel listener note:", err);
-          });
-      } catch (e) {
-        console.warn("Firestore parcel setup error:", e);
+      startParcelFirestoreListener(firestore, "parcel_requests");
+    }
+
+    function startParcelFirestoreListener(firestore, targetCol) {
+      parcelCollectionName = targetCol;
+      isParcelLoading = true;
+      parcelSyncError = null;
+
+      let query = firestore.collection(targetCol);
+      if (targetCol === "teacher_reviews") {
+        query = query.where("docType", "==", "parcel_request");
       }
+
+      query.onSnapshot((snapshot) => {
+        isParcelLoading = false;
+        parcelSyncError = null;
+        const reqs = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (targetCol === "teacher_reviews" && data.docType !== "parcel_request") return;
+          reqs.push({
+            id: doc.id,
+            ...data,
+            timestamp: data.timestamp || Date.now()
+          });
+        });
+        reqs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        PARCEL_REQUESTS = reqs;
+        try {
+          localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
+        } catch (e) { }
+
+        // Check for new real-time parcel requests to dispatch notifications
+        if (!hasLoadedInitialParcels) {
+          snapshot.forEach(doc => {
+            knownParcelDocIds.add(doc.id);
+          });
+          hasLoadedInitialParcels = true;
+        } else {
+          snapshot.forEach(doc => {
+            if (!knownParcelDocIds.has(doc.id)) {
+              knownParcelDocIds.add(doc.id);
+              const data = doc.data();
+              if (targetCol === "teacher_reviews" && data.docType !== "parcel_request") return;
+              if (data.status === "open") {
+                sendParcelNotification({ id: doc.id, ...data });
+              }
+            }
+          });
+        }
+
+        // Automatically upload any unsynced local requests
+        const localReqs = PARCEL_REQUESTS.filter(r => r.id && String(r.id).startsWith("local_"));
+        if (localReqs.length > 0) {
+          localReqs.forEach(async (lr) => {
+            try {
+              const { id, ...cleanData } = lr;
+              await firestore.collection(parcelCollectionName).add({
+                ...cleanData,
+                docType: "parcel_request",
+                createdAt: (typeof firebase !== "undefined" && firebase.firestore && firebase.firestore.FieldValue)
+                  ? firebase.firestore.FieldValue.serverTimestamp()
+                  : new Date()
+              });
+              PARCEL_REQUESTS = PARCEL_REQUESTS.filter(r => r.id !== lr.id);
+              localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
+            } catch (err) { }
+          });
+        }
+
+        if (activeTab === "parcel") {
+          renderParcelHelper();
+        }
+      }, (err) => {
+        isParcelLoading = false;
+        console.warn(`Firestore parcel listener on '${targetCol}' notice:`, err);
+        // If permission-denied on parcel_requests, seamlessly switch to authorized teacher_reviews collection
+        if (targetCol === "parcel_requests" && (err.code === "permission-denied" || String(err).includes("permission") || String(err).includes("insufficient"))) {
+          console.info("Switching parcel sync to authorized teacher_reviews collection fallback.");
+          parcelCollectionName = "teacher_reviews";
+          startParcelFirestoreListener(firestore, "teacher_reviews");
+        } else {
+          parcelSyncError = err.message || "Offline";
+          if (activeTab === "parcel") {
+            renderParcelHelper();
+          }
+        }
+      });
     }
 
     function openParcelRequestModal() {
@@ -4208,6 +4878,11 @@
         select.innerHTML = '<option value="">Select your name...</option>' + sorted.map(f => `
           <option value="${f.name}">${f.name}</option>
         `).join("");
+      }
+
+      const savedName = localStorage.getItem("vitb_last_requester_name");
+      if (savedName && select) {
+        select.value = savedName;
       }
 
       modal.classList.remove("hidden");
@@ -4236,8 +4911,12 @@
         return;
       }
 
+      try {
+        localStorage.setItem("vitb_last_requester_name", requesterName);
+      } catch (e) { }
+
       if (submitBtn) submitBtn.disabled = true;
-      if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Posting...';
+      if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Posting to Firebase...';
 
       const newReq = {
         requester: requesterName,
@@ -4253,12 +4932,25 @@
       const firestore = getDb();
       if (firestore) {
         try {
-          await firestore.collection("parcel_requests").add({
+          const docData = {
             ...newReq,
+            docType: "parcel_request",
             createdAt: (typeof firebase !== "undefined" && firebase.firestore && firebase.firestore.FieldValue)
               ? firebase.firestore.FieldValue.serverTimestamp()
               : new Date()
-          });
+          };
+
+          try {
+            await firestore.collection(parcelCollectionName).add(docData);
+          } catch (firstErr) {
+            if (parcelCollectionName === "parcel_requests" && (firstErr.code === "permission-denied" || String(firstErr).includes("permission") || String(firstErr).includes("insufficient"))) {
+              parcelCollectionName = "teacher_reviews";
+              await firestore.collection("teacher_reviews").add(docData);
+              startParcelFirestoreListener(firestore, "teacher_reviews");
+            } else {
+              throw firstErr;
+            }
+          }
         } catch (e) {
           console.warn("Firestore save fallback to local:", e);
           newReq.id = "local_" + Date.now();
@@ -4297,14 +4989,23 @@
       }
 
       const firestore = getDb();
-      if (firestore && reqId && !reqId.startsWith("local_")) {
+      if (firestore && reqId && !String(reqId).startsWith("local_")) {
         try {
-          await firestore.collection("parcel_requests").doc(reqId).update({
+          await firestore.collection(parcelCollectionName).doc(reqId).update({
             status: "claimed",
             claimedBy: friendName.trim()
           });
         } catch (e) {
-          console.warn("Firestore update error:", e);
+          if (parcelCollectionName === "parcel_requests") {
+            try {
+              await firestore.collection("teacher_reviews").doc(reqId).update({
+                status: "claimed",
+                claimedBy: friendName.trim()
+              });
+            } catch (err2) {
+              console.warn("Firestore claim error:", err2);
+            }
+          }
         }
       }
 
@@ -4319,11 +5020,17 @@
       } catch (e) { }
 
       const firestore = getDb();
-      if (firestore && reqId && !reqId.startsWith("local_")) {
+      if (firestore && reqId && !String(reqId).startsWith("local_")) {
         try {
-          await firestore.collection("parcel_requests").doc(reqId).delete();
+          await firestore.collection(parcelCollectionName).doc(reqId).delete();
         } catch (e) {
-          console.warn("Firestore delete error:", e);
+          if (parcelCollectionName === "parcel_requests") {
+            try {
+              await firestore.collection("teacher_reviews").doc(reqId).delete();
+            } catch (err2) {
+              console.warn("Firestore complete error:", err2);
+            }
+          }
         }
       }
 
@@ -4428,20 +5135,50 @@
               <div>
                 <h2 class="text-sm font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-1.5">
                   <span>Campus Parcel Helper</span>
-                  <span class="text-[9.5px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60">AB ↔ AB02</span>
+                  ${isParcelLoading ? `
+                    <span class="relative flex h-2 w-2 ml-0.5 inline-flex" title="Syncing parcel requests with Firebase...">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                  ` : (parcelSyncError ? `
+                    <span class="relative flex h-2 w-2 ml-0.5 inline-flex" title="Offline / Local Cache">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                    </span>
+                  ` : `
+                    <span class="relative flex h-2 w-2 ml-0.5 inline-flex" title="Live Firebase Connected">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                  `)}
                 </h2>
                 <p class="text-[11px] text-slate-600 dark:text-slate-400">
                   Parcel counter is in between <strong>AB</strong> &amp; <strong>AB02</strong> blocks.
                 </p>
               </div>
             </div>
-            <button
-              onclick="openParcelRequestModal()"
-              class="px-2.5 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition shadow-xs flex items-center gap-1 shrink-0 active:scale-95"
-            >
-              <i class="fa-solid fa-plus text-[10px]"></i>
-              <span>Request</span>
-            </button>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button
+                onclick="toggleParcelNotifications()"
+                id="parcelNotificationToggleBtn"
+                title="${isParcelNotificationEnabled() ? 'Parcel notifications enabled (Click to mute)' : 'Enable parcel request notifications'}"
+                class="px-2 py-1 rounded-xl font-bold text-xs transition shadow-xs flex items-center gap-1 active:scale-95 ${
+                  isParcelNotificationEnabled()
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
+                    : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
+                }"
+              >
+                <i class="fa-solid ${isParcelNotificationEnabled() ? 'fa-bell text-emerald-600 dark:text-emerald-400' : 'fa-bell-slash text-slate-400'} text-[11px]"></i>
+                <span class="hidden sm:inline">${isParcelNotificationEnabled() ? 'Alerts On' : 'Alerts'}</span>
+              </button>
+              <button
+                onclick="openParcelRequestModal()"
+                class="px-2.5 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition shadow-xs flex items-center gap-1 shrink-0 active:scale-95"
+              >
+                <i class="fa-solid fa-plus text-[10px]"></i>
+                <span>Request</span>
+              </button>
+            </div>
           </div>
           <p class="text-[10.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
             Detects squad members who are free right now or travelling from <strong>AB02</strong> and have their next class free, so they can grab your delivery on their way!
@@ -4796,6 +5533,20 @@
       renderLiveStatusBanner();
       checkInstallState();
       // NOTE: initFirebaseReviews() is lazy-loaded ONLY when the Teacher Finder tab is opened
+
+      // Service Worker message listener for notification clicks
+      if ("serviceWorker" in navigator && navigator.serviceWorker && navigator.serviceWorker.addEventListener) {
+        navigator.serviceWorker.addEventListener("message", (event) => {
+          if (event.data && event.data.action === "navigate_tab" && event.data.tab) {
+            switchTab(event.data.tab);
+          }
+        });
+      }
+
+      // If parcel notifications are enabled, listen for incoming squad requests immediately
+      if (localStorage.getItem("vitb_parcel_notifications_enabled") === "true") {
+        initFirebaseParcelRequests();
+      }
 
       // Check URL search params for PWA shortcut navigation (?tab=master/individual/teacher)
       try {
