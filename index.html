@@ -414,7 +414,8 @@
                 SCHOOL
               </span>
             </div>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Rate & review this teacher for fellow students</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Rate & review this teacher for fellow
+              students</p>
           </div>
           <button onclick="closeReviewModal()"
             class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0">
@@ -426,24 +427,30 @@
           <input type="hidden" id="reviewTeacherKey" value="" />
 
           <!-- Star Rating -->
-          <div class="space-y-1.5 text-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
+          <div
+            class="space-y-1.5 text-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
             <div class="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
               Overall Rating
             </div>
             <div id="starContainer" class="flex items-center justify-center gap-2 py-1">
-              <button type="button" onclick="setReviewRating(1)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="1">
+              <button type="button" onclick="setReviewRating(1)"
+                class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="1">
                 <i class="fa-solid fa-star"></i>
               </button>
-              <button type="button" onclick="setReviewRating(2)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="2">
+              <button type="button" onclick="setReviewRating(2)"
+                class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="2">
                 <i class="fa-solid fa-star"></i>
               </button>
-              <button type="button" onclick="setReviewRating(3)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="3">
+              <button type="button" onclick="setReviewRating(3)"
+                class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="3">
                 <i class="fa-solid fa-star"></i>
               </button>
-              <button type="button" onclick="setReviewRating(4)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="4">
+              <button type="button" onclick="setReviewRating(4)"
+                class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="4">
                 <i class="fa-solid fa-star"></i>
               </button>
-              <button type="button" onclick="setReviewRating(5)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="5">
+              <button type="button" onclick="setReviewRating(5)"
+                class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="5">
                 <i class="fa-solid fa-star"></i>
               </button>
             </div>
@@ -528,7 +535,8 @@
             <label class="block text-[11px] font-bold text-slate-800 dark:text-slate-200">
               Tips & Advice (Optional)
             </label>
-            <textarea id="reviewCommentInput" rows="2" placeholder="e.g. PPTs are enough, strict with phone, friendly during office hours..."
+            <textarea id="reviewCommentInput" rows="2"
+              placeholder="e.g. PPTs are enough, strict with phone, friendly during office hours..."
               class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-brandBlue focus:bg-white dark:focus:bg-slate-800 transition resize-none"></textarea>
           </div>
 
@@ -617,7 +625,7 @@
 
     /**
      * ========================================================================
-     * 1. VERIFIED TIMETABLE DATA: DHRUBA, AJAY, SIDDHARTHA, JAIVARDHAN, SIDDHANT, ANAND, ARAVIND, JUDWE, SUVAYAN, PRAKHAR, VANSH, ASHESH, ANSH, PRAKRIT & NILON
+     * 1. VERIFIED TIMETABLE DATA: DHRUBA, AJAY, SIDDHARTHA, JAIVARDHAN, SIDDHANT, ANAND, ARAVIND, JUDWE, SUVAYAN, PRAKHAR, VANSH, ASHESH, ANSH, PRAKRIT & NILAN
      * ========================================================================
      */
     const FRIENDS_DATA = [
@@ -2347,8 +2355,8 @@
         ]
       },
       {
-        id: "nilon",
-        name: "Nilon",
+        id: "nilan",
+        name: "Nilan",
         tag: "Verified VTOP",
         color: "pink",
         avatarBg: "from-pink-500 to-rose-600",
@@ -3295,47 +3303,6 @@
           `;
         }
 
-        // Collect unique course codes taught by this teacher across enrolled students
-        const taughtCourses = new Map();
-        studentRecords.forEach(sr => {
-          sr.courses.forEach(c => {
-            if (!taughtCourses.has(c.code)) {
-              taughtCourses.set(c.code, c);
-            }
-          });
-        });
-
-        // Check if other friends take any of these courses with someone else (completely deduplicated)
-        const comparisonNotes = [];
-        const seenComparisons = new Set();
-
-        FRIENDS_DATA.forEach(otherFriend => {
-          taughtCourses.forEach((c, courseCode) => {
-            const isEnrolledWithThisTeacher = studentRecords.some(sr =>
-              sr.friend.id === otherFriend.id && sr.courses.some(sc => sc.code === courseCode)
-            );
-
-            if (!isEnrolledWithThisTeacher) {
-              const otherCourse = otherFriend.courses.find(oc => oc.code === courseCode);
-              if (otherCourse) {
-                const compKey = `${otherFriend.id}-${courseCode}`;
-                if (!seenComparisons.has(compKey)) {
-                  seenComparisons.add(compKey);
-                  const otherFacultyShort = otherCourse.faculty.split(" - ")[0];
-                  comparisonNotes.push({
-                    friendName: otherFriend.name,
-                    courseCode: otherCourse.code,
-                    html: `<strong>${otherFriend.name}</strong> takes ${otherCourse.code} (${otherCourse.title}) with <strong>${otherFacultyShort}</strong> instead.`
-                  });
-                }
-              }
-            }
-          });
-        });
-
-        // Sort comparison notes alphabetically by student name, then course code
-        comparisonNotes.sort((a, b) => a.friendName.localeCompare(b.friendName) || a.courseCode.localeCompare(b.courseCode));
-
         // Review & Rating Analytics for this teacher
         const safeTeacherKey = getTeacherStorageKey(t.rawFaculty);
         const reviews = TEACHER_REVIEWS[safeTeacherKey] || [];
@@ -3461,16 +3428,6 @@
                     </div>
                   </div>
                 `).join("")}
-
-                ${comparisonNotes.length > 0 ? `
-                  <div class="p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 text-amber-900 dark:text-amber-200 space-y-1">
-                    <div class="flex items-center gap-1.5 font-bold">
-                      <i class="fa-solid fa-code-compare text-amber-600 dark:text-amber-400"></i>
-                      <span>Faculty Comparison:</span>
-                    </div>
-                    ${comparisonNotes.map(note => `<div>• ${note.html}</div>`).join("")}
-                  </div>
-                ` : ''}
               </div>
             `}
 
