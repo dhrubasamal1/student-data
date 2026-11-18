@@ -4500,13 +4500,18 @@
     let PARCEL_REQUESTS = [];
     let isFirebaseParcelListenerActive = false;
     let knownParcelDocIds = new Set();
+    let completedParcelDocIds = new Set();
     let hasLoadedInitialParcels = false;
 
-    // Load initial cached parcel requests from localStorage
+    // Load initial cached parcel requests and completed IDs from localStorage
     try {
+      const cachedCompleted = localStorage.getItem("vitb_completed_parcel_ids");
+      if (cachedCompleted) {
+        JSON.parse(cachedCompleted).forEach(id => completedParcelDocIds.add(id));
+      }
       const cached = localStorage.getItem("vitb_parcel_requests");
       if (cached) {
-        PARCEL_REQUESTS = JSON.parse(cached);
+        PARCEL_REQUESTS = JSON.parse(cached).filter(r => !completedParcelDocIds.has(r.id));
         PARCEL_REQUESTS.forEach(r => { if (r.id) knownParcelDocIds.add(r.id); });
       }
     } catch (e) { }
@@ -4777,22 +4782,47 @@
 
       let query = firestore.collection(targetCol);
       if (targetCol === "teacher_reviews") {
-        query = query.where("docType", "==", "parcel_request");
+        query = query.where("docType", "in", ["parcel_request", "parcel_request_completed", "parcel_request_claimed"]);
       }
 
       query.onSnapshot((snapshot) => {
         isParcelLoading = false;
         parcelSyncError = null;
+
+        const claimsMap = {};
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.docType === "parcel_request_completed" && data.targetId) {
+            completedParcelDocIds.add(data.targetId);
+          } else if (data.docType === "parcel_request_claimed" && data.targetId && data.claimedBy) {
+            claimsMap[data.targetId] = data.claimedBy;
+          }
+        });
+
+        try {
+          localStorage.setItem("vitb_completed_parcel_ids", JSON.stringify([...completedParcelDocIds]));
+        } catch (e) { }
+
         const reqs = [];
         snapshot.forEach(doc => {
           const data = doc.data();
+          if (data.docType && data.docType !== "parcel_request") return;
           if (targetCol === "teacher_reviews" && data.docType !== "parcel_request") return;
-          reqs.push({
+          if (completedParcelDocIds.has(doc.id) || data.status === "completed" || data.status === "received" || data.status === "delivered") {
+            return;
+          }
+          const item = {
             id: doc.id,
             ...data,
             timestamp: data.timestamp || Date.now()
-          });
+          };
+          if (claimsMap[doc.id]) {
+            item.status = "claimed";
+            item.claimedBy = claimsMap[doc.id];
+          }
+          reqs.push(item);
         });
+
         reqs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         PARCEL_REQUESTS = reqs;
         try {
@@ -4810,7 +4840,8 @@
             if (!knownParcelDocIds.has(doc.id)) {
               knownParcelDocIds.add(doc.id);
               const data = doc.data();
-              if (targetCol === "teacher_reviews" && data.docType !== "parcel_request") return;
+              if (data.docType && data.docType !== "parcel_request") return;
+              if (completedParcelDocIds.has(doc.id)) return;
               if (data.status === "open") {
                 sendParcelNotification({ id: doc.id, ...data });
               }
@@ -4819,7 +4850,7 @@
         }
 
         // Automatically upload any unsynced local requests
-        const localReqs = PARCEL_REQUESTS.filter(r => r.id && String(r.id).startsWith("local_"));
+        const localReqs = PARCEL_REQUESTS.filter(r => r.id && String(r.id).startsWith("local_") && !completedParcelDocIds.has(r.id));
         if (localReqs.length > 0) {
           localReqs.forEach(async (lr) => {
             try {
@@ -4977,8 +5008,12 @@
         } catch (e) { }
       }
 
+      showReviewToast(`You claimed this parcel! Thanks for helping ${target ? target.requester : "your friend"}!`);
+      renderParcelHelper();
+
       const firestore = getDb();
       if (firestore && reqId && !String(reqId).startsWith("local_")) {
+        // Attempt direct update if allowed by rules
         try {
           await firestore.collection(parcelCollectionName).doc(reqId).update({
             status: "claimed",
@@ -4991,40 +5026,81 @@
                 status: "claimed",
                 claimedBy: friendName.trim()
               });
-            } catch (err2) {
-              console.warn("Firestore claim error:", err2);
-            }
+            } catch (err2) { }
+          }
+        }
+
+        // Also add claim record for sync across restrictive rules
+        const claimDoc = {
+          docType: "parcel_request_claimed",
+          targetId: reqId,
+          claimedBy: friendName.trim(),
+          timestamp: Date.now()
+        };
+
+        try {
+          await firestore.collection(parcelCollectionName).add(claimDoc);
+        } catch (errClaim) {
+          if (parcelCollectionName !== "teacher_reviews") {
+            try {
+              await firestore.collection("teacher_reviews").add(claimDoc);
+            } catch (e3) { }
           }
         }
       }
-
-      showReviewToast(`You claimed this parcel! Thanks for helping ${target ? target.requester : "your friend"}!`);
-      renderParcelHelper();
     }
 
     async function completeParcelRequest(reqId) {
-      PARCEL_REQUESTS = PARCEL_REQUESTS.filter(r => r.id !== reqId);
+      if (!reqId) return;
+
+      // 1. Immediately track as completed locally
+      completedParcelDocIds.add(reqId);
+      try {
+        localStorage.setItem("vitb_completed_parcel_ids", JSON.stringify([...completedParcelDocIds]));
+      } catch (e) { }
+
+      // 2. Immediately remove from memory and update UI
+      PARCEL_REQUESTS = PARCEL_REQUESTS.filter(r => r.id !== reqId && !completedParcelDocIds.has(r.id));
       try {
         localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
       } catch (e) { }
 
+      showReviewToast("Parcel marked as received / delivered!");
+      renderParcelHelper();
+
+      // 3. Sync to Firebase
       const firestore = getDb();
-      if (firestore && reqId && !String(reqId).startsWith("local_")) {
+      if (firestore && !String(reqId).startsWith("local_")) {
+        // Attempt direct deletion if security rules permit
         try {
           await firestore.collection(parcelCollectionName).doc(reqId).delete();
         } catch (e) {
           if (parcelCollectionName === "parcel_requests") {
             try {
               await firestore.collection("teacher_reviews").doc(reqId).delete();
-            } catch (err2) {
-              console.warn("Firestore complete error:", err2);
+            } catch (err2) { }
+          }
+        }
+
+        // Also publish completion document so all squad members see it removed even if direct delete is blocked by Firestore rules
+        const completionDoc = {
+          docType: "parcel_request_completed",
+          targetId: reqId,
+          timestamp: Date.now()
+        };
+
+        try {
+          await firestore.collection(parcelCollectionName).add(completionDoc);
+        } catch (errAdd) {
+          if (parcelCollectionName !== "teacher_reviews") {
+            try {
+              await firestore.collection("teacher_reviews").add(completionDoc);
+            } catch (errAdd2) {
+              console.warn("Firestore complete notice:", errAdd2);
             }
           }
         }
       }
-
-      showReviewToast("Parcel marked as received / delivered!");
-      renderParcelHelper();
     }
 
     function askHelperOnWhatsApp(friendName) {
