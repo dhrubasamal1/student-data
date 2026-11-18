@@ -1,10 +1,14 @@
 // Service Worker for VIT Bhopal Timetable & Squad Sync PWA
-const CACHE_NAME = 'vitb-timetable-v15';
+const CACHE_NAME = 'vitb-timetable-v16';
 
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './delivery/index.html',
+  './delivery/delivery.js',
+  './teacher_review/index.html',
+  './teacher_review/teacher_review.js',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-192.png',
