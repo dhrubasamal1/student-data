@@ -120,7 +120,8 @@
   </style>
 </head>
 
-<body class="bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white transition-colors duration-200">
+<body
+  class="bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white transition-colors duration-200">
 
   <!-- ===================================================================== -->
   <!-- MOBILE PHONE APP CONTAINER (MAX-W-MD)                                  -->
@@ -130,12 +131,8 @@
     <!-- 1. TOP HEADER -->
     <header class="mb-4 text-center relative">
       <!-- Dark Mode Toggle Button (Top Right) -->
-      <button
-        id="themeToggleBtn"
-        onclick="toggleDarkMode()"
-        aria-label="Toggle dark mode"
-        class="absolute right-0 top-0 w-8 h-8 rounded-full flex items-center justify-center transition border shadow-xs bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-amber-400 dark:hover:bg-slate-700 active:scale-95"
-      >
+      <button id="themeToggleBtn" onclick="toggleDarkMode()" aria-label="Toggle dark mode"
+        class="absolute right-0 top-0 w-8 h-8 rounded-full flex items-center justify-center transition border shadow-xs bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-amber-400 dark:hover:bg-slate-700 active:scale-95">
         <i id="themeToggleIcon" class="fa-solid fa-moon text-xs"></i>
       </button>
 
@@ -144,7 +141,8 @@
       </h1>
 
       <!-- Live Now Micro-Banner for Mobile -->
-      <div id="liveBannerWidget" class="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2 flex-wrap">
+      <div id="liveBannerWidget"
+        class="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2 flex-wrap">
         <!-- Injected dynamically by JS -->
       </div>
     </header>
@@ -196,7 +194,8 @@
       </div>
 
       <!-- Quick Slot Inspector Bottom Sheet / Modal (When a card is tapped) -->
-      <div id="slotDetailCard" class="hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+      <div id="slotDetailCard"
+        class="hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
         <!-- Populated by JS -->
       </div>
     </main>
@@ -220,9 +219,11 @@
       </div>
 
       <!-- Registered Courses Container (Styled Exactly Like Portfolio Table) -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
         <!-- Table Header (Portfolio Baby Blue Strip) -->
-        <div class="bg-tableHeader dark:bg-slate-800 px-3.5 py-2.5 border-b border-blue-100 dark:border-slate-700 flex items-center justify-between">
+        <div
+          class="bg-tableHeader dark:bg-slate-800 px-3.5 py-2.5 border-b border-blue-100 dark:border-slate-700 flex items-center justify-between">
           <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300">
             Registered Courses (No Status Row)
           </span>
@@ -244,7 +245,8 @@
     <!-- =================================================================== -->
     <main id="tabPanel-teacher" class="hidden space-y-4 flex-1">
       <!-- Search & Suggestions Card -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
         <div class="flex items-center justify-between">
           <h2 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <i class="fa-solid fa-chalkboard-user text-brandBlue"></i>
@@ -262,7 +264,8 @@
 
         <!-- Search Bar -->
         <div class="relative">
-          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+          <div
+            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
             <i class="fa-solid fa-magnifying-glass text-xs"></i>
           </div>
           <input type="text" id="teacherSearchInput" placeholder="Search teacher (e.g. Vinod, Kannan, Abdur)..."
@@ -357,7 +360,7 @@
             category: "Programme Core",
             classNo: "BL2026270500900",
             slots: ["C11", "C12", "C13"],
-            venue: "AB02-216",
+            venue: "AB02-217",
             faculty: "IAMNEO 5 - ACAD"
           },
           {
@@ -483,7 +486,7 @@
             category: "Programme Core",
             classNo: "BL2026270500900",
             slots: ["C11", "C12", "C13"],
-            venue: "AB02-216",
+            venue: "AB02-217",
             faculty: "IAMNEO 5 - ACAD"
           },
           {
