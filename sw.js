@@ -40,6 +40,11 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
 
+  // Allow Firebase API and real-time streams to go direct to network
+  if (url.hostname.includes('firestore.googleapis.com') || url.hostname.includes('firebaseio.com')) {
+    return;
+  }
+
   // HTML navigation requests: Network first, fall back to cache
   if (req.mode === 'navigate') {
     event.respondWith(

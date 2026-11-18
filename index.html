@@ -33,6 +33,10 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
     rel="stylesheet">
 
+  <!-- Firebase App & Firestore (Compat for seamless browser integration) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -393,12 +397,224 @@
       </div>
     </div>
 
+    <!-- Teacher Review Modal -->
+    <div id="reviewModal"
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 overflow-y-auto">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4 my-auto max-h-[92vh] overflow-y-auto custom-h-scrollbar">
+        <!-- Modal Header -->
+        <div class="flex items-start justify-between gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <h3 id="reviewModalTeacherName" class="text-sm font-black text-slate-900 dark:text-white">
+                Faculty Name
+              </h3>
+              <span id="reviewModalSchool"
+                class="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                SCHOOL
+              </span>
+            </div>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Rate & review this teacher for fellow students</p>
+          </div>
+          <button onclick="closeReviewModal()"
+            class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
+
+        <form onsubmit="event.preventDefault(); submitFacultyReview();" class="space-y-3.5 text-xs text-left">
+          <input type="hidden" id="reviewTeacherKey" value="" />
+
+          <!-- Star Rating -->
+          <div class="space-y-1.5 text-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
+            <div class="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              Overall Rating
+            </div>
+            <div id="starContainer" class="flex items-center justify-center gap-2 py-1">
+              <button type="button" onclick="setReviewRating(1)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="1">
+                <i class="fa-solid fa-star"></i>
+              </button>
+              <button type="button" onclick="setReviewRating(2)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="2">
+                <i class="fa-solid fa-star"></i>
+              </button>
+              <button type="button" onclick="setReviewRating(3)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="3">
+                <i class="fa-solid fa-star"></i>
+              </button>
+              <button type="button" onclick="setReviewRating(4)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="4">
+                <i class="fa-solid fa-star"></i>
+              </button>
+              <button type="button" onclick="setReviewRating(5)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95" data-val="5">
+                <i class="fa-solid fa-star"></i>
+              </button>
+            </div>
+            <div id="reviewRatingLabel" class="text-[11px] font-bold text-amber-600 dark:text-amber-400">
+              5 Stars — Excellent
+            </div>
+          </div>
+
+          <!-- 1. Class Average -->
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-bold text-slate-800 dark:text-slate-200">
+              1. Class Average
+            </label>
+            <div class="grid grid-cols-3 gap-1.5">
+              <button type="button" id="classAvgBtn-low" onclick="setReviewClassAvg('low')"
+                class="class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                <i class="fa-solid fa-chart-line-down text-rose-500 text-xs"></i>
+                <span>Low</span>
+              </button>
+              <button type="button" id="classAvgBtn-medium" onclick="setReviewClassAvg('medium')"
+                class="class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-blue-600 border-blue-600 text-white shadow-xs">
+                <i class="fa-solid fa-chart-simple text-white text-xs"></i>
+                <span>Medium</span>
+              </button>
+              <button type="button" id="classAvgBtn-high" onclick="setReviewClassAvg('high')"
+                class="class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                <i class="fa-solid fa-chart-line-up text-emerald-500 text-xs"></i>
+                <span>High</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Behavior -->
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-bold text-slate-800 dark:text-slate-200">
+              2. Faculty Behavior
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" id="behaviorBtn-good" onclick="setReviewBehavior('good')"
+                class="behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-emerald-600 border-emerald-600 text-white shadow-xs">
+                <i class="fa-solid fa-face-smile text-xs"></i>
+                <span>Good</span>
+              </button>
+              <button type="button" id="behaviorBtn-bad" onclick="setReviewBehavior('bad')"
+                class="behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                <i class="fa-solid fa-face-frown text-rose-500 text-xs"></i>
+                <span>Bad</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Late Class Entering -->
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-bold text-slate-800 dark:text-slate-200">
+              3. Late Class Entering
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" id="lateEntryBtn-allowed" onclick="setReviewLateEntry('allowed')"
+                class="late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-sky-600 border-sky-600 text-white shadow-xs">
+                <i class="fa-solid fa-door-open text-xs"></i>
+                <span>Allowed</span>
+              </button>
+              <button type="button" id="lateEntryBtn-not" onclick="setReviewLateEntry('not')"
+                class="late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                <i class="fa-solid fa-ban text-amber-500 text-xs"></i>
+                <span>Not Allowed</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Reviewer Identity -->
+          <div class="space-y-1">
+            <label class="block text-[11px] font-bold text-slate-800 dark:text-slate-200">
+              Reviewer Name (Optional)
+            </label>
+            <input type="text" id="reviewerNameInput" placeholder="Anonymous Student"
+              class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-brandBlue focus:bg-white dark:focus:bg-slate-800 transition" />
+          </div>
+
+          <!-- Comment / Tips -->
+          <div class="space-y-1">
+            <label class="block text-[11px] font-bold text-slate-800 dark:text-slate-200">
+              Tips & Advice (Optional)
+            </label>
+            <textarea id="reviewCommentInput" rows="2" placeholder="e.g. PPTs are enough, strict with phone, friendly during office hours..."
+              class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-brandBlue focus:bg-white dark:focus:bg-slate-800 transition resize-none"></textarea>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="pt-1">
+            <button type="submit" id="submitReviewBtn"
+              class="w-full py-2.5 rounded-xl bg-brandBlue hover:bg-brandBlueHover text-white text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 active:scale-98">
+              <i class="fa-solid fa-paper-plane text-xs"></i>
+              <span id="submitReviewBtnText">Submit Review</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Review Success / Info Toast -->
+    <div id="reviewToast"
+      class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-lg border border-slate-700 text-xs font-bold flex items-center gap-2 pointer-events-none transition-all">
+      <i class="fa-solid fa-circle-check text-emerald-400"></i>
+      <span id="reviewToastMsg">Review submitted successfully!</span>
+    </div>
+
   </div>
 
   <!-- ===================================================================== -->
   <!-- APPLICATION SCRIPT & HARDCODED TIMETABLE DATA                         -->
   <!-- ===================================================================== -->
   <script>
+    /**
+     * ========================================================================
+     * FIREBASE CONFIGURATION & INITIALIZATION
+     * ========================================================================
+     */
+    const firebaseConfig = {
+      apiKey: "AIzaSyAHg2aVfVglI-f9f64hK1HPHNHQgASeGg4",
+      authDomain: "student-data-b1244.firebaseapp.com",
+      projectId: "student-data-b1244",
+      storageBucket: "student-data-b1244.firebasestorage.app",
+      messagingSenderId: "168742789692",
+      appId: "1:168742789692:web:d0b4e6598a5a5a05979939"
+    };
+
+    let db = null;
+    let firebaseReady = false;
+    try {
+      if (typeof firebase !== "undefined") {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        firebaseReady = true;
+      }
+    } catch (e) {
+      console.warn("Firebase initialization notice:", e);
+    }
+
+    /**
+     * ========================================================================
+     * EXTRA / HARDCODED FACULTY LIST
+     * ========================================================================
+     * Easily add any other faculty here who are NOT currently in any squad
+     * student's timetable. They will automatically appear in Teacher Finder,
+     * search, and faculty reviews!
+     *
+     * Example structure:
+     * {
+     *   name: "FACULTY NAME",
+     *   school: "SCOPE", // e.g. SCOPE, SASL, SEEE, SMEC, SCAI, ACAD
+     *   rawFaculty: "FACULTY NAME - SCOPE", // optional, defaults to name - school
+     *   subjects: ["Course Title 1", "Course Title 2"] // optional
+     * }
+     */
+    const EXTRA_FACULTY_DATA = [
+      // Add more faculty here whenever you want:
+      {
+        name: "DR. PRADEEP KUMAR",
+        school: "SCOPE",
+        rawFaculty: "DR. PRADEEP KUMAR - SCOPE",
+        subjects: ["Operating Systems", "Cloud Computing"]
+      },
+      {
+        name: "DR. SARAVANAN R",
+        school: "SCOPE",
+        rawFaculty: "DR. SARAVANAN R - SCOPE",
+        subjects: ["Computer Networks", "Cyber Security"]
+      }
+    ];
+
     /**
      * ========================================================================
      * 1. VERIFIED TIMETABLE DATA: DHRUBA, AJAY, SIDDHARTHA, JAIVARDHAN, SIDDHANT, ANAND, ARAVIND, JUDWE, SUVAYAN, PRAKHAR & VANSH
@@ -2412,10 +2628,16 @@
      */
     let teacherSearchQuery = "";
     let selectedTeacherIndex = null;
+    let expandedTeacherReviews = new Set();
+
+    function getTeacherStorageKey(rawFaculty) {
+      return (rawFaculty || "").toLowerCase().replace(/[^a-z0-9]/g, "_");
+    }
 
     function getTeacherDirectory() {
       const teacherMap = new Map();
 
+      // 1. Ingest faculty registered in squad timetables
       FRIENDS_DATA.forEach(friend => {
         friend.courses.forEach(course => {
           const rawFaculty = (course.faculty || "").trim();
@@ -2430,7 +2652,9 @@
               rawFaculty,
               teacherName,
               school,
-              studentRecords: {}
+              studentRecords: {},
+              isExtraFaculty: false,
+              subjects: []
             });
           }
 
@@ -2444,6 +2668,35 @@
           entry.studentRecords[friend.id].courses.push(course);
         });
       });
+
+      // 2. Ingest hardcoded other faculty from EXTRA_FACULTY_DATA
+      if (typeof EXTRA_FACULTY_DATA !== "undefined" && Array.isArray(EXTRA_FACULTY_DATA)) {
+        EXTRA_FACULTY_DATA.forEach(extra => {
+          if (!extra || !extra.name) return;
+          const teacherName = extra.name.trim();
+          const school = (extra.school || "").trim();
+          const rawFaculty = extra.rawFaculty ? extra.rawFaculty.trim() : (school ? `${teacherName} - ${school}` : teacherName);
+
+          if (!teacherMap.has(rawFaculty)) {
+            teacherMap.set(rawFaculty, {
+              rawFaculty,
+              teacherName,
+              school,
+              studentRecords: {},
+              isExtraFaculty: true,
+              subjects: Array.isArray(extra.subjects) ? extra.subjects : (extra.subjects ? [extra.subjects] : [])
+            });
+          } else {
+            const existing = teacherMap.get(rawFaculty);
+            if (extra.subjects) {
+              const subs = Array.isArray(extra.subjects) ? extra.subjects : [extra.subjects];
+              subs.forEach(s => {
+                if (!existing.subjects.includes(s)) existing.subjects.push(s);
+              });
+            }
+          }
+        });
+      }
 
       return Array.from(teacherMap.values()).sort((a, b) => a.teacherName.localeCompare(b.teacherName));
     }
@@ -2488,7 +2741,8 @@
         const matchesCourse = Object.values(t.studentRecords).some(sr =>
           sr.courses.some(c => c.code.toLowerCase().includes(q) || c.title.toLowerCase().includes(q))
         );
-        return matchesName || matchesRaw || matchesSchool || matchesCourse;
+        const matchesSubject = (t.subjects || []).some(s => s.toLowerCase().includes(q));
+        return matchesName || matchesRaw || matchesSchool || matchesCourse || matchesSubject;
       });
 
       if (countBadge) {
@@ -2526,9 +2780,16 @@
         const enrolledFriendIds = new Set(Object.keys(t.studentRecords));
         const totalFriends = FRIENDS_DATA.length;
         const allEnrolled = enrolledFriendIds.size === totalFriends;
+        const isExtraOnly = t.isExtraFaculty && studentRecords.length === 0;
 
         let matchBadgeHtml = "";
-        if (allEnrolled) {
+        if (isExtraOnly) {
+          matchBadgeHtml = `
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0">
+              <i class="fa-solid fa-chalkboard-user mr-1 text-slate-500"></i>Faculty Member
+            </span>
+          `;
+        } else if (allEnrolled) {
           matchBadgeHtml = `
             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
               <i class="fa-solid fa-users mr-1"></i>All Students (${totalFriends})
@@ -2584,6 +2845,43 @@
         // Sort comparison notes alphabetically by student name, then course code
         comparisonNotes.sort((a, b) => a.friendName.localeCompare(b.friendName) || a.courseCode.localeCompare(b.courseCode));
 
+        // Review & Rating Analytics for this teacher
+        const safeTeacherKey = getTeacherStorageKey(t.rawFaculty);
+        const reviews = TEACHER_REVIEWS[safeTeacherKey] || [];
+        const reviewsCount = reviews.length;
+
+        let avgRating = 0;
+        let topClassAvg = "Medium";
+        let behaviorGoodPercent = 100;
+        let lateAllowedPercent = 100;
+        const avgCounts = { low: 0, medium: 0, high: 0 };
+        let goodCount = 0;
+        let allowedCount = 0;
+
+        if (reviewsCount > 0) {
+          const totalRating = reviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0);
+          avgRating = totalRating / reviewsCount;
+
+          reviews.forEach(r => {
+            if (r.classAvg && avgCounts[r.classAvg] !== undefined) avgCounts[r.classAvg]++;
+            if (r.behavior === "good") goodCount++;
+            if (r.lateEntry === "allowed") allowedCount++;
+          });
+
+          if (avgCounts.high >= avgCounts.medium && avgCounts.high >= avgCounts.low) {
+            topClassAvg = "High";
+          } else if (avgCounts.low > avgCounts.medium && avgCounts.low > avgCounts.high) {
+            topClassAvg = "Low";
+          } else {
+            topClassAvg = "Medium";
+          }
+
+          behaviorGoodPercent = Math.round((goodCount / reviewsCount) * 100);
+          lateAllowedPercent = Math.round((allowedCount / reviewsCount) * 100);
+        }
+
+        const isExpanded = expandedTeacherReviews.has(safeTeacherKey);
+
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
             <!-- Teacher Header -->
@@ -2606,65 +2904,513 @@
               ${matchBadgeHtml}
             </div>
 
-            <!-- Student Cards List -->
-            <div class="space-y-2">
-              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                Students Enrolled (${studentRecords.length}/${totalFriends}):
+            ${isExtraOnly ? `
+              <!-- Extra Faculty Info Card -->
+              <div class="bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/50 rounded-xl p-3 text-xs space-y-1.5">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  Faculty Information:
+                </div>
+                ${t.subjects && t.subjects.length > 0 ? `
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Courses:</span>
+                    ${t.subjects.map(s => `
+                      <span class="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-mono text-[10px] font-semibold text-brandBlue dark:text-blue-400">
+                        ${s}
+                      </span>
+                    `).join("")}
+                  </div>
+                ` : ''}
+                <div class="text-[11px] text-slate-400 dark:text-slate-500 italic">
+                  Not currently registered with any squad member. You can still rate & review this faculty below!
+                </div>
+              </div>
+            ` : `
+              <!-- Student Cards List -->
+              <div class="space-y-2">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  Students Enrolled (${studentRecords.length}/${totalFriends}):
+                </div>
+
+                ${studentRecords.map(sr => `
+                  <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl p-3 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-gradient-to-tr ${sr.friend.avatarBg} text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
+                          ${sr.friend.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-none">${sr.friend.name}</div>
+                          <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">${sr.friend.tag}</div>
+                        </div>
+                      </div>
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-mono">
+                        ${sr.courses.length} ${sr.courses.length === 1 ? 'course' : 'courses'}
+                      </span>
+                    </div>
+
+                    <!-- Course pills -->
+                    <div class="space-y-1.5 pt-1">
+                      ${sr.courses.map(c => `
+                        <div class="bg-white dark:bg-slate-900/90 border border-slate-200/70 dark:border-slate-700/80 rounded-lg p-2.5 text-xs shadow-2xs">
+                          <div class="flex items-start justify-between gap-1">
+                            <div>
+                              <span class="font-mono font-bold text-brandBlue text-[11px] mr-1">${c.code}</span>
+                              <span class="font-bold text-slate-900 dark:text-slate-100">${c.title}</span>
+                            </div>
+                            <span class="font-mono font-bold text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border dark:border-amber-900/60 shrink-0">
+                              ${c.venue}
+                            </span>
+                          </div>
+                          <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-mono">
+                            <span>Slots: <strong class="text-slate-800 dark:text-slate-200">${c.slots.join(", ")}</strong></span>
+                            <span>${c.shortType} • ${c.credit} Cr</span>
+                          </div>
+                        </div>
+                      `).join("")}
+                    </div>
+                  </div>
+                `).join("")}
+
+                ${comparisonNotes.length > 0 ? `
+                  <div class="p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 text-amber-900 dark:text-amber-200 space-y-1">
+                    <div class="flex items-center gap-1.5 font-bold">
+                      <i class="fa-solid fa-code-compare text-amber-600 dark:text-amber-400"></i>
+                      <span>Faculty Comparison:</span>
+                    </div>
+                    ${comparisonNotes.map(note => `<div>• ${note.html}</div>`).join("")}
+                  </div>
+                ` : ''}
+              </div>
+            `}
+
+            <!-- Faculty Reviews & Ratings Section -->
+            <div class="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+              <!-- Summary Strip -->
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  ${reviewsCount > 0 ? `
+                    <div class="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 px-2 py-0.5 rounded-full text-xs font-bold text-amber-700 dark:text-amber-300">
+                      <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
+                      <span>${avgRating.toFixed(1)}</span>
+                      <span class="text-[10px] text-amber-600/80 dark:text-amber-400/80 font-normal">(${reviewsCount})</span>
+                    </div>
+                    <!-- 1. Class Avg Badge -->
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50" title="Class Average">
+                      <i class="fa-solid fa-chart-simple text-[9px] mr-1"></i>Avg: ${topClassAvg}
+                    </span>
+                    <!-- 2. Behavior Badge -->
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${behaviorGoodPercent >= 50 ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900/50'} border" title="Faculty Behavior">
+                      ${behaviorGoodPercent >= 50 ? '<i class="fa-solid fa-face-smile mr-1 text-[9px]"></i>Good' : '<i class="fa-solid fa-face-frown mr-1 text-[9px]"></i>Bad'}
+                    </span>
+                    <!-- 3. Late Entry Badge -->
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${lateAllowedPercent >= 50 ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-900/50' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/50'} border" title="Late Class Entry">
+                      <i class="fa-solid fa-door-open text-[9px] mr-1"></i>Late: ${lateAllowedPercent >= 50 ? 'Allowed' : 'Not Allowed'}
+                    </span>
+                  ` : `
+                    <div class="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                      <i class="fa-regular fa-star text-slate-300 dark:text-slate-600"></i>
+                      <span>No reviews yet</span>
+                    </div>
+                  `}
+                </div>
+
+                <div class="flex items-center gap-1.5 ml-auto">
+                  ${reviewsCount > 0 ? `
+                    <button onclick="toggleTeacherReviews('${safeTeacherKey}')"
+                      class="px-2.5 py-1 rounded-full text-[11px] font-bold transition border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1">
+                      <i class="fa-regular fa-comments text-[10px]"></i>
+                      <span>${isExpanded ? 'Hide' : 'Reviews'} (${reviewsCount})</span>
+                      <i class="fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'} text-[9px]"></i>
+                    </button>
+                  ` : ''}
+                  <button onclick="openReviewModal('${safeTeacherKey}')"
+                    class="px-2.5 py-1 rounded-full text-[11px] font-bold transition bg-brandBlue hover:bg-brandBlueHover text-white shadow-xs flex items-center gap-1 active:scale-95">
+                    <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                    <span>Rate / Review</span>
+                  </button>
+                </div>
               </div>
 
-              ${studentRecords.map(sr => `
-                <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl p-3 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <div class="w-6 h-6 rounded-full bg-gradient-to-tr ${sr.friend.avatarBg} text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
-                        ${sr.friend.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-none">${sr.friend.name}</div>
-                        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">${sr.friend.tag}</div>
+              ${isExpanded && reviewsCount > 0 ? `
+                <!-- Expanded Reviews Tray -->
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-3 border border-slate-100 dark:border-slate-800 space-y-2.5">
+                  <!-- Stats Breakdown Row -->
+                  <div class="grid grid-cols-3 gap-1.5 text-center bg-white dark:bg-slate-900/80 p-2 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-[10px]">
+                    <div>
+                      <div class="text-slate-400 dark:text-slate-500">1. Class Avg</div>
+                      <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                        <span class="text-rose-500">${avgCounts.low}L</span> /
+                        <span class="text-blue-500">${avgCounts.medium}M</span> /
+                        <span class="text-emerald-500">${avgCounts.high}H</span>
                       </div>
                     </div>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-mono">
-                      ${sr.courses.length} ${sr.courses.length === 1 ? 'course' : 'courses'}
-                    </span>
+                    <div>
+                      <div class="text-slate-400 dark:text-slate-500">2. Behavior</div>
+                      <div class="font-bold ${behaviorGoodPercent >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'} mt-0.5">
+                        ${behaviorGoodPercent}% Good
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-slate-400 dark:text-slate-500">3. Late Entry</div>
+                      <div class="font-bold ${lateAllowedPercent >= 50 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'} mt-0.5">
+                        ${lateAllowedPercent}% Allowed
+                      </div>
+                    </div>
                   </div>
 
-                  <!-- Course pills -->
-                  <div class="space-y-1.5 pt-1">
-                    ${sr.courses.map(c => `
-                      <div class="bg-white dark:bg-slate-900/90 border border-slate-200/70 dark:border-slate-700/80 rounded-lg p-2.5 text-xs shadow-2xs">
-                        <div class="flex items-start justify-between gap-1">
-                          <div>
-                            <span class="font-mono font-bold text-brandBlue text-[11px] mr-1">${c.code}</span>
-                            <span class="font-bold text-slate-900 dark:text-slate-100">${c.title}</span>
+                  <!-- Reviews Feed -->
+                  <div class="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
+                    ${reviews.map(r => `
+                      <div class="bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-700/80 rounded-xl p-2.5 text-xs shadow-2xs space-y-1.5">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-1.5">
+                            <span class="font-bold text-slate-900 dark:text-slate-100 text-[11px]">${r.reviewerName || 'Anonymous Student'}</span>
+                            <span class="text-[10px] text-slate-400 dark:text-slate-500">• ${formatReviewTime(r.timestamp)}</span>
                           </div>
-                          <span class="font-mono font-bold text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border dark:border-amber-900/60 shrink-0">
-                            ${c.venue}
+                          <!-- Star Rating -->
+                          <div class="flex items-center text-amber-400 text-[10px]">
+                            ${Array.from({ length: 5 }, (_, i) => `<i class="${i < (r.rating || 5) ? 'fa-solid' : 'fa-regular'} fa-star"></i>`).join("")}
+                          </div>
+                        </div>
+
+                        <!-- 3 Criteria Badges -->
+                        <div class="flex items-center gap-1 flex-wrap text-[10px]">
+                          <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">
+                            Avg: <strong class="capitalize">${r.classAvg || 'medium'}</strong>
+                          </span>
+                          <span class="px-1.5 py-0.5 rounded ${r.behavior === 'good' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300'} font-medium">
+                            Behavior: <strong class="capitalize">${r.behavior || 'good'}</strong>
+                          </span>
+                          <span class="px-1.5 py-0.5 rounded ${r.lateEntry === 'allowed' ? 'bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300' : 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300'} font-medium">
+                            Late: <strong class="capitalize">${r.lateEntry === 'allowed' ? 'Allowed' : 'Not Allowed'}</strong>
                           </span>
                         </div>
-                        <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-mono">
-                          <span>Slots: <strong class="text-slate-800 dark:text-slate-200">${c.slots.join(", ")}</strong></span>
-                          <span>${c.shortType} • ${c.credit} Cr</span>
-                        </div>
+
+                        ${r.comment ? `
+                          <p class="text-[11px] text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 p-2 rounded-lg italic">
+                            "${r.comment}"
+                          </p>
+                        ` : ''}
                       </div>
                     `).join("")}
                   </div>
-                </div>
-              `).join("")}
-
-              ${comparisonNotes.length > 0 ? `
-                <div class="p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 text-amber-900 dark:text-amber-200 space-y-1">
-                  <div class="flex items-center gap-1.5 font-bold">
-                    <i class="fa-solid fa-code-compare text-amber-600 dark:text-amber-400"></i>
-                    <span>Faculty Comparison:</span>
-                  </div>
-                  ${comparisonNotes.map(note => `<div>• ${note.html}</div>`).join("")}
                 </div>
               ` : ''}
             </div>
           </div>
         `;
       }).join("");
+    }
+
+    /**
+     * ========================================================================
+     * 11. TEACHER REVIEWS & FIREBASE MANAGEMENT
+     * ========================================================================
+     */
+    let TEACHER_REVIEWS = {};
+    let currentReview = {
+      teacherKey: "",
+      teacherName: "",
+      rawFaculty: "",
+      school: "",
+      rating: 5,
+      classAvg: "medium",
+      behavior: "good",
+      lateEntry: "allowed"
+    };
+
+    function loadLocalReviews() {
+      try {
+        const saved = localStorage.getItem("vitb_teacher_reviews");
+        if (saved) {
+          TEACHER_REVIEWS = JSON.parse(saved);
+        }
+      } catch (e) {
+        TEACHER_REVIEWS = {};
+      }
+    }
+
+    function saveLocalReviews() {
+      try {
+        localStorage.setItem("vitb_teacher_reviews", JSON.stringify(TEACHER_REVIEWS));
+      } catch (e) { }
+    }
+
+    function initFirebaseReviews() {
+      loadLocalReviews();
+
+      if (!db) {
+        console.log("Firestore not available; using local review storage.");
+        return;
+      }
+
+      try {
+        db.collection("teacher_reviews").onSnapshot((snapshot) => {
+          const newMap = {};
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            const key = data.teacherId || getTeacherStorageKey(data.rawFaculty || data.teacherName || "");
+            if (!key) return;
+            if (!newMap[key]) newMap[key] = [];
+            newMap[key].push({
+              id: doc.id,
+              ...data,
+              timestamp: data.timestamp || (data.createdAt && data.createdAt.toMillis ? data.createdAt.toMillis() : Date.now())
+            });
+          });
+
+          // Sort reviews newest first
+          Object.keys(newMap).forEach(k => {
+            newMap[k].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+          });
+
+          TEACHER_REVIEWS = newMap;
+          saveLocalReviews();
+
+          if (activeTab === "teacher") {
+            renderTeacherFinder();
+          }
+        }, (error) => {
+          console.warn("Firestore reviews sync notice:", error);
+        });
+      } catch (err) {
+        console.warn("Firestore real-time listener error:", err);
+      }
+    }
+
+    function openReviewModal(safeTeacherKey) {
+      const allTeachers = getTeacherDirectory();
+      const teacher = allTeachers.find(t => getTeacherStorageKey(t.rawFaculty) === safeTeacherKey);
+      if (!teacher) return;
+
+      currentReview = {
+        teacherKey: safeTeacherKey,
+        teacherName: teacher.teacherName,
+        rawFaculty: teacher.rawFaculty,
+        school: teacher.school || "",
+        rating: 5,
+        classAvg: "medium",
+        behavior: "good",
+        lateEntry: "allowed"
+      };
+
+      const keyInput = document.getElementById("reviewTeacherKey");
+      if (keyInput) keyInput.value = safeTeacherKey;
+
+      const nameEl = document.getElementById("reviewModalTeacherName");
+      if (nameEl) nameEl.textContent = teacher.teacherName;
+
+      const schoolEl = document.getElementById("reviewModalSchool");
+      if (schoolEl) {
+        if (teacher.school) {
+          schoolEl.textContent = teacher.school;
+          schoolEl.classList.remove("hidden");
+        } else {
+          schoolEl.classList.add("hidden");
+        }
+      }
+
+      // Reset form controls
+      setReviewRating(5);
+      setReviewClassAvg("medium");
+      setReviewBehavior("good");
+      setReviewLateEntry("allowed");
+
+      const commentInput = document.getElementById("reviewCommentInput");
+      if (commentInput) commentInput.value = "";
+
+      const reviewerInput = document.getElementById("reviewerNameInput");
+      if (reviewerInput) {
+        reviewerInput.value = localStorage.getItem("vitb_last_reviewer") || "";
+      }
+
+      const modal = document.getElementById("reviewModal");
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function closeReviewModal() {
+      const modal = document.getElementById("reviewModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function setReviewRating(val) {
+      currentReview.rating = Number(val);
+      const stars = document.querySelectorAll(".star-btn");
+      stars.forEach((btn, idx) => {
+        const starVal = idx + 1;
+        const icon = btn.querySelector ? btn.querySelector("i") : null;
+        if (starVal <= currentReview.rating) {
+          btn.className = "star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95";
+          if (icon) icon.className = "fa-solid fa-star";
+        } else {
+          btn.className = "star-btn text-2xl text-slate-300 dark:text-slate-600 hover:scale-110 transition active:scale-95";
+          if (icon) icon.className = "fa-regular fa-star";
+        }
+      });
+
+      const labels = {
+        1: "1 Star — Poor",
+        2: "2 Stars — Fair",
+        3: "3 Stars — Good",
+        4: "4 Stars — Very Good",
+        5: "5 Stars — Excellent"
+      };
+      const labelEl = document.getElementById("reviewRatingLabel");
+      if (labelEl) labelEl.textContent = labels[val] || `${val} Stars`;
+    }
+
+    function setReviewClassAvg(val) {
+      currentReview.classAvg = val;
+      ["low", "medium", "high"].forEach(opt => {
+        const btn = document.getElementById(`classAvgBtn-${opt}`);
+        if (!btn) return;
+        if (opt === val) {
+          const activeColors = {
+            low: "bg-rose-600 border-rose-600 text-white shadow-xs",
+            medium: "bg-blue-600 border-blue-600 text-white shadow-xs",
+            high: "bg-emerald-600 border-emerald-600 text-white shadow-xs"
+          };
+          btn.className = `class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 ${activeColors[opt]}`;
+          const icon = btn.querySelector ? btn.querySelector("i") : null;
+          if (icon) {
+            icon.className = opt === "low"
+              ? "fa-solid fa-chart-line-down text-white text-xs"
+              : (opt === "high" ? "fa-solid fa-chart-line-up text-white text-xs" : "fa-solid fa-chart-simple text-white text-xs");
+          }
+        } else {
+          btn.className = "class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          const icon = btn.querySelector ? btn.querySelector("i") : null;
+          if (icon) {
+            icon.className = opt === "low"
+              ? "fa-solid fa-chart-line-down text-rose-500 text-xs"
+              : (opt === "high" ? "fa-solid fa-chart-line-up text-emerald-500 text-xs" : "fa-solid fa-chart-simple text-blue-500 text-xs");
+          }
+        }
+      });
+    }
+
+    function setReviewBehavior(val) {
+      currentReview.behavior = val;
+      const goodBtn = document.getElementById("behaviorBtn-good");
+      const badBtn = document.getElementById("behaviorBtn-bad");
+      if (goodBtn && badBtn) {
+        if (val === "good") {
+          goodBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-emerald-600 border-emerald-600 text-white shadow-xs";
+          badBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+        } else {
+          goodBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          badBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-rose-600 border-rose-600 text-white shadow-xs";
+        }
+      }
+    }
+
+    function setReviewLateEntry(val) {
+      currentReview.lateEntry = val;
+      const allowedBtn = document.getElementById("lateEntryBtn-allowed");
+      const notBtn = document.getElementById("lateEntryBtn-not");
+      if (allowedBtn && notBtn) {
+        if (val === "allowed") {
+          allowedBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-sky-600 border-sky-600 text-white shadow-xs";
+          notBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+        } else {
+          allowedBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          notBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-amber-600 border-amber-600 text-white shadow-xs";
+        }
+      }
+    }
+
+    async function submitFacultyReview() {
+      const submitBtn = document.getElementById("submitReviewBtn");
+      const submitText = document.getElementById("submitReviewBtnText");
+      const comment = (document.getElementById("reviewCommentInput")?.value || "").trim();
+      const reviewer = (document.getElementById("reviewerNameInput")?.value || "").trim() || "Anonymous Student";
+
+      try {
+        localStorage.setItem("vitb_last_reviewer", reviewer);
+      } catch (e) { }
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (submitText) submitText.textContent = "Submitting...";
+
+      const reviewDoc = {
+        teacherId: currentReview.teacherKey,
+        teacherName: currentReview.teacherName,
+        rawFaculty: currentReview.rawFaculty,
+        rating: Number(currentReview.rating),
+        classAvg: currentReview.classAvg,
+        behavior: currentReview.behavior,
+        lateEntry: currentReview.lateEntry,
+        comment: comment,
+        reviewerName: reviewer,
+        timestamp: Date.now()
+      };
+
+      // 1. Optimistic Local Update
+      if (!TEACHER_REVIEWS[currentReview.teacherKey]) {
+        TEACHER_REVIEWS[currentReview.teacherKey] = [];
+      }
+      TEACHER_REVIEWS[currentReview.teacherKey].unshift(reviewDoc);
+      saveLocalReviews();
+
+      // Automatically expand reviews for this teacher so the user sees their new review!
+      expandedTeacherReviews.add(currentReview.teacherKey);
+
+      // Close modal and refresh UI immediately for responsive feel
+      closeReviewModal();
+      renderTeacherFinder();
+      showReviewToast(`Review for ${currentReview.teacherName} submitted!`);
+
+      // 2. Firebase Firestore Submission in background
+      if (db) {
+        try {
+          await db.collection("teacher_reviews").add({
+            ...reviewDoc,
+            createdAt: (typeof firebase !== "undefined" && firebase.firestore && firebase.firestore.FieldValue)
+              ? firebase.firestore.FieldValue.serverTimestamp()
+              : new Date()
+          });
+          console.log("Review successfully saved to Firebase!");
+        } catch (fbErr) {
+          console.warn("Firestore save notice (saved locally):", fbErr);
+        }
+      }
+
+      if (submitBtn) submitBtn.disabled = false;
+      if (submitText) submitText.textContent = "Submit Review";
+    }
+
+    function showReviewToast(msg) {
+      const toast = document.getElementById("reviewToast");
+      const msgEl = document.getElementById("reviewToastMsg");
+      if (toast && msgEl) {
+        msgEl.textContent = msg;
+        toast.classList.remove("hidden");
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 3500);
+      }
+    }
+
+    function toggleTeacherReviews(safeKey) {
+      if (expandedTeacherReviews.has(safeKey)) {
+        expandedTeacherReviews.delete(safeKey);
+      } else {
+        expandedTeacherReviews.add(safeKey);
+      }
+      renderTeacherFinder();
+    }
+
+    function formatReviewTime(timestamp) {
+      if (!timestamp) return "Recently";
+      const diff = Date.now() - Number(timestamp);
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return "Just now";
+      if (mins < 60) return `${mins}m ago`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 30) return `${days}d ago`;
+      return new Date(timestamp).toLocaleDateString("en-IN", { month: "short", day: "numeric" });
     }
 
     /**
@@ -2784,6 +3530,7 @@
       updateTopSummaryMetrics();
       renderLiveStatusBanner();
       checkInstallState();
+      initFirebaseReviews();
 
       // Check URL search params for PWA shortcut navigation (?tab=master/individual/teacher)
       try {
