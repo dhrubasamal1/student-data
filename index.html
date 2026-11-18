@@ -343,10 +343,7 @@
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-xl space-y-4">
         <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
           <div class="flex items-center gap-2.5">
-            <div
-              class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-              <i class="fa-solid fa-calendar-check"></i>
-            </div>
+            <img src="icons/icon-192.png" alt="App Icon" class="w-9 h-9 rounded-xl shadow-xs border border-slate-200/80 dark:border-slate-700/80 shrink-0 object-cover" />
             <div class="text-left">
               <h3 class="text-sm font-bold text-slate-900 dark:text-white">Install Web App</h3>
               <p class="text-[10px] text-slate-500 dark:text-slate-400">Add to your home screen</p>
@@ -636,7 +633,6 @@
       {
         id: "dhruba",
         name: "Dhruba",
-        tag: "Verified VTOP",
         color: "emerald",
         avatarBg: "from-blue-500 to-indigo-600",
         courses: [
@@ -762,7 +758,6 @@
       {
         id: "ajay",
         name: "Ajay",
-        tag: "Verified VTOP",
         color: "blue",
         avatarBg: "from-sky-500 to-blue-600",
         courses: [
@@ -888,7 +883,6 @@
       {
         id: "siddhartha",
         name: "Siddhartha",
-        tag: "Verified VTOP",
         color: "amber",
         avatarBg: "from-amber-500 to-orange-600",
         courses: [
@@ -1001,7 +995,6 @@
       {
         id: "jaivardhan",
         name: "Jaivardhan Singh",
-        tag: "Verified VTOP",
         color: "purple",
         avatarBg: "from-purple-500 to-indigo-600",
         courses: [
@@ -1127,7 +1120,6 @@
       {
         id: "siddhant",
         name: "Siddhant",
-        tag: "Verified VTOP",
         color: "rose",
         avatarBg: "from-rose-500 to-pink-600",
         courses: [
@@ -1253,7 +1245,6 @@
       {
         id: "anand",
         name: "Anand",
-        tag: "Verified VTOP",
         color: "teal",
         avatarBg: "from-teal-500 to-cyan-600",
         courses: [
@@ -1379,7 +1370,6 @@
       {
         id: "aravind",
         name: "Aravind",
-        tag: "Verified VTOP",
         color: "indigo",
         avatarBg: "from-indigo-500 to-purple-600",
         courses: [
@@ -1492,7 +1482,6 @@
       {
         id: "judwe",
         name: "Judwe",
-        tag: "Verified VTOP",
         color: "fuchsia",
         avatarBg: "from-fuchsia-500 to-pink-600",
         courses: [
@@ -1618,7 +1607,6 @@
       {
         id: "suvayan",
         name: "Suvayan",
-        tag: "Verified VTOP",
         color: "orange",
         avatarBg: "from-orange-500 to-amber-600",
         courses: [
@@ -1744,7 +1732,6 @@
       {
         id: "prakhar",
         name: "Prakhar",
-        tag: "Verified VTOP",
         color: "cyan",
         avatarBg: "from-cyan-500 to-teal-600",
         courses: [
@@ -1870,7 +1857,6 @@
       {
         id: "vansh",
         name: "Vansh",
-        tag: "Verified VTOP",
         color: "violet",
         avatarBg: "from-violet-500 to-purple-600",
         courses: [
@@ -1996,7 +1982,6 @@
       {
         id: "ashesh",
         name: "Ashesh",
-        tag: "Verified VTOP",
         color: "emerald",
         avatarBg: "from-emerald-500 to-teal-600",
         courses: [
@@ -2122,7 +2107,6 @@
       {
         id: "ansh",
         name: "Ansh",
-        tag: "Verified VTOP",
         color: "sky",
         avatarBg: "from-sky-500 to-indigo-600",
         courses: [
@@ -2248,7 +2232,6 @@
       {
         id: "prakrit",
         name: "Prakrit",
-        tag: "Verified VTOP",
         color: "lime",
         avatarBg: "from-lime-500 to-emerald-600",
         courses: [
@@ -2361,7 +2344,6 @@
       {
         id: "nilan",
         name: "Nilan",
-        tag: "Verified VTOP",
         color: "pink",
         avatarBg: "from-pink-500 to-rose-600",
         courses: [
@@ -3470,10 +3452,7 @@
                             <div class="w-6 h-6 rounded-full bg-gradient-to-tr ${sr.friend.avatarBg} text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
                               ${sr.friend.name.charAt(0)}
                             </div>
-                            <div>
-                              <div class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-none">${sr.friend.name}</div>
-                              <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">${sr.friend.tag}</div>
-                            </div>
+                            <div class="text-xs font-bold text-slate-900 dark:text-slate-100">${sr.friend.name}</div>
                           </div>
                           <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-mono">
                             ${sr.courses.length} ${sr.courses.length === 1 ? 'course' : 'courses'}
