@@ -476,7 +476,7 @@
             <div class="grid grid-cols-3 gap-1.5">
               <button type="button" id="classAvgBtn-low" onclick="setReviewClassAvg('low')"
                 class="class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                <i class="fa-solid fa-chart-line-down text-rose-500 text-xs"></i>
+                <i class="fa-solid fa-arrow-trend-down text-rose-500 text-xs"></i>
                 <span>Low</span>
               </button>
               <button type="button" id="classAvgBtn-medium" onclick="setReviewClassAvg('medium')"
@@ -486,7 +486,7 @@
               </button>
               <button type="button" id="classAvgBtn-high" onclick="setReviewClassAvg('high')"
                 class="class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                <i class="fa-solid fa-chart-line-up text-emerald-500 text-xs"></i>
+                <i class="fa-solid fa-arrow-trend-up text-emerald-500 text-xs"></i>
                 <span>High</span>
               </button>
             </div>
@@ -6430,16 +6430,16 @@
           const icon = btn.querySelector ? btn.querySelector("i") : null;
           if (icon) {
             icon.className = opt === "low"
-              ? "fa-solid fa-chart-line-down text-white text-xs"
-              : (opt === "high" ? "fa-solid fa-chart-line-up text-white text-xs" : "fa-solid fa-chart-simple text-white text-xs");
+              ? "fa-solid fa-arrow-trend-down text-white text-xs"
+              : (opt === "high" ? "fa-solid fa-arrow-trend-up text-white text-xs" : "fa-solid fa-chart-simple text-white text-xs");
           }
         } else {
           btn.className = "class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
           const icon = btn.querySelector ? btn.querySelector("i") : null;
           if (icon) {
             icon.className = opt === "low"
-              ? "fa-solid fa-chart-line-down text-rose-500 text-xs"
-              : (opt === "high" ? "fa-solid fa-chart-line-up text-emerald-500 text-xs" : "fa-solid fa-chart-simple text-blue-500 text-xs");
+              ? "fa-solid fa-arrow-trend-down text-rose-500 text-xs"
+              : (opt === "high" ? "fa-solid fa-arrow-trend-up text-emerald-500 text-xs" : "fa-solid fa-chart-simple text-blue-500 text-xs");
           }
         }
       });
