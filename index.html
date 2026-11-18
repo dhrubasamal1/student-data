@@ -6,6 +6,22 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Class Data — VITB Timetable</title>
+  <meta name="description" content="Interactive timetable, squad schedule sync, and teacher finder for VIT Bhopal." />
+
+  <!-- PWA & Mobile Web App Meta -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" id="metaThemeColor" content="#ffffff" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="VITB Squad" />
+
+  <!-- App Icons -->
+  <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -48,10 +64,15 @@
       try {
         const savedTheme = localStorage.getItem("vitb_theme");
         const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-        if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+        const isDark = savedTheme === "dark" || (!savedTheme && prefersDark);
+        if (isDark) {
           document.documentElement.classList.add("dark");
         } else {
           document.documentElement.classList.remove("dark");
+        }
+        const metaTheme = document.getElementById("metaThemeColor");
+        if (metaTheme) {
+          metaTheme.setAttribute("content", isDark ? "#020617" : "#ffffff");
         }
       } catch (e) { }
     })();
@@ -130,11 +151,21 @@
 
     <!-- 1. TOP HEADER -->
     <header class="mb-4 text-center relative">
-      <!-- Dark Mode Toggle Button (Top Right) -->
-      <button id="themeToggleBtn" onclick="toggleDarkMode()" aria-label="Toggle dark mode"
-        class="absolute right-0 top-0 w-8 h-8 rounded-full flex items-center justify-center transition border shadow-xs bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-amber-400 dark:hover:bg-slate-700 active:scale-95">
-        <i id="themeToggleIcon" class="fa-solid fa-moon text-xs"></i>
-      </button>
+      <!-- Top Right Actions: Install Button + Dark Mode Toggle -->
+      <div class="absolute right-0 top-0 flex items-center gap-1.5">
+        <!-- Install App Button (Auto-shows when browser detects installability, or can be clicked for iOS instructions) -->
+        <button id="installAppBtn" onclick="handleInstallAppClick()" aria-label="Install App" title="Install Web App"
+          class="hidden px-2.5 h-8 rounded-full flex items-center gap-1.5 transition border shadow-xs bg-brandBlue hover:bg-brandBlueHover text-white border-blue-600 text-[11px] font-bold active:scale-95">
+          <i class="fa-solid fa-download text-[10px]"></i>
+          <span>Install</span>
+        </button>
+
+        <!-- Dark Mode Toggle Button -->
+        <button id="themeToggleBtn" onclick="toggleDarkMode()" aria-label="Toggle dark mode"
+          class="w-8 h-8 rounded-full flex items-center justify-center transition border shadow-xs bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-amber-400 dark:hover:bg-slate-700 active:scale-95">
+          <i id="themeToggleIcon" class="fa-solid fa-moon text-xs"></i>
+        </button>
+      </div>
 
       <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
         Class data
@@ -288,9 +319,79 @@
 
 
     <!-- Mobile Footer Info -->
-    <footer class="mt-8 text-center text-[11px] text-slate-400 dark:text-slate-500">
-      <div>VIT Bhopal Slot System</div>
+    <footer class="mt-8 text-center text-[11px] text-slate-400 dark:text-slate-500 space-y-1.5">
+      <div class="flex items-center justify-center gap-2">
+        <span>VIT Bhopal Slot System</span>
+        <span>•</span>
+        <button id="footerInstallBtn" onclick="handleInstallAppClick()"
+          class="inline-flex items-center gap-1 text-brandBlue dark:text-blue-400 font-semibold hover:underline">
+          <i class="fa-solid fa-mobile-screen-button text-[10px]"></i>
+          <span>Install Web App</span>
+        </button>
+      </div>
+      <div class="text-[10px] text-slate-400 dark:text-slate-600">Offline-ready Progressive Web App (PWA)</div>
     </footer>
+
+    <!-- Install Help / iOS Modal -->
+    <div id="installHelpModal"
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-4">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <div
+              class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div class="text-left">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white">Install Web App</h3>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Add to your home screen</p>
+            </div>
+          </div>
+          <button onclick="closeInstallHelpModal()"
+            class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs text-slate-600 dark:text-slate-300 text-left">
+          <p>Install this app on your phone, tablet, or PC for fast access, fullscreen view, and full offline support!
+          </p>
+
+          <div
+            class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 space-y-1.5 border border-slate-100 dark:border-slate-800">
+            <div class="font-bold text-slate-900 dark:text-white text-[11px] flex items-center gap-1.5">
+              <i class="fa-brands fa-apple text-slate-800 dark:text-slate-200"></i>
+              <span>On iPhone / iPad (Safari):</span>
+            </div>
+            <ol class="list-decimal list-inside space-y-1 text-[11px] text-slate-600 dark:text-slate-300">
+              <li>Tap the <span class="font-semibold inline-flex items-center gap-1"><i
+                    class="fa-solid fa-arrow-up-from-bracket text-[10px] text-blue-500"></i> Share</span> button in
+                Safari toolbar</li>
+              <li>Scroll down and tap <span class="font-semibold inline-flex items-center gap-1"><i
+                    class="fa-solid fa-square-plus text-[10px]"></i> Add to Home Screen</span></li>
+              <li>Tap <strong>Add</strong> in the top right corner</li>
+            </ol>
+          </div>
+
+          <div
+            class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 space-y-1.5 border border-slate-100 dark:border-slate-800">
+            <div class="font-bold text-slate-900 dark:text-white text-[11px] flex items-center gap-1.5">
+              <i class="fa-brands fa-android text-emerald-500"></i>
+              <i class="fa-brands fa-chrome text-blue-500"></i>
+              <span>On Android / Chrome / Edge:</span>
+            </div>
+            <p class="text-[11px]">Tap the browser menu (<strong>⋮</strong>) and select <strong>"Install app"</strong>
+              or <strong>"Add to Home screen"</strong>.</p>
+          </div>
+        </div>
+
+        <button onclick="closeInstallHelpModal()"
+          class="w-full py-2.5 rounded-xl bg-brandBlue hover:bg-brandBlueHover text-white text-xs font-bold transition shadow-xs">
+          Got it
+        </button>
+      </div>
+    </div>
 
   </div>
 
@@ -2579,6 +2680,10 @@
           ? "fa-solid fa-sun text-xs text-amber-400"
           : "fa-solid fa-moon text-xs text-slate-600";
       }
+      const meta = document.getElementById("metaThemeColor");
+      if (meta) {
+        meta.setAttribute("content", isDark ? "#020617" : "#ffffff");
+      }
     }
 
     function toggleDarkMode() {
@@ -2592,6 +2697,85 @@
 
     /**
      * ========================================================================
+     * 12. PWA SERVICE WORKER & INSTALLATION
+     * ========================================================================
+     */
+    let deferredInstallPrompt = null;
+
+    function isAppInstalled() {
+      try {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function checkInstallState() {
+      if (isAppInstalled()) {
+        const installBtn = document.getElementById("installAppBtn");
+        if (installBtn) installBtn.classList.add("hidden");
+        const footerBtn = document.getElementById("footerInstallBtn");
+        if (footerBtn) {
+          footerBtn.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check text-[10px]"></i> Installed</span>`;
+          footerBtn.onclick = null;
+        }
+      }
+    }
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (!isAppInstalled()) {
+        const installBtn = document.getElementById("installAppBtn");
+        if (installBtn) installBtn.classList.remove("hidden");
+      }
+    });
+
+    window.addEventListener("appinstalled", () => {
+      deferredInstallPrompt = null;
+      checkInstallState();
+      console.log("VITB Timetable app installed successfully!");
+    });
+
+    function handleInstallAppClick() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then((choice) => {
+          if (choice && choice.outcome === "accepted") {
+            console.log("PWA install accepted");
+          }
+          deferredInstallPrompt = null;
+        });
+      } else {
+        openInstallHelpModal();
+      }
+    }
+
+    function openInstallHelpModal() {
+      const modal = document.getElementById("installHelpModal");
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function closeInstallHelpModal() {
+      const modal = document.getElementById("installHelpModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    // Register Service Worker for offline capability & PWA installability
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+          .then((reg) => {
+            console.log("PWA Service Worker registered:", reg.scope);
+          })
+          .catch((err) => {
+            console.log("PWA Service Worker registration note:", err);
+          });
+      });
+    }
+
+    /**
+     * ========================================================================
      * INITIALIZATION
      * ========================================================================
      */
@@ -2599,7 +2783,21 @@
       updateThemeToggleIcon();
       updateTopSummaryMetrics();
       renderLiveStatusBanner();
-      switchTab("master");
+      checkInstallState();
+
+      // Check URL search params for PWA shortcut navigation (?tab=master/individual/teacher)
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedTab = urlParams.get("tab");
+        if (requestedTab && ["master", "individual", "teacher"].includes(requestedTab)) {
+          switchTab(requestedTab);
+        } else {
+          switchTab("master");
+        }
+      } catch (e) {
+        switchTab("master");
+      }
+
       setInterval(renderLiveStatusBanner, 30000);
     };
   </script>

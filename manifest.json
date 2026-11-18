@@ -1,0 +1,88 @@
+{
+  "name": "VIT Bhopal Timetable & Squad Sync",
+  "short_name": "VITB Squad",
+  "description": "Interactive timetable, squad schedule sync, and teacher finder for VIT Bhopal.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "vitb-timetable-squad",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#020617",
+  "theme_color": "#2563eb",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": [
+    "education",
+    "productivity",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Master Schedule",
+      "short_name": "Schedule",
+      "description": "View master schedule grid and free squad slots",
+      "url": "./index.html?tab=master",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Individual View",
+      "short_name": "Individual",
+      "description": "View individual student course timetable",
+      "url": "./index.html?tab=individual",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Teacher Finder",
+      "short_name": "Teachers",
+      "description": "Find teachers and who has classes with them",
+      "url": "./index.html?tab=teacher",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
