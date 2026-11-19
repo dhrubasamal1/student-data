@@ -189,26 +189,23 @@
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full p-1 shadow-sm inline-flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full"
         role="tablist">
         <button onclick="switchTab('master')" id="tabBtn-master"
-          class="tab-btn px-3 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm shrink-0">
+          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm shrink-0">
           Schedule
         </button>
-        <button onclick="switchTab('individual')" id="tabBtn-individual"
-          class="tab-btn px-3 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
-          Individual
-        </button>
         <button onclick="switchTab('teacher')" id="tabBtn-teacher"
-          class="tab-btn px-3 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
+          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
           Teachers
         </button>
         <button onclick="switchTab('parcel')" id="tabBtn-parcel"
-          class="tab-btn px-3 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
+          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
           Parcels
         </button>
+        <button onclick="switchTab('individual')" id="tabBtn-individual" class="hidden"></button>
       </div>
     </div>
 
     <!-- =================================================================== -->
-    <!-- TAB 1: MASTER SCHEDULE (MOBILE OPTIMIZED PHONE VIEW)                -->
+    <!-- TAB 1: SCHEDULE (UNIFIED SQUAD TIMETABLE & INDIVIDUAL DETAILS)      -->
     <!-- =================================================================== -->
     <main id="tabPanel-master" class="space-y-4 flex-1">
 
@@ -219,11 +216,11 @@
         </div>
       </div>
 
-      <!-- Active Squad Quick Filter Strip (Scrollable left to right with subtle pill track background) -->
+      <!-- Active Squad & Individual Quick Filter Strip -->
       <div class="bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-1.5 shadow-2xs">
         <div id="inlineSquadToggles"
           class="flex items-center gap-1.5 overflow-x-auto flex-nowrap no-scrollbar custom-h-scrollbar">
-          <!-- Injected dynamically by JS -->
+          <!-- Injected dynamically by JS: All, Aditya, Ajay, ... -->
         </div>
       </div>
 
@@ -232,47 +229,59 @@
         <!-- Injected dynamically by JS: Slot 1 to 7 with courses, times, venues -->
       </div>
 
-
-    </main>
-
-    <!-- =================================================================== -->
-    <!-- TAB 2: INDIVIDUAL TIMETABLE & REGISTERED COURSES (MOBILE)           -->
-    <!-- =================================================================== -->
-    <main id="tabPanel-individual" class="hidden space-y-4 flex-1">
-
-      <!-- Friend Selector Pills (Scrollable left to right, no visible slider) -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2.5 shadow-sm">
-        <div id="individualFriendSelector"
-          class="flex items-center gap-1.5 overflow-x-auto flex-nowrap no-scrollbar custom-h-scrollbar">
-          <!-- Populated by JS -->
+      <!-- Individual Student Details & Registered Courses (Visible when an individual student is selected) -->
+      <div id="individualDetailsContainer" class="hidden space-y-3 pt-1">
+        <!-- Individual Stats 2x2 Grid -->
+        <div id="individualStatsRow" class="grid grid-cols-2 gap-2">
+          <!-- Injected dynamically by JS -->
         </div>
-      </div>
 
-      <!-- Individual Stats 2x2 Grid -->
-      <div id="individualStatsRow" class="grid grid-cols-2 gap-2">
-        <!-- Injected dynamically by JS -->
-      </div>
-
-      <!-- Registered Courses Container (Styled Exactly Like Portfolio Table) -->
-      <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-        <!-- Table Header (Portfolio Baby Blue Strip) -->
+        <!-- Registered Courses Container -->
         <div
-          class="bg-tableHeader dark:bg-slate-800 px-3.5 py-2.5 border-b border-blue-100 dark:border-slate-700 flex items-center justify-between">
-          <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-            Registered Courses (No Status Row)
-          </span>
-          <span id="individualCourseCountBadge"
-            class="text-[10px] font-mono font-bold text-brandBlue bg-white dark:bg-slate-900 px-2 py-0.5 rounded-full shadow-2xs">
-            9 Courses
-          </span>
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+          <!-- Header / Collapsible Button -->
+          <button
+            type="button"
+            onclick="toggleIndividualCoursesExpand()"
+            class="w-full bg-tableHeader dark:bg-slate-800 px-3.5 py-2.5 border-b border-blue-100 dark:border-slate-700 flex items-center justify-between transition cursor-pointer text-left group"
+          >
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-graduation-cap text-brandBlue text-xs"></i>
+              <span id="individualCoursesHeaderLabel" class="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 group-hover:text-brandBlue transition">
+                Registered Courses
+              </span>
+              <span id="individualCourseCountBadge"
+                class="text-[10px] font-mono font-bold text-brandBlue bg-white dark:bg-slate-900 px-2 py-0.5 rounded-full shadow-2xs">
+                9 Courses
+              </span>
+            </div>
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-400 group-hover:text-brandBlue transition">
+              <span id="individualCoursesToggleLabel" class="text-[11px]">Hide</span>
+              <i id="individualCoursesToggleIcon" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200 rotate-180"></i>
+            </div>
+          </button>
+
+          <!-- Mobile Clean Course Feed -->
+          <div id="individualCourseCardsFeed" class="divide-y divide-slate-100 dark:divide-slate-800 p-2 space-y-1">
+            <!-- Injected dynamically by JS -->
+          </div>
         </div>
 
-        <!-- Mobile Clean Course Feed -->
-        <div id="individualCourseCardsFeed" class="divide-y divide-slate-100 dark:divide-slate-800 p-2 space-y-1">
-          <!-- Injected dynamically by JS (Clean, without the useless status row!) -->
+        <div class="pt-1 text-center">
+          <button
+            type="button"
+            onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+          >
+            <i class="fa-solid fa-arrow-up text-[10px]"></i>
+            <span>Back to Today's Slots</span>
+          </button>
         </div>
       </div>
+
+      <!-- Hidden compatibility elements for test runners / mirrors -->
+      <div id="individualFriendSelector" class="hidden"></div>
+      <div id="tabPanel-individual" class="hidden"></div>
     </main>
 
     <!-- =================================================================== -->
@@ -5507,8 +5516,14 @@
      * ========================================================================
      */
     function switchTab(tabId) {
+      if (tabId === "individual") {
+        tabId = "master";
+        if (activeFriendIds.size !== 1) {
+          selectSquadFilter(selectedIndividualFriendId || FRIENDS_DATA[0].id);
+        }
+      }
       activeTab = tabId;
-      const tabs = ["master", "individual", "teacher", "parcel"];
+      const tabs = ["master", "teacher", "parcel"];
 
       tabs.forEach(t => {
         const panel = document.getElementById(`tabPanel-${t}`);
@@ -5516,10 +5531,10 @@
         if (!panel || !btn) return;
         if (t === tabId) {
           panel.classList.remove("hidden");
-          btn.className = "tab-btn px-3 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm shrink-0";
+          btn.className = "tab-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm shrink-0";
         } else {
           panel.classList.add("hidden");
-          btn.className = "tab-btn px-3 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0";
+          btn.className = "tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0";
         }
       });
 
@@ -5529,7 +5544,6 @@
           const hashMapping = {
             parcel: "#delivery",
             teacher: "#teacher-review",
-            individual: "#individual",
             master: "#squad"
           };
           if (hashMapping[tabId] && window.location.hash !== hashMapping[tabId]) {
@@ -5543,7 +5557,6 @@
       if (tabId === "master") {
         renderMasterDayPills();
         renderMobileSlotCards();
-      } else if (tabId === "individual") {
         renderIndividualView();
       } else if (tabId === "teacher") {
         // Teacher reviews are lazy-loaded ONLY when Teacher Finder is opened
@@ -5670,8 +5683,29 @@
       const soleStudent = isSoleStudent ? activeFriends[0] : null;
       const currentLiveSlotIdx = getCurrentLiveSlotIndex(selectedMasterDay);
 
+      const soleStudentHeaderHtml = isSoleStudent ? `
+        <div class="flex items-center justify-between px-1 pb-1">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+              ${soleStudent.name}
+            </span>
+            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-brandBlue border border-blue-200/80 dark:border-blue-900/60 shrink-0">
+              ${soleStudent.courses.length} Courses • ${soleStudent.courses.reduce((sum, c) => sum + Number(c.credit || 0), 0).toFixed(1)} Cr
+            </span>
+          </div>
+          <button
+            type="button"
+            onclick="scrollToStudentCourses()"
+            class="inline-flex items-center gap-1 text-[11px] font-bold text-brandBlue dark:text-blue-400 hover:underline shrink-0 cursor-pointer"
+          >
+            <span>Registered Courses</span>
+            <i class="fa-solid fa-arrow-down text-[9px]"></i>
+          </button>
+        </div>
+      ` : '';
+
       // Render 7 slots for the chosen day
-      container.innerHTML = TIME_COLUMNS.map((col, idx) => {
+      const slotCardsHtml = TIME_COLUMNS.map((col, idx) => {
         const occ = getSlotOccupancy(selectedMasterDay, idx);
         const total = occ.freeFriends.length + occ.busyFriends.length;
         const allFree = occ.freeFriends.length === total;
@@ -5927,6 +5961,8 @@
           </div>
         `;
       }).join("");
+
+      container.innerHTML = soleStudentHeaderHtml + slotCardsHtml;
     }
 
     function selectMobileSlot(colIndex) {
@@ -5945,30 +5981,64 @@
 
     /**
      * ========================================================================
-     * 8. TAB 2: INDIVIDUAL TIMETABLE & REGISTERED COURSES (NO STATUS ROW)
+     * 8. INDIVIDUAL ACADEMIC DETAILS & REGISTERED COURSES (INTEGRATED)
      * ========================================================================
      */
+    let isIndividualCoursesExpanded = true;
+
+    function toggleIndividualCoursesExpand() {
+      isIndividualCoursesExpanded = !isIndividualCoursesExpanded;
+      renderIndividualView();
+    }
+
+    function scrollToStudentCourses() {
+      isIndividualCoursesExpanded = true;
+      renderIndividualView();
+      const el = document.getElementById("individualDetailsContainer");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
     function renderIndividualView() {
-      const friend = FRIENDS_DATA.find(f => f.id === selectedIndividualFriendId) || FRIENDS_DATA[0];
+      const isSoleStudent = activeFriendIds.size === 1;
+      const detailsContainer = document.getElementById("individualDetailsContainer");
+
+      let friendId = selectedIndividualFriendId;
+      if (isSoleStudent) {
+        friendId = Array.from(activeFriendIds)[0];
+        selectedIndividualFriendId = friendId;
+      }
+      const friend = FRIENDS_DATA.find(f => f.id === friendId) || FRIENDS_DATA[0];
       const slotMap = getFriendSlotMap(friend);
 
-      // Render Friend Selector Buttons (Sorted alphabetically A to Z)
+      if (detailsContainer) {
+        if (isSoleStudent) {
+          detailsContainer.classList.remove("hidden");
+        } else {
+          detailsContainer.classList.add("hidden");
+        }
+      }
+
+      // Render Friend Selector Buttons if selectorContainer exists (backwards compatibility & testing)
       const selectorContainer = document.getElementById("individualFriendSelector");
-      const sortedFriends = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
-      selectorContainer.innerHTML = sortedFriends.map(f => {
-        const isSelected = f.id === friend.id;
-        return `
-          <button
-            onclick="selectIndividualFriend('${f.id}')"
-            class="shrink-0 whitespace-nowrap px-3.5 py-1 rounded-full text-xs font-bold transition border ${isSelected
-            ? 'bg-brandBlue text-white border-brandBlue shadow-2xs'
-            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
-          }"
-          >
-            ${f.name.split(" ")[0]}
-          </button>
-        `;
-      }).join("");
+      if (selectorContainer) {
+        const sortedFriends = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
+        selectorContainer.innerHTML = sortedFriends.map(f => {
+          const isSelected = f.id === friend.id;
+          return `
+            <button
+              onclick="selectIndividualFriend('${f.id}')"
+              class="shrink-0 whitespace-nowrap px-3.5 py-1 rounded-full text-xs font-bold transition border ${isSelected
+              ? 'bg-brandBlue text-white border-brandBlue shadow-2xs'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }"
+            >
+              ${f.name.split(" ")[0]}
+            </button>
+          `;
+        }).join("");
+      }
 
       // Stats 2x2 Grid
       const totalCourses = friend.courses.length;
@@ -5977,58 +6047,87 @@
       const totalWeekSlots = 42;
       const freeSlotCount = totalWeekSlots - registeredSlotCount;
 
-      document.getElementById("individualStatsRow").innerHTML = `
-        <div class="bg-cardBlue dark:bg-blue-950/30 border border-cardBlueBorder dark:border-blue-900/40 p-3 rounded-2xl text-center">
-          <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Courses &amp; Credits</div>
-          <div class="text-lg font-black font-mono text-slate-900 dark:text-slate-100 mt-0.5">${totalCourses} • ${totalCredits.toFixed(1)} Cr</div>
-        </div>
-        <div class="bg-cardPink dark:bg-rose-950/30 border border-cardPinkBorder dark:border-rose-900/40 p-3 rounded-2xl text-center">
-          <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Weekly Busy</div>
-          <div class="text-lg font-black font-mono text-slate-900 dark:text-slate-100 mt-0.5">${registeredSlotCount} / 42 Slots</div>
-        </div>
-      `;
+      const statsRow = document.getElementById("individualStatsRow");
+      if (statsRow) {
+        statsRow.innerHTML = `
+          <div class="bg-cardBlue dark:bg-blue-950/30 border border-cardBlueBorder dark:border-blue-900/40 p-3 rounded-2xl text-center">
+            <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Courses &amp; Credits</div>
+            <div class="text-lg font-black font-mono text-slate-900 dark:text-slate-100 mt-0.5">${totalCourses} • ${totalCredits.toFixed(1)} Cr</div>
+          </div>
+          <div class="bg-cardPink dark:bg-rose-950/30 border border-cardPinkBorder dark:border-rose-900/40 p-3 rounded-2xl text-center">
+            <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Weekly Busy</div>
+            <div class="text-lg font-black font-mono text-slate-900 dark:text-slate-100 mt-0.5">${registeredSlotCount} / 42 Slots</div>
+          </div>
+        `;
+      }
 
-      document.getElementById("individualCourseCountBadge").textContent = `${totalCourses} Courses`;
+      const countBadge = document.getElementById("individualCourseCountBadge");
+      if (countBadge) {
+        countBadge.textContent = `${totalCourses} Courses`;
+      }
 
-      // Render Registered Courses List - Clean mobile card items WITHOUT status row!
+      const headerLabel = document.getElementById("individualCoursesHeaderLabel");
+      if (headerLabel) {
+        headerLabel.textContent = `${friend.name.split(" ")[0]}'s Registered Courses`;
+      }
+
+      const toggleLabel = document.getElementById("individualCoursesToggleLabel");
+      if (toggleLabel) {
+        toggleLabel.textContent = isIndividualCoursesExpanded ? "Hide" : "Show";
+      }
+
+      const toggleIcon = document.getElementById("individualCoursesToggleIcon");
+      if (toggleIcon) {
+        toggleIcon.className = `fa-solid fa-chevron-down text-[10px] transition-transform duration-200 ${isIndividualCoursesExpanded ? 'rotate-180 text-brandBlue' : ''}`;
+      }
+
+      // Render Registered Courses List - Clean mobile card items
       const cardsFeed = document.getElementById("individualCourseCardsFeed");
-      cardsFeed.innerHTML = friend.courses.map((c, i) => `
-        <div class="p-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition rounded-xl space-y-1.5">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="font-mono font-bold text-xs px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-brandBlue">
-                  ${c.code}
-                </span>
-                <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                  ${c.shortType}
-                </span>
-                <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                  ${c.credit} Cr
-                </span>
+      if (cardsFeed) {
+        if (!isIndividualCoursesExpanded) {
+          cardsFeed.innerHTML = "";
+          cardsFeed.classList.add("hidden");
+        } else {
+          cardsFeed.classList.remove("hidden");
+          cardsFeed.innerHTML = friend.courses.map((c, i) => `
+            <div class="p-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition rounded-xl space-y-1.5">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-mono font-bold text-xs px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-brandBlue">
+                      ${c.code}
+                    </span>
+                    <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      ${c.shortType}
+                    </span>
+                    <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      ${c.credit} Cr
+                    </span>
+                  </div>
+                  <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 mt-1">
+                    ${c.title}
+                  </h4>
+                </div>
+                <div class="text-right shrink-0">
+                  <span class="font-mono font-extrabold text-xs px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border dark:border-amber-900/60">
+                    ${c.venue}
+                  </span>
+                </div>
               </div>
-              <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 mt-1">
-                ${c.title}
-              </h4>
-            </div>
-            <div class="text-right shrink-0">
-              <span class="font-mono font-extrabold text-xs px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border dark:border-amber-900/60">
-                ${c.venue}
-              </span>
-            </div>
-          </div>
 
-          <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
-            <span class="truncate"><i class="fa-solid fa-user-tie text-slate-400 dark:text-slate-500 mr-1"></i>${c.faculty}</span>
-            <span class="font-mono font-bold text-brandBlue shrink-0 ml-2">Slots: ${c.slots.join("+")}</span>
-          </div>
-        </div>
-      `).join("");
+              <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
+                <span class="truncate"><i class="fa-solid fa-user-tie text-slate-400 dark:text-slate-500 mr-1"></i>${c.faculty}</span>
+                <span class="font-mono font-bold text-brandBlue shrink-0 ml-2">Slots: ${c.slots.join("+")}</span>
+              </div>
+            </div>
+          `).join("");
+        }
+      }
     }
 
     function selectIndividualFriend(friendId) {
       selectedIndividualFriendId = friendId;
-      renderIndividualView();
+      selectSquadFilter(friendId);
     }
 
     /**
@@ -6045,6 +6144,7 @@
           activeFriendIds = new Set(FRIENDS_DATA.map(f => f.id));
         } else {
           activeFriendIds = new Set([key]);
+          selectedIndividualFriendId = key;
         }
       }
       refreshAllViews();
@@ -6065,6 +6165,7 @@
       if (activeTab === "master") {
         renderMasterDayPills();
         renderMobileSlotCards();
+        renderIndividualView();
       } else if (activeTab === "individual") {
         renderIndividualView();
       } else if (activeTab === "teacher") {
