@@ -5808,8 +5808,14 @@
                 <span class="font-mono font-black text-sm px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                   ${occ.slotCode}
                 </span>
-                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 font-mono">
-                  ${col.start} – ${col.end}
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 font-mono inline-flex items-center gap-1.5">
+                  <span>${col.start} – ${col.end}</span>
+                  ${isCurrentSlotLive ? `
+                    <span class="relative flex h-2 w-2" title="Live Class">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                  ` : ''}
                 </span>
               </div>
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badgeStyle}">
@@ -5853,7 +5859,7 @@
                 <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
                   <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1">
                     <i class="fa-solid fa-users text-[9px]"></i>
-                    <span>Members in this Slot:</span>
+                    <span>Squad Members in this Slot:</span>
                   </div>
 
                   ${sameClassFriends.length > 0 ? `
