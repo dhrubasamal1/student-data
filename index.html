@@ -6470,41 +6470,9 @@
 
             ${isExtraOnly ? `
               <!-- Extra Faculty Info Card -->
-              <div class="bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/50 rounded-xl p-3 text-xs space-y-1.5">
-                <div class="flex items-center justify-between gap-2">
-                  <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                    Faculty Directory Details:
-                  </div>
-                  ${t.school ? `<span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 font-mono">${t.school}</span>` : ''}
-                </div>
-                ${(t.roomNumber || t.phoneNumber || t.email) ? `
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-0.5">
-                    ${t.roomNumber ? `
-                      <div class="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-medium text-[11px]">
-                        <i class="fa-solid fa-door-open text-amber-500 text-xs w-3.5 text-center"></i>
-                        <span>Cabin: <strong class="font-bold text-slate-800 dark:text-slate-200">${t.roomNumber}</strong></span>
-                      </div>
-                    ` : ''}
-                    ${t.phoneNumber ? `
-                      <div class="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-medium text-[11px]">
-                        <i class="fa-solid fa-phone text-emerald-500 text-xs w-3.5 text-center"></i>
-                        <a href="tel:${t.phoneNumber.split('/')[0].trim().replace(/\s+/g, '')}" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">
-                          ${t.phoneNumber}
-                        </a>
-                      </div>
-                    ` : ''}
-                    ${t.email ? `
-                      <div class="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-medium text-[11px] sm:col-span-2">
-                        <i class="fa-solid fa-envelope text-blue-500 text-xs w-3.5 text-center"></i>
-                        <a href="mailto:${t.email}" class="text-blue-600 dark:text-blue-400 font-bold hover:underline">
-                          ${t.email}
-                        </a>
-                      </div>
-                    ` : ''}
-                  </div>
-                ` : ''}
+              <div class="bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/50 rounded-xl p-2.5 text-xs space-y-1.5">
                 ${t.subjects && t.subjects.length > 0 ? `
-                  <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+                  <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Courses:</span>
                     ${t.subjects.map(s => `
                       <span class="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-mono text-[10px] font-semibold text-brandBlue dark:text-blue-400">
@@ -6513,7 +6481,7 @@
                     `).join("")}
                   </div>
                 ` : ''}
-                <div class="text-[11px] text-slate-400 dark:text-slate-500 italic pt-0.5">
+                <div class="text-[11px] text-slate-400 dark:text-slate-500 italic">
                   Not currently registered with any squad member. You can still rate & review this faculty below!
                 </div>
               </div>
