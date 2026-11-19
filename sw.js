@@ -1,5 +1,5 @@
-// Service Worker for VIT Bhopal Timetable & Squad Sync PWA
-const CACHE_NAME = 'vitb-timetable-v34';
+// Service Worker for Campus Saathi (VIT Bhopal Timetable & Squad Sync PWA)
+const CACHE_NAME = 'vitb-timetable-v35';
 
 const STATIC_ASSETS = [
   './',

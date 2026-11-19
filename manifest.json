@@ -1,7 +1,7 @@
 {
-  "name": "VIT Bhopal Timetable & Squad Sync",
-  "short_name": "VITB Squad",
-  "description": "Interactive timetable, squad schedule sync, and teacher finder for VIT Bhopal.",
+  "name": "Campus Saathi",
+  "short_name": "Campus Saathi",
+  "description": "Campus Saathi — Smart timetable, squad schedule sync, teacher finder, and parcel helper for VIT Bhopal.",
   "start_url": "./index.html",
   "scope": "./",
   "id": "vitb-timetable-squad",
