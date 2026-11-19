@@ -6089,7 +6089,20 @@
           cardsFeed.classList.add("hidden");
         } else {
           cardsFeed.classList.remove("hidden");
-          cardsFeed.innerHTML = friend.courses.map((c, i) => `
+          cardsFeed.innerHTML = friend.courses.map((c, i) => {
+            const sameClassmates = FRIENDS_DATA.filter(other => {
+              if (other.id === friend.id) return false;
+              return other.courses.some(oc => {
+                if (c.classNo && oc.classNo) {
+                  return c.classNo.trim().toUpperCase() === oc.classNo.trim().toUpperCase();
+                }
+                const sameCode = (c.code || "").trim().toUpperCase() === (oc.code || "").trim().toUpperCase();
+                const sameFaculty = (c.faculty || "").trim().toLowerCase() === (oc.faculty || "").trim().toLowerCase();
+                return sameCode && sameFaculty;
+              });
+            }).sort((a, b) => a.name.localeCompare(b.name));
+
+            return `
             <div class="p-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition rounded-xl space-y-1.5">
               <div class="flex items-start justify-between gap-2">
                 <div>
@@ -6119,8 +6132,29 @@
                 <span class="truncate"><i class="fa-solid fa-user-tie text-slate-400 dark:text-slate-500 mr-1"></i>${c.faculty}</span>
                 <span class="font-mono font-bold text-brandBlue shrink-0 ml-2">Slots: ${c.slots.join("+")}</span>
               </div>
+
+              ${sameClassmates.length > 0 ? `
+                <div class="flex items-center gap-1.5 flex-wrap pt-1.5 border-t border-slate-100 dark:border-slate-800">
+                  <span class="text-[11px] font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                    <i class="fa-solid fa-user-group text-[10px] text-blue-500"></i> In same class (${sameClassmates.length}):
+                  </span>
+                  <div class="flex items-center gap-1 flex-wrap">
+                    ${sameClassmates.map(cm => `
+                      <button
+                        type="button"
+                        onclick="selectSquadFilter('${cm.id}')"
+                        class="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[11px] font-bold transition cursor-pointer"
+                        title="View ${cm.name}'s schedule"
+                      >
+                        ${cm.name.split(" ")[0]}
+                      </button>
+                    `).join("")}
+                  </div>
+                </div>
+              ` : ''}
             </div>
-          `).join("");
+          `;
+          }).join("");
         }
       }
     }
