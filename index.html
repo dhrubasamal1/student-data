@@ -6247,7 +6247,7 @@
         endDate: "2026-11-24",
         dayOfWeek: "Tuesday",
         type: "sectional_holiday",
-        typeLabel: "Sectional Holiday",
+        typeLabel: "Sectional",
         note: ""
       },
       {
@@ -6313,7 +6313,7 @@
         endDate: "2027-01-15",
         dayOfWeek: "Mon – Fri",
         type: "holiday",
-        typeLabel: "Holiday Break",
+        typeLabel: "Holiday",
         note: ""
       },
       {
@@ -6346,7 +6346,7 @@
         endDate: "2027-02-20",
         dayOfWeek: "Thu – Sat",
         type: "fest",
-        typeLabel: "College Fest",
+        typeLabel: "Fest",
         note: "Tentative"
       },
       {
@@ -6434,7 +6434,7 @@
         endDate: "2027-03-31",
         dayOfWeek: "Thu – Wed",
         type: "exam",
-        typeLabel: "TEE Exams",
+        typeLabel: "Exams",
         note: ""
       },
       {
@@ -6456,7 +6456,7 @@
         endDate: "2027-03-26",
         dayOfWeek: "Friday",
         type: "sectional_holiday",
-        typeLabel: "Sectional Holiday",
+        typeLabel: "Sectional",
         note: ""
       },
       {
@@ -6467,7 +6467,7 @@
         endDate: "2027-06-30",
         dayOfWeek: "Thu – Wed",
         type: "holiday",
-        typeLabel: "Semester Break",
+        typeLabel: "Break",
         note: "For students"
       },
       {
@@ -6511,7 +6511,7 @@
         endDate: "2027-04-19",
         dayOfWeek: "Monday",
         type: "sectional_holiday",
-        typeLabel: "Sectional Holiday",
+        typeLabel: "Sectional",
         note: ""
       },
       {
@@ -6522,7 +6522,7 @@
         endDate: "2027-05-30",
         dayOfWeek: "Mon – Sun",
         type: "academic",
-        typeLabel: "Faculty Vacation",
+        typeLabel: "Vacation",
         note: "Any 3 weeks"
       },
       {
@@ -6533,7 +6533,7 @@
         endDate: "2027-06-30",
         dayOfWeek: "Mon – Wed",
         type: "exam",
-        typeLabel: "Makeup Exams",
+        typeLabel: "Exams",
         note: ""
       }
     ];
@@ -6684,7 +6684,6 @@
       }
 
       events.sort((a, b) => a.startDate.localeCompare(b.startDate));
-      const nextUpcomingEventId = (events.find(e => !e.isPast) || {}).id;
 
       const filterOptions = [
         { id: "all", label: "All", icon: "fa-list-check" },
@@ -6790,29 +6789,25 @@
               <div class="space-y-1.5">
                 ${mEvents.map(ev => {
                   const dateBox = getEventDateBox(ev);
-                  const isNext = ev.id === nextUpcomingEventId;
                   return `
-                    <div class="bg-white dark:bg-slate-900 border ${isNext ? 'border-brandBlue/70 dark:border-blue-500/70 ring-1 ring-brandBlue/30' : 'border-slate-200 dark:border-slate-800'} rounded-xl p-2.5 sm:px-3 sm:py-2.5 transition flex items-center justify-between gap-2.5">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:px-3.5 sm:py-3 transition flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
                       <!-- Left: Date Box & Info -->
-                      <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="shrink-0 w-11 text-center py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                          <div class="text-[8px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider leading-none">${dateBox.monthAbbr}</div>
+                      <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                        <div class="shrink-0 w-11 text-center py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                          <div class="text-[8px] font-black uppercase text-slate-400 dark:text-slate-400 tracking-wider leading-none">${dateBox.monthAbbr}</div>
                           <div class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-slate-100 leading-tight mt-0.5">${dateBox.dayText}</div>
                         </div>
-                        <div class="min-w-0">
-                          <div class="flex items-center gap-1.5 flex-wrap">
-                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 truncate">${ev.title}</h4>
-                            ${isNext ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-brandBlue dark:bg-blue-950/80 dark:text-blue-300 border border-blue-200 dark:border-blue-800"><span class="w-1 h-1 rounded-full bg-brandBlue animate-pulse"></span> Next Up</span>` : ''}
-                          </div>
-                          <div class="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5 flex-wrap mt-0.5">
+                        <div class="min-w-0 flex-1">
+                          <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug break-words">${ev.title}</h4>
+                          <div class="text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-1.5 flex-wrap mt-0.5 font-medium">
                             <span>${ev.dayOfWeek}</span>
-                            ${ev.note ? `<span class="text-slate-300 dark:text-slate-600">•</span><span class="text-brandBlue dark:text-blue-400 font-medium">${ev.note}</span>` : ''}
+                            ${ev.note ? `<span class="text-slate-400 dark:text-slate-500">•</span><span class="text-blue-600 dark:text-blue-300 font-semibold">${ev.note}</span>` : ''}
                           </div>
                         </div>
                       </div>
 
                       <!-- Right: Category Badge & Countdown -->
-                      <div class="flex items-center gap-1.5 shrink-0">
+                      <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center ml-14 sm:ml-0 flex-wrap">
                         ${getCalendarTypeBadge(ev.type, ev.typeLabel)}
                         ${getCalendarCountdownBadge(ev)}
                       </div>
