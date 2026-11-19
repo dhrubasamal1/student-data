@@ -7957,7 +7957,7 @@
 
     function askHelperOnWhatsApp(friendName) {
       const select = document.getElementById("parcelRequesterSelect");
-      const requester = (select && select.value) ? select.value : "your squad friend";
+      const requester = (select && select.value) ? select.value : "your friend";
 
       const courierInput = document.getElementById("parcelCourierInput");
       const courier = (courierInput && courierInput.value) ? courierInput.value : "a parcel";
@@ -7965,7 +7965,7 @@
       const otpInput = document.getElementById("parcelOtpInput");
       const otp = (otpInput && otpInput.value.trim()) ? ` (OTP: ${otpInput.value.trim()})` : "";
 
-      const msg = `Hey ${friendName.split(" ")[0]}! 👋 Are you near the Parcel Area between AB and AB02? Could you please pick up my ${courier} delivery${otp} if you're free? Thank you so much! 🙏 - ${requester}`;
+      const msg = `Hey ${friendName.split(" ")[0]}! 👋 Could you please pick up my ${courier} delivery${otp} if you're free? Thank you so much! 🙏 - ${requester}`;
       const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
       window.open(url, "_blank");
     }
@@ -7980,7 +7980,7 @@
       const otpInput = document.getElementById("parcelOtpInput");
       const otp = (otpInput && otpInput.value.trim()) ? ` (OTP: ${otpInput.value.trim()})` : "";
 
-      const msg = `Hey ${friendName.split(" ")[0]}! 👋 Are you near the Parcel Area between AB and AB02? Could you please pick up my ${courier} delivery${otp} if you're free? Thank you so much! 🙏 - ${requester}`;
+      const msg = `Hey ${friendName.split(" ")[0]}! 👋 Could you please pick up my ${courier} delivery${otp} if you're free? Thank you so much! 🙏 - ${requester}`;
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(msg).then(() => {
