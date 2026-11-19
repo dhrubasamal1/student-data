@@ -7039,6 +7039,182 @@
       renderTeacherFinder();
     }
 
+    function levenshteinDistance(a, b) {
+      if (a === b) return 0;
+      if (!a.length) return b.length;
+      if (!b.length) return a.length;
+      if (a.length > b.length) { const tmp = a; a = b; b = tmp; }
+      const aLen = a.length;
+      const bLen = b.length;
+      let prev = [];
+      let curr = [];
+      for (let j = 0; j <= aLen; j++) prev[j] = j;
+      for (let i = 1; i <= bLen; i++) {
+        curr[0] = i;
+        const bChar = b[i - 1];
+        for (let j = 1; j <= aLen; j++) {
+          const cost = a[j - 1] === bChar ? 0 : 1;
+          curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+        }
+        for (let j = 0; j <= aLen; j++) prev[j] = curr[j];
+      }
+      return prev[aLen];
+    }
+
+    function cleanTeacherTokens(str) {
+      if (!str) return [];
+      return str.toLowerCase()
+        .replace(/\b(dr|prof|mr|mrs|ms)\b\.?/gi, " ")
+        .replace(/[^a-z0-9]/g, " ")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+    }
+
+    function compactAlphaNum(str) {
+      if (!str) return "";
+      return str.toLowerCase()
+        .replace(/\b(dr|prof|mr|mrs|ms)\b\.?/gi, "")
+        .replace(/[^a-z0-9]/g, "");
+    }
+
+    function scoreTeacherToken(qTok, tTok) {
+      if (qTok === tTok) return 100;
+      if (tTok.startsWith(qTok)) {
+        return 90 + Math.round((qTok.length / tTok.length) * 10);
+      }
+      if (qTok.length <= 2) {
+        return 0;
+      }
+      if (tTok.includes(qTok)) {
+        return 85;
+      }
+      const maxDist = qTok.length >= 7 ? 2 : (qTok.length >= 4 ? 1 : 0);
+      if (maxDist > 0) {
+        const dist = levenshteinDistance(qTok, tTok);
+        if (dist <= maxDist) {
+          return 75 - (dist * 15);
+        }
+        if (tTok.length > qTok.length) {
+          for (let i = 0; i <= tTok.length - qTok.length; i++) {
+            const sub = tTok.substr(i, qTok.length);
+            const subDist = levenshteinDistance(qTok, sub);
+            if (subDist <= 1) {
+              return 70;
+            }
+          }
+        }
+      }
+      return 0;
+    }
+
+    function computeTeacherMatchScore(teacher, query) {
+      const q = (query || "").trim().toLowerCase();
+      if (!q) return { isMatch: true, score: 100 };
+
+      const name = teacher.teacherName || "";
+      const raw = teacher.rawFaculty || "";
+      const room = teacher.roomNumber || "";
+      const phone = teacher.phoneNumber || "";
+      const email = teacher.email || "";
+      const school = teacher.school || "";
+
+      // 1. Direct Substring Match (Highest priority)
+      if (name.toLowerCase() === q) return { isMatch: true, score: 200 };
+      if (name.toLowerCase().startsWith(q)) return { isMatch: true, score: 180 };
+      if (name.toLowerCase().includes(q)) return { isMatch: true, score: 150 };
+      if (raw.toLowerCase().includes(q)) return { isMatch: true, score: 140 };
+
+      // 2. Compact Alphanumeric Match (e.g. "gprabhu" vs "g.prabhu" vs "g prabhu")
+      const qCompact = compactAlphaNum(q);
+      const nameCompact = compactAlphaNum(name);
+      const rawCompact = compactAlphaNum(raw);
+      if (qCompact.length >= 2) {
+        if (nameCompact === qCompact) return { isMatch: true, score: 160 };
+        if (nameCompact.includes(qCompact) || rawCompact.includes(qCompact)) {
+          return { isMatch: true, score: 130 };
+        }
+      }
+
+      // 3. Multi-token Order-Independent & Fuzzy Match
+      const qTokens = cleanTeacherTokens(q);
+      const tTokens = cleanTeacherTokens(name + " " + raw);
+
+      if (qTokens.length > 0 && tTokens.length > 0) {
+        let allMatched = true;
+        let totalTokenScore = 0;
+        const usedTargetIndices = new Set();
+
+        for (const qTok of qTokens) {
+          let bestTokScore = 0;
+          let bestTargetIdx = -1;
+
+          for (let i = 0; i < tTokens.length; i++) {
+            if (usedTargetIndices.has(i)) continue;
+            const s = scoreTeacherToken(qTok, tTokens[i]);
+            if (s > bestTokScore) {
+              bestTokScore = s;
+              bestTargetIdx = i;
+            }
+          }
+
+          if (bestTokScore > 0) {
+            totalTokenScore += bestTokScore;
+            usedTargetIndices.add(bestTargetIdx);
+          } else {
+            allMatched = false;
+            break;
+          }
+        }
+
+        if (allMatched) {
+          const avgScore = Math.round(totalTokenScore / qTokens.length);
+          return { isMatch: true, score: avgScore };
+        }
+      }
+
+      // 4. Room / Cabin Match
+      const roomLower = room.toLowerCase();
+      const roomCompact = roomLower.replace(/[^a-z0-9]/g, "");
+      if (roomLower && (roomLower.includes(q) || (qCompact.length >= 2 && roomCompact.includes(qCompact)))) {
+        return { isMatch: true, score: 110 };
+      }
+
+      // 5. Phone Match
+      const phoneDigits = phone.replace(/\D/g, "");
+      const qDigits = q.replace(/\D/g, "");
+      if (qDigits.length >= 3 && phoneDigits.includes(qDigits)) {
+        return { isMatch: true, score: 110 };
+      }
+
+      // 6. Email Match
+      const emailLower = email.toLowerCase();
+      if (emailLower && emailLower.includes(q)) {
+        return { isMatch: true, score: 110 };
+      }
+
+      // 7. Courses / Subjects / School Match
+      if (school.toLowerCase().includes(q)) {
+        return { isMatch: true, score: 70 };
+      }
+      if ((teacher.subjects || []).some(s => s.toLowerCase().includes(q))) {
+        return { isMatch: true, score: 80 };
+      }
+      const matchesCourse = Object.values(teacher.studentRecords || {}).some(sr =>
+        sr.courses.some(c => {
+          const codeCompact = compactAlphaNum(c.code);
+          return c.code.toLowerCase().includes(q) || 
+                 c.title.toLowerCase().includes(q) ||
+                 (qCompact.length >= 4 && codeCompact.includes(qCompact));
+        })
+      );
+      if (matchesCourse) {
+        return { isMatch: true, score: 85 };
+      }
+
+      return { isMatch: false, score: 0 };
+    }
+
     function renderTeacherFinder() {
       const allTeachers = getTeacherDirectory();
       const resultsContainer = document.getElementById("teacherSearchResults");
@@ -7046,23 +7222,20 @@
 
       if (!resultsContainer) return;
 
-      const q = teacherSearchQuery.toLowerCase();
+      const q = teacherSearchQuery.toLowerCase().trim();
 
-      // Filter teachers matching query
-      const matchingTeachers = allTeachers.filter(t => {
-        if (!q) return true;
-        const matchesName = t.teacherName.toLowerCase().includes(q);
-        const matchesRaw = t.rawFaculty.toLowerCase().includes(q);
-        const matchesSchool = t.school.toLowerCase().includes(q);
-        const matchesRoom = (t.roomNumber || "").toLowerCase().includes(q);
-        const matchesPhone = (t.phoneNumber || "").toLowerCase().includes(q);
-        const matchesEmail = (t.email || "").toLowerCase().includes(q);
-        const matchesCourse = Object.values(t.studentRecords).some(sr =>
-          sr.courses.some(c => c.code.toLowerCase().includes(q) || c.title.toLowerCase().includes(q))
-        );
-        const matchesSubject = (t.subjects || []).some(s => s.toLowerCase().includes(q));
-        return matchesName || matchesRaw || matchesSchool || matchesRoom || matchesPhone || matchesEmail || matchesCourse || matchesSubject;
-      });
+      // Filter teachers matching query with intelligent fuzzy search & relevance scoring
+      let matchingTeachers = allTeachers;
+      if (q) {
+        matchingTeachers = allTeachers
+          .map(t => {
+            const matchInfo = computeTeacherMatchScore(t, teacherSearchQuery);
+            return { teacher: t, ...matchInfo };
+          })
+          .filter(item => item.isMatch)
+          .sort((a, b) => b.score - a.score || a.teacher.teacherName.localeCompare(b.teacher.teacherName))
+          .map(item => item.teacher);
+      }
 
       if (countBadge) {
         const countText = teacherSearchQuery
