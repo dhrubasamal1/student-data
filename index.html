@@ -483,17 +483,27 @@
             <div class="grid grid-cols-3 gap-1.5">
               <button type="button" id="classAvgBtn-low" onclick="setReviewClassAvg('low')"
                 class="class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                <i class="fa-solid fa-arrow-trend-down text-rose-500 text-xs"></i>
+                <svg class="w-3.5 h-3.5 text-rose-500 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+                  <polyline points="17 18 23 18 23 12"></polyline>
+                </svg>
                 <span>Low</span>
               </button>
               <button type="button" id="classAvgBtn-medium" onclick="setReviewClassAvg('medium')"
                 class="class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                <i class="fa-solid fa-chart-simple text-blue-500 text-xs"></i>
+                <svg class="w-3.5 h-3.5 text-blue-500 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10"></line>
+                  <line x1="12" y1="20" x2="12" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
                 <span>Medium</span>
               </button>
               <button type="button" id="classAvgBtn-high" onclick="setReviewClassAvg('high')"
                 class="class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                <i class="fa-solid fa-arrow-trend-up text-emerald-500 text-xs"></i>
+                <svg class="w-3.5 h-3.5 text-emerald-500 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                  <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
                 <span>High</span>
               </button>
             </div>
@@ -6332,35 +6342,9 @@
         countBadge.innerHTML = `<span class="inline-flex items-center">${countText}${dotHtml}</span>`;
       }
 
-      let errorBannerHtml = "";
-      if (reviewsSyncError && (reviewsSyncError.code === "permission-denied" || (reviewsSyncError.message && reviewsSyncError.message.includes("permission")))) {
-        errorBannerHtml = `
-          <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl p-3.5 text-xs text-amber-900 dark:text-amber-200 space-y-1.5 shadow-sm">
-            <div class="font-bold flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
-              <i class="fa-solid fa-shield-halved text-sm"></i>
-              <span>Firebase Firestore Rules Notice</span>
-            </div>
-            <p class="text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
-              To allow 1-read consolidated review storage (<code class="bg-amber-100 dark:bg-amber-900/60 px-1 py-0.5 rounded font-mono text-[10px]">/teacher_reviews/all_reviews</code>), ensure write access is enabled in your Firebase Console (<code class="bg-amber-100 dark:bg-amber-900/60 px-1 py-0.5 rounded font-mono text-[10px]">Firestore Database &gt; Rules</code>):
-            </p>
-            <pre class="bg-slate-900 text-emerald-400 p-2.5 rounded-xl font-mono text-[10.5px] leading-relaxed overflow-x-auto select-all border border-slate-800">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /teacher_reviews/{document=**} {
-      allow read, write: if true;
-    }
-    match /deliveries/{document=**} {
-      allow read, write: if true;
-    }
-  }
-}</pre>
-          </div>
-        `;
-      }
-
       // Render Search Results
       if (matchingTeachers.length === 0) {
-        resultsContainer.innerHTML = errorBannerHtml + `
+        resultsContainer.innerHTML = `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-center space-y-2.5 shadow-sm">
             <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 mx-auto flex items-center justify-center text-sm">
               <i class="fa-solid fa-user-slash"></i>
@@ -6382,7 +6366,7 @@ service cloud.firestore {
         return;
       }
 
-      resultsContainer.innerHTML = errorBannerHtml + matchingTeachers.map(t => {
+      resultsContainer.innerHTML = matchingTeachers.map(t => {
         const studentRecords = Object.values(t.studentRecords).sort((a, b) => a.friend.name.localeCompare(b.friend.name));
         const isExtraOnly = t.isExtraFaculty && studentRecords.length === 0;
 
@@ -6931,6 +6915,7 @@ service cloud.firestore {
       ["low", "medium", "high"].forEach(opt => {
         const btn = document.getElementById(`classAvgBtn-${opt}`);
         if (!btn) return;
+        const icon = btn.querySelector ? btn.querySelector("svg, i") : null;
         if (currentReview.classAvg === opt) {
           const activeColors = {
             low: "bg-rose-600 border-rose-600 text-white shadow-xs",
@@ -6938,19 +6923,18 @@ service cloud.firestore {
             high: "bg-emerald-600 border-emerald-600 text-white shadow-xs"
           };
           btn.className = `class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 ${activeColors[opt]}`;
-          const icon = btn.querySelector ? btn.querySelector("i") : null;
           if (icon) {
-            icon.className = opt === "low"
-              ? "fa-solid fa-arrow-trend-down text-white text-xs"
-              : (opt === "high" ? "fa-solid fa-arrow-trend-up text-white text-xs" : "fa-solid fa-chart-simple text-white text-xs");
+            const cls = "w-3.5 h-3.5 text-white transition-colors";
+            icon.className = cls;
+            if (icon.setAttribute) icon.setAttribute("class", cls);
           }
         } else {
           btn.className = "class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
-          const icon = btn.querySelector ? btn.querySelector("i") : null;
           if (icon) {
-            icon.className = opt === "low"
-              ? "fa-solid fa-arrow-trend-down text-rose-500 text-xs"
-              : (opt === "high" ? "fa-solid fa-arrow-trend-up text-emerald-500 text-xs" : "fa-solid fa-chart-simple text-blue-500 text-xs");
+            const colorClass = opt === "low" ? "text-rose-500" : (opt === "high" ? "text-emerald-500" : "text-blue-500");
+            const cls = `w-3.5 h-3.5 ${colorClass} transition-colors`;
+            icon.className = cls;
+            if (icon.setAttribute) icon.setAttribute("class", cls);
           }
         }
       });
@@ -7912,41 +7896,6 @@ service cloud.firestore {
             </div>
           </div>
         </div>
-
-        <!-- Rules / Fallback Notice Banner -->
-        ${(parcelSyncError || parcelUsingFallback) ? `
-          <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl p-3.5 text-xs text-amber-900 dark:text-amber-200 space-y-2 shadow-xs">
-            <div class="flex items-center justify-between gap-2">
-              <div class="font-bold flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
-                <i class="fa-solid fa-shield-halved text-sm text-amber-600 dark:text-amber-400"></i>
-                <span>Firebase Firestore Rules Notice</span>
-              </div>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${parcelUsingFallback ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' : 'bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-200'}">
-                ${parcelUsingFallback ? '✓ Live via Fallback' : 'Action Required'}
-              </span>
-            </div>
-            <p class="text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
-              To allow live delivery requests in dedicated <code class="bg-amber-100 dark:bg-amber-900/60 px-1 py-0.5 rounded font-mono text-[10px]">/deliveries</code> collection, update your Firebase Console (<code class="bg-amber-100 dark:bg-amber-900/60 px-1 py-0.5 rounded font-mono text-[10px]">Firestore Database &gt; Rules</code>) and click <strong>Publish</strong>:
-            </p>
-            <pre class="bg-slate-900 text-emerald-400 p-2.5 rounded-xl font-mono text-[10.5px] leading-relaxed overflow-x-auto select-all border border-slate-800">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /teacher_reviews/{document=**} {
-      allow read, write: if true;
-    }
-    match /deliveries/{document=**} {
-      allow read, write: if true;
-    }
-  }
-}</pre>
-            ${parcelUsingFallback ? `
-              <p class="text-[10.5px] text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                <i class="fa-solid fa-circle-check text-xs"></i>
-                <span>Live delivery sync is currently active through your existing authorized collection.</span>
-              </p>
-            ` : ''}
-          </div>
-        ` : ''}
 
         <!-- Unified Day & Slot Control Panel -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3 sm:p-3.5 space-y-3 shadow-xs">
