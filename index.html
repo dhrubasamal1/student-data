@@ -7,9 +7,6 @@
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Class Data — VITB Timetable</title>
   <meta name="description" content="Interactive timetable, squad schedule sync, and teacher finder for VIT Bhopal." />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
 
   <!-- PWA & Mobile Web App Meta -->
   <link rel="manifest" href="manifest.json" />
@@ -155,18 +152,6 @@
   <!-- MOBILE PHONE APP CONTAINER (MAX-W-MD)                                  -->
   <!-- ===================================================================== -->
   <div class="max-w-md mx-auto min-h-screen px-4 pt-4 pb-20 flex flex-col">
-
-    <!-- Floating PWA Update Available Notification Banner -->
-    <div id="pwaUpdateBanner"
-      class="hidden fixed top-3 inset-x-3 sm:inset-x-auto sm:right-4 z-50 max-w-sm bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3.5 py-2.5 rounded-2xl shadow-xl border border-blue-400/30 flex items-center justify-between gap-3 text-xs font-semibold">
-      <div class="flex items-center gap-2">
-        <i class="fa-solid fa-cloud-arrow-down text-sm animate-bounce"></i>
-        <span>New app update ready!</span>
-      </div>
-      <button onclick="applyAppUpdateNow()" class="px-2.5 py-1 rounded-xl bg-white text-blue-700 text-[11px] font-bold shadow-xs hover:bg-blue-50 transition cursor-pointer">
-        Reload
-      </button>
-    </div>
 
     <!-- 1. TOP HEADER -->
     <header class="mb-4 text-center relative">
@@ -353,20 +338,13 @@
 
     <!-- Mobile Footer Info -->
     <footer class="mt-8 text-center text-[11px] text-slate-400 dark:text-slate-500 space-y-1.5 pb-6">
-      <div class="flex items-center justify-center gap-2 flex-wrap">
+      <div class="flex items-center justify-center gap-2">
         <span>VIT Bhopal Slot System</span>
         <span>•</span>
         <button id="footerInstallBtn" onclick="handleInstallAppClick()"
-          class="inline-flex items-center gap-1 text-brandBlue dark:text-blue-400 font-semibold hover:underline cursor-pointer">
+          class="inline-flex items-center gap-1 text-brandBlue dark:text-blue-400 font-semibold hover:underline">
           <i class="fa-solid fa-mobile-screen-button text-[10px]"></i>
           <span>Install Web App</span>
-        </button>
-        <span>•</span>
-        <button id="checkForUpdatesBtn" onclick="checkForAppUpdates(true)"
-          class="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400 font-semibold hover:text-brandBlue dark:hover:text-blue-400 transition cursor-pointer"
-          title="Check for newest timetable update">
-          <i id="checkForUpdatesIcon" class="fa-solid fa-arrows-rotate text-[10px]"></i>
-          <span id="updateBtnText">Check Update</span>
         </button>
       </div>
       <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
@@ -8512,131 +8490,18 @@
       if (modal) modal.classList.add("hidden");
     }
 
-    // ========================================================================
-    // Enhanced Service Worker Registration & Live PWA Auto-Updater
-    // ========================================================================
-    let swRegistration = null;
-    let isPwaReloading = false;
-
-    function showUpdateBanner() {
-      const banner = document.getElementById("pwaUpdateBanner");
-      if (banner) banner.classList.remove("hidden");
-    }
-
-    function applyAppUpdateNow() {
-      if (swRegistration && swRegistration.waiting) {
-        swRegistration.waiting.postMessage({ action: "skipWaiting" });
-      }
-      setTimeout(() => {
-        window.location.reload(true);
-      }, 150);
-    }
-
-    async function checkForAppUpdates(showFeedback = false) {
-      const icon = document.getElementById("checkForUpdatesIcon");
-      const btnText = document.getElementById("updateBtnText");
-      if (icon) icon.classList.add("fa-spin");
-      if (btnText && showFeedback) btnText.textContent = "Checking...";
-
-      if (!("serviceWorker" in navigator)) {
-        if (icon) icon.classList.remove("fa-spin");
-        if (btnText && showFeedback) btnText.textContent = "Check Update";
-        return;
-      }
-
-      try {
-        const reg = swRegistration || await navigator.serviceWorker.getRegistration();
-        if (reg) {
-          await reg.update();
-        }
-      } catch (err) {
-        console.log("Check update note:", err);
-      } finally {
-        setTimeout(() => {
-          if (icon) icon.classList.remove("fa-spin");
-          if (btnText) btnText.textContent = "Check Update";
-          if (showFeedback) {
-            const banner = document.getElementById("pwaUpdateBanner");
-            if (!banner || banner.classList.contains("hidden")) {
-              const toast = document.getElementById("reviewToast");
-              const msg = document.getElementById("reviewToastMsg");
-              if (toast && msg) {
-                msg.textContent = "You're using the latest timetable version!";
-                toast.classList.remove("hidden");
-                setTimeout(() => toast.classList.add("hidden"), 3000);
-              }
-            }
-          }
-        }, 1200);
-      }
-    }
-
-    // Auto-reload when new SW takes control
+    // Register Service Worker for offline capability & PWA installability
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (isPwaReloading) return;
-        isPwaReloading = true;
-        console.log("New Service Worker activated. Reloading page to apply latest update...");
-        window.location.reload();
-      });
-
-      navigator.serviceWorker.addEventListener("message", (event) => {
-        if (event.data && event.data.type === "SW_UPDATED") {
-          console.log("Service Worker broadcasted SW_UPDATED:", event.data.version);
-          showUpdateBanner();
-        }
-      });
-
       window.addEventListener("load", () => {
-        // updateViaCache: 'none' tells the browser to never use HTTP disk cache when checking sw.js
-        navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" })
+        navigator.serviceWorker.register("./sw.js")
           .then((reg) => {
-            swRegistration = reg;
             console.log("PWA Service Worker registered:", reg.scope);
-
-            // Immediately check for updates on launch
-            reg.update().catch(() => {});
-
-            // If a worker is already waiting, show the update prompt
-            if (reg.waiting) {
-              showUpdateBanner();
-            }
-
-            // Monitor state changes for new worker
-            reg.addEventListener("updatefound", () => {
-              const newWorker = reg.installing;
-              if (!newWorker) return;
-              newWorker.addEventListener("statechange", () => {
-                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-                  console.log("New update ready and installed in background.");
-                  showUpdateBanner();
-                }
-              });
-            });
+            reg.update();
           })
           .catch((err) => {
             console.log("PWA Service Worker registration note:", err);
           });
       });
-
-      // Check for updates when student returns to app from lock screen or another tab/app
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible" && swRegistration) {
-          swRegistration.update().catch(() => {});
-        }
-      });
-      window.addEventListener("focus", () => {
-        if (swRegistration) {
-          swRegistration.update().catch(() => {});
-        }
-      });
-
-      // Periodically check every 15 minutes while app is in active use
-      setInterval(() => {
-        if (swRegistration) {
-          swRegistration.update().catch(() => {});
-        }
-      }, 15 * 60 * 1000);
     }
 
     /**
