@@ -28,7 +28,7 @@ The **Teacher Reviews & Faculty Finder** allows squad students to anonymously ra
   }
   ```
 
-> **Performance & Cost Optimization**: All faculty reviews are stored in a single consolidated document `/teacher_reviews/all_reviews` using `FieldValue.arrayUnion()`. Opening the Teacher Reviews tab requires **only 1 document read** regardless of how many reviews exist in the database!
+> **Performance & Cost Optimization (with 80% Document Size Limit Protection)**: All faculty reviews are stored in consolidated chunk documents starting at `/teacher_reviews/all_reviews` using `FieldValue.arrayUnion()`. When any document reaches **80% of Firestore's 1 MiB limit** (~838,860 bytes), subsequent reviews automatically roll over to a new document (`all_reviews_1`, `all_reviews_2`, etc.). Opening the Teacher Reviews tab requires only 1 document read initially, and reviews across all older and newer chunks are merged seamlessly!
 
 ## Firebase Security Rules
 In Firebase Console (`Firestore Database` -> `Rules`), ensure write access is allowed so reviews can be appended:

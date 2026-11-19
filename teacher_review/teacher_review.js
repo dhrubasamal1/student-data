@@ -7,9 +7,11 @@
  * Dedicated collection for faculty ratings, class averages, and anonymous squad reviews.
  */
 
-// Teacher Review Firestore Collection Name & Single Consolidated Document ID (1-Read Architecture)
+// Teacher Review Firestore Collection Name & Single Consolidated Document ID (1-Read Architecture with 80% Auto-Sharding)
 export const TEACHER_REVIEWS_COLLECTION_PATH = "teacher_reviews";
 export const TEACHER_REVIEWS_DOC_ID = "all_reviews";
+export const FIRESTORE_DOC_MAX_BYTES = 1048576; // 1 MiB hard limit
+export const FIRESTORE_DOC_THRESHOLD_BYTES = 838860; // 80% limit threshold (819.2 KiB) for rollover to all_reviews_1, all_reviews_2...
 
 export function formatTeacherId(facultyString) {
   if (!facultyString) return "unknown";
