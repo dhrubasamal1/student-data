@@ -7436,6 +7436,12 @@
           const data = doc.data();
           if (data.docType === "parcel_request_completed" && data.targetId) {
             completedParcelDocIds.add(data.targetId);
+            // Delete tombstone from Firestore so collection stays empty/clean
+            if (doc.ref && doc.ref.delete) doc.ref.delete().catch(() => {});
+          } else if (data.status === "completed" || data.status === "received" || data.status === "delivered") {
+            completedParcelDocIds.add(doc.id);
+            // Delete completed doc from Firestore
+            if (doc.ref && doc.ref.delete) doc.ref.delete().catch(() => {});
           } else if (data.docType === "parcel_request_claimed" && data.targetId && data.claimedBy) {
             claimsMap[data.targetId] = data.claimedBy;
           }
@@ -7450,6 +7456,8 @@
           const data = doc.data();
           if (data.docType !== "parcel_request" || !data.requester) return;
           if (completedParcelDocIds.has(doc.id) || data.status === "completed" || data.status === "received" || data.status === "delivered") {
+            // Delete completed doc from Firestore so only active parcels remain
+            if (doc.ref && doc.ref.delete) doc.ref.delete().catch(() => {});
             return;
           }
           const item = {
@@ -7712,35 +7720,42 @@
       showReviewToast("Parcel marked as received / delivered!");
       renderParcelHelper();
 
-      // 3. Sync to Firebase
+      // 3. Delete directly from Firebase so completed parcels never accumulate
       const firestore = getDb();
       if (firestore && !String(reqId).startsWith("local_")) {
-        // Attempt direct deletion if security rules permit
+        // Delete primary parcel doc from active collection
         try {
           await firestore.collection(parcelCollectionName).doc(reqId).delete();
         } catch (e) {
-          if (parcelCollectionName !== "teacher_reviews") {
-            try {
-              await firestore.collection("teacher_reviews").doc(reqId).delete();
-            } catch (err2) { }
-          }
+          console.warn("Delete parcel error:", e);
         }
 
-        // Also publish completion document so all squad members see it removed even if direct delete is blocked by Firestore rules
-        const completionDoc = {
-          docType: "parcel_request_completed",
-          targetId: reqId,
-          timestamp: Date.now()
-        };
+        // Also clean up from teacher_reviews if it was placed there during fallback
+        if (parcelCollectionName !== "teacher_reviews") {
+          try {
+            await firestore.collection("teacher_reviews").doc(reqId).delete();
+          } catch (e) { }
+        }
 
+        // Delete any auxiliary claim/completion records tied to this request
         try {
-          await firestore.collection(parcelCollectionName).add(completionDoc);
-        } catch (errAdd) {
-          if (parcelCollectionName !== "teacher_reviews") {
-            try {
-              await firestore.collection("teacher_reviews").add(completionDoc);
-            } catch (errAdd2) { }
+          const claimsSnap = await firestore.collection(parcelCollectionName).where("targetId", "==", reqId).get();
+          if (claimsSnap && claimsSnap.forEach) {
+            claimsSnap.forEach(d => {
+              if (d.ref && d.ref.delete) d.ref.delete().catch(() => {});
+            });
           }
+        } catch (e) { }
+
+        if (parcelCollectionName !== "teacher_reviews") {
+          try {
+            const fallbackClaims = await firestore.collection("teacher_reviews").where("targetId", "==", reqId).get();
+            if (fallbackClaims && fallbackClaims.forEach) {
+              fallbackClaims.forEach(d => {
+                if (d.ref && d.ref.delete) d.ref.delete().catch(() => {});
+              });
+            }
+          } catch (e) { }
         }
       }
     }
