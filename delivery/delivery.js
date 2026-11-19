@@ -9,6 +9,7 @@
 
 // Delivery Firestore Collection Name
 export const DELIVERY_COLLECTION_PATH = "deliveries";
+export const FALLBACK_COLLECTION_PATH = "teacher_reviews";
 
 export function getVenueBlock(venue) {
   if (!venue) return "Unknown";
