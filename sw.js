@@ -1,5 +1,5 @@
 // Service Worker for VIT Bhopal Timetable & Squad Sync PWA
-const CACHE_NAME = 'vitb-timetable-v33';
+const CACHE_NAME = 'vitb-timetable-v34';
 
 const STATIC_ASSETS = [
   './',
@@ -17,7 +17,14 @@ const STATIC_ASSETS = [
   './icons/favicon.png'
 ];
 
-// Install: Pre-cache core shell
+// Message handler for manual skipWaiting requests
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
+});
+
+// Install: Pre-cache core shell & immediately take over
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -26,18 +33,25 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate: Clean up older cache versions
+// Activate: Clean up older cache versions and broadcast update event to all open clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       );
-    }).then(() => self.clients.claim())
+    }).then(() => self.clients.claim()).then(() => {
+      // Notify all open windows that new version has activated
+      return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SW_UPDATED', version: CACHE_NAME });
+        });
+      });
+    })
   );
 });
 
-// Fetch: Network-first for HTML, Stale-while-revalidate for assets/CDN
+// Fetch: Network-first for HTML with no-cache, Stale-while-revalidate for assets/CDN
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
@@ -49,10 +63,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // HTML navigation requests: Network first, fall back to cache
+  // HTML navigation requests: Bypass HTTP disk cache with no-cache, fall back to offline cache
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req)
+      fetch(req.url, { cache: 'no-cache' })
         .then((networkRes) => {
           if (networkRes && networkRes.status === 200) {
             const resClone = networkRes.clone();
