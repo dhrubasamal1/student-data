@@ -192,6 +192,10 @@
           class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm shrink-0">
           Schedule
         </button>
+        <button onclick="switchTab('calendar')" id="tabBtn-calendar"
+          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
+          Calendar
+        </button>
         <button onclick="switchTab('teacher')" id="tabBtn-teacher"
           class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
           Teachers
@@ -280,6 +284,15 @@
       <!-- Hidden compatibility elements for test runners / mirrors -->
       <div id="individualFriendSelector" class="hidden"></div>
       <div id="tabPanel-individual" class="hidden"></div>
+    </main>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: CALENDAR (ACADEMIC CALENDAR, EXAMS, HOLIDAYS, REMOTE DAYS)   -->
+    <!-- =================================================================== -->
+    <main id="tabPanel-calendar" class="hidden space-y-4 flex-1">
+      <div id="calendarContainer" class="space-y-4">
+        <!-- Populated dynamically by renderCalendar() -->
+      </div>
     </main>
 
     <!-- =================================================================== -->
@@ -5504,6 +5517,7 @@
      * ========================================================================
      */
     function switchTab(tabId) {
+      if (tabId === "calender") tabId = "calendar";
       if (tabId === "individual") {
         tabId = "master";
         if (activeFriendIds.size !== 1) {
@@ -5511,7 +5525,7 @@
         }
       }
       activeTab = tabId;
-      const tabs = ["master", "teacher", "parcel"];
+      const tabs = ["master", "calendar", "teacher", "parcel"];
 
       tabs.forEach(t => {
         const panel = document.getElementById(`tabPanel-${t}`);
@@ -5532,7 +5546,8 @@
           const hashMapping = {
             parcel: "#delivery",
             teacher: "#teacher-review",
-            master: "#squad"
+            master: "#squad",
+            calendar: "#calendar"
           };
           if (hashMapping[tabId] && window.location.hash !== hashMapping[tabId]) {
             if (window.history && window.history.replaceState) {
@@ -5546,6 +5561,8 @@
         renderMasterDayPills();
         renderMobileSlotCards();
         renderIndividualView();
+      } else if (tabId === "calendar") {
+        renderCalendar();
       } else if (tabId === "teacher") {
         // Teacher reviews are lazy-loaded ONLY when Teacher Finder is opened
         initFirebaseReviews();
@@ -6194,6 +6211,8 @@
         renderMasterDayPills();
         renderMobileSlotCards();
         renderIndividualView();
+      } else if (activeTab === "calendar") {
+        renderCalendar();
       } else if (activeTab === "individual") {
         renderIndividualView();
       } else if (activeTab === "teacher") {
@@ -6201,6 +6220,642 @@
       } else if (activeTab === "parcel") {
         renderParcelHelper();
       }
+    }
+
+    /**
+     * ========================================================================
+     * 9.5. TAB 2: ACADEMIC CALENDAR & EVENTS
+     * ========================================================================
+     */
+    const ACADEMIC_CALENDAR_EVENTS = [
+      {
+        id: "ev-1",
+        title: "Instructional Day – Remote Learning",
+        displayDate: "21st November 2026 (Saturday)",
+        startDate: "2026-11-21",
+        endDate: "2026-11-21",
+        dayOfWeek: "Saturday",
+        type: "remote_learning",
+        typeLabel: "Remote Learning",
+        notes: "Friday day order to be followed. Mode of classes: Remote Learning."
+      },
+      {
+        id: "ev-2",
+        title: "Guru Nanak Jayanti",
+        displayDate: "24th November 2026 – Tuesday",
+        startDate: "2026-11-24",
+        endDate: "2026-11-24",
+        dayOfWeek: "Tuesday",
+        type: "sectional_holiday",
+        typeLabel: "Sectional Holiday",
+        notes: "Sectional Holiday"
+      },
+      {
+        id: "ev-3",
+        title: "Instructional Day – Remote Learning",
+        displayDate: "12th December 2026 (Saturday)",
+        startDate: "2026-12-12",
+        endDate: "2026-12-12",
+        dayOfWeek: "Saturday",
+        type: "remote_learning",
+        typeLabel: "Remote Learning",
+        notes: "Friday day order to be followed. Mode of classes: Remote Learning."
+      },
+      {
+        id: "ev-4",
+        title: "Continuous Assessment Test-1 (CAT-1)",
+        displayDate: "15th – 23rd December 2026",
+        startDate: "2026-12-15",
+        endDate: "2026-12-23",
+        dayOfWeek: "Tue – Wed",
+        type: "exam",
+        typeLabel: "CAT-1 Exam",
+        notes: "Continuous Assessment Test-1 across all registered courses."
+      },
+      {
+        id: "ev-5",
+        title: "Christmas",
+        displayDate: "25th December 2026 – Friday",
+        startDate: "2026-12-25",
+        endDate: "2026-12-25",
+        dayOfWeek: "Friday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        notes: "University Holiday"
+      },
+      {
+        id: "ev-6",
+        title: "New Year",
+        displayDate: "1st January 2027 – Friday",
+        startDate: "2027-01-01",
+        endDate: "2027-01-01",
+        dayOfWeek: "Friday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        notes: "University Holiday"
+      },
+      {
+        id: "ev-7",
+        title: "Last date for CAT-1 scripts evaluation / Showing / VTOP Mark Entry",
+        displayDate: "5th January 2027 – Tuesday",
+        startDate: "2027-01-05",
+        endDate: "2027-01-05",
+        dayOfWeek: "Tuesday",
+        type: "academic",
+        typeLabel: "Academic Deadline",
+        notes: "VTOP Mark Entry & paper showing for CAT-1."
+      },
+      {
+        id: "ev-8",
+        title: "Pongal Break",
+        displayDate: "11th – 15th January 2027",
+        startDate: "2027-01-11",
+        endDate: "2027-01-15",
+        dayOfWeek: "Mon – Fri",
+        type: "holiday",
+        typeLabel: "Holiday Break",
+        notes: "University Holiday Break."
+      },
+      {
+        id: "ev-9",
+        title: "Republic Day",
+        displayDate: "26th January 2027 – Tuesday",
+        startDate: "2027-01-26",
+        endDate: "2027-01-26",
+        dayOfWeek: "Tuesday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        notes: "National Holiday."
+      },
+      {
+        id: "ev-10",
+        title: "Continuous Assessment Test-2 (CAT-2)",
+        displayDate: "5th – 13th February 2027",
+        startDate: "2027-02-05",
+        endDate: "2027-02-13",
+        dayOfWeek: "Fri – Sat",
+        type: "exam",
+        typeLabel: "CAT-2 Exam",
+        notes: "Continuous Assessment Test-2 across all registered courses."
+      },
+      {
+        id: "ev-11",
+        title: "Advitya '27 – Techno Cultural Fest (Tentative)",
+        displayDate: "18th – 20th February 2027",
+        startDate: "2027-02-18",
+        endDate: "2027-02-20",
+        dayOfWeek: "Thu – Sat",
+        type: "fest",
+        typeLabel: "College Fest",
+        notes: "Annual Techno-Cultural Fest of VIT Bhopal."
+      },
+      {
+        id: "ev-12",
+        title: "Last date for CAT-2 scripts evaluation / Showing / VTOP Mark Entry",
+        displayDate: "26th February 2027 – Friday",
+        startDate: "2027-02-26",
+        endDate: "2027-02-26",
+        dayOfWeek: "Friday",
+        type: "academic",
+        typeLabel: "Academic Deadline",
+        notes: "VTOP Mark Entry & paper showing for CAT-2."
+      },
+      {
+        id: "ev-13",
+        title: "Last date for Course Withdraw",
+        displayDate: "2nd March 2027 – Tuesday",
+        startDate: "2027-03-02",
+        endDate: "2027-03-02",
+        dayOfWeek: "Tuesday",
+        type: "academic",
+        typeLabel: "Academic Deadline",
+        notes: "Final date for official course withdrawal."
+      },
+      {
+        id: "ev-14",
+        title: "Instructional Day – Remote Learning",
+        displayDate: "5th March 2027 (Friday)",
+        startDate: "2027-03-05",
+        endDate: "2027-03-05",
+        dayOfWeek: "Friday",
+        type: "remote_learning",
+        typeLabel: "Remote Learning",
+        notes: "Friday day order to be followed. Mode of classes: Remote Learning."
+      },
+      {
+        id: "ev-15",
+        title: "Maha Shivratri",
+        displayDate: "6th March 2027 – Saturday",
+        startDate: "2027-03-06",
+        endDate: "2027-03-06",
+        dayOfWeek: "Saturday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        notes: "University Holiday."
+      },
+      {
+        id: "ev-16",
+        title: "Last Instructional Day",
+        displayDate: "9th March 2027 – Tuesday",
+        startDate: "2027-03-09",
+        endDate: "2027-03-09",
+        dayOfWeek: "Tuesday",
+        type: "academic",
+        typeLabel: "Academic Milestone",
+        notes: "Final teaching day of the semester."
+      },
+      {
+        id: "ev-17",
+        title: "Eid ul-Fitr (Ramzan) *",
+        displayDate: "10th March 2027 – Wednesday",
+        startDate: "2027-03-10",
+        endDate: "2027-03-10",
+        dayOfWeek: "Wednesday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        notes: "University Holiday (* Subject to moon sighting)."
+      },
+      {
+        id: "ev-18",
+        title: "Continuous Assessment Marks (CAM) Foil Card Generation",
+        displayDate: "11th March 2027 – Thursday",
+        startDate: "2027-03-11",
+        endDate: "2027-03-11",
+        dayOfWeek: "Thursday",
+        type: "academic",
+        typeLabel: "Academic Milestone",
+        notes: "CAM Foil Card Generation on VTOP."
+      },
+      {
+        id: "ev-19",
+        title: "Term End Examinations (TEE)",
+        displayDate: "11th – 31st March 2027",
+        startDate: "2027-03-11",
+        endDate: "2027-03-31",
+        dayOfWeek: "Thu – Wed",
+        type: "exam",
+        typeLabel: "TEE Exam",
+        notes: "Term End Final Examinations across all courses."
+      },
+      {
+        id: "ev-20",
+        title: "Holi",
+        displayDate: "22nd March 2027 – Monday",
+        startDate: "2027-03-22",
+        endDate: "2027-03-22",
+        dayOfWeek: "Monday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        notes: "Festival Holiday."
+      },
+      {
+        id: "ev-21",
+        title: "Good Friday",
+        displayDate: "26th March 2027 – Friday",
+        startDate: "2027-03-26",
+        endDate: "2027-03-26",
+        dayOfWeek: "Friday",
+        type: "sectional_holiday",
+        typeLabel: "Sectional Holiday",
+        notes: "Sectional Holiday."
+      },
+      {
+        id: "ev-22",
+        title: "Semester Break (for students only)",
+        displayDate: "1st April – 30th June 2027",
+        startDate: "2027-04-01",
+        endDate: "2027-06-30",
+        dayOfWeek: "Thu – Wed",
+        type: "holiday",
+        typeLabel: "Semester Break",
+        notes: "Semester Break for students."
+      },
+      {
+        id: "ev-23",
+        title: "Ugadi / Gudi Padwa",
+        displayDate: "7th April 2027 – Wednesday",
+        startDate: "2027-04-07",
+        endDate: "2027-04-07",
+        dayOfWeek: "Wednesday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        notes: "University Holiday."
+      },
+      {
+        id: "ev-24",
+        title: "Ambedkar Jayanti",
+        displayDate: "14th April 2027 – Wednesday",
+        startDate: "2027-04-14",
+        endDate: "2027-04-14",
+        dayOfWeek: "Wednesday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        notes: "University Holiday."
+      },
+      {
+        id: "ev-25",
+        title: "Rama Navami",
+        displayDate: "15th April 2027 – Thursday",
+        startDate: "2027-04-15",
+        endDate: "2027-04-15",
+        dayOfWeek: "Thursday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        notes: "University Holiday."
+      },
+      {
+        id: "ev-26",
+        title: "Mahavir Jayanti",
+        displayDate: "19th April 2027 – Monday",
+        startDate: "2027-04-19",
+        endDate: "2027-04-19",
+        dayOfWeek: "Monday",
+        type: "sectional_holiday",
+        typeLabel: "Sectional Holiday",
+        notes: "Sectional Holiday."
+      },
+      {
+        id: "ev-27",
+        title: "Faculty Vacation (Any three weeks)",
+        displayDate: "19th April – 30th May 2027",
+        startDate: "2027-04-19",
+        endDate: "2027-05-30",
+        dayOfWeek: "Mon – Sun",
+        type: "academic",
+        typeLabel: "Faculty Vacation",
+        notes: "Faculty Vacation Period."
+      },
+      {
+        id: "ev-28",
+        title: "Makeup Examinations",
+        displayDate: "14th – 30th June 2027",
+        startDate: "2027-06-14",
+        endDate: "2027-06-30",
+        dayOfWeek: "Mon – Wed",
+        type: "exam",
+        typeLabel: "Makeup Exam",
+        notes: "Official Makeup Examinations period."
+      }
+    ];
+
+    let calendarFilter = "all";
+    let calendarSearchQuery = "";
+    let calendarShowPast = false; // "autohide old dates data"
+
+    function getTodayDateStr() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function getMonthNameYear(monthKey) {
+      const [year, month] = monthKey.split("-");
+      const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      return `${months[parseInt(month, 10) - 1]} ${year}`;
+    }
+
+    function getEventDateBox(ev) {
+      const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+      const [sY, sM, sD] = ev.startDate.split("-").map(Number);
+      const [eY, eM, eD] = ev.endDate.split("-").map(Number);
+      let monthAbbr = monthNames[sM - 1];
+      let dayText = String(sD);
+      if (ev.startDate !== ev.endDate) {
+        if (sM === eM) {
+          dayText = `${sD}-${eD}`;
+        } else {
+          monthAbbr = `${monthNames[sM - 1]}-${monthNames[eM - 1]}`;
+          dayText = `${sD} - ${eD}`;
+        }
+      }
+      return { monthAbbr, dayText };
+    }
+
+    function getCalendarTypeBadge(type, label) {
+      switch(type) {
+        case "exam":
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60"><i class="fa-solid fa-graduation-cap text-[9px]"></i> ${label}</span>`;
+        case "holiday":
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60"><i class="fa-solid fa-umbrella-beach text-[9px]"></i> ${label}</span>`;
+        case "sectional_holiday":
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60"><i class="fa-solid fa-star-half-stroke text-[9px]"></i> ${label}</span>`;
+        case "remote_learning":
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-900/60"><i class="fa-solid fa-laptop-code text-[9px]"></i> ${label}</span>`;
+        case "fest":
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-950/60 dark:text-fuchsia-300 border border-fuchsia-200 dark:border-fuchsia-900/60"><i class="fa-solid fa-masks-theater text-[9px]"></i> ${label}</span>`;
+        default: // academic
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/60"><i class="fa-solid fa-bookmark text-[9px]"></i> ${label}</span>`;
+      }
+    }
+
+    function getCalendarCountdownBadge(ev) {
+      if (ev.isOngoing) {
+        return `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/70 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 shadow-xs"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Ongoing Today</span>`;
+      }
+      if (ev.daysLeft === 1) {
+        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/70 dark:text-amber-200 border border-amber-300 dark:border-amber-700"><i class="fa-solid fa-clock text-[9px]"></i> Tomorrow</span>`;
+      }
+      if (ev.daysLeft !== null && ev.daysLeft > 1) {
+        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700"><i class="fa-solid fa-hourglass-half text-[9px]"></i> In ${ev.daysLeft} days</span>`;
+      }
+      if (ev.isPast) {
+        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500"><i class="fa-solid fa-check text-[9px]"></i> Completed</span>`;
+      }
+      return "";
+    }
+
+    function setCalendarFilter(filterId) {
+      calendarFilter = filterId;
+      renderCalendar();
+    }
+
+    function handleCalendarSearch(query) {
+      calendarSearchQuery = query;
+      renderCalendar();
+    }
+
+    function clearCalendarSearch() {
+      calendarSearchQuery = "";
+      renderCalendar();
+    }
+
+    function toggleCalendarShowPast() {
+      calendarShowPast = !calendarShowPast;
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const container = document.getElementById("calendarContainer");
+      if (!container) return;
+
+      const todayStr = getTodayDateStr();
+
+      let events = ACADEMIC_CALENDAR_EVENTS.map(ev => {
+        const isPast = ev.endDate < todayStr;
+        const isOngoing = ev.startDate <= todayStr && todayStr <= ev.endDate;
+        const isUpcoming = ev.startDate > todayStr;
+        let daysLeft = null;
+        if (isUpcoming) {
+          const tDate = new Date(todayStr + "T00:00:00");
+          const sDate = new Date(ev.startDate + "T00:00:00");
+          daysLeft = Math.round((sDate - tDate) / (1000 * 60 * 60 * 24));
+        }
+        return { ...ev, isPast, isOngoing, isUpcoming, daysLeft };
+      });
+
+      const totalEventsCount = events.length;
+      const pastEventsCount = events.filter(e => e.isPast).length;
+      const upcomingEventsCount = events.filter(e => !e.isPast).length;
+
+      // Autohide old dates unless calendarShowPast is true
+      if (!calendarShowPast) {
+        events = events.filter(e => !e.isPast);
+      }
+
+      // Filter by category
+      if (calendarFilter !== "all") {
+        if (calendarFilter === "exam") {
+          events = events.filter(e => e.type === "exam");
+        } else if (calendarFilter === "holiday") {
+          events = events.filter(e => e.type === "holiday");
+        } else if (calendarFilter === "sectional_holiday") {
+          events = events.filter(e => e.type === "sectional_holiday");
+        } else if (calendarFilter === "remote_learning") {
+          events = events.filter(e => e.type === "remote_learning");
+        } else if (calendarFilter === "academic") {
+          events = events.filter(e => e.type === "academic" || e.type === "fest");
+        }
+      }
+
+      // Filter by search query
+      if (calendarSearchQuery.trim()) {
+        const q = calendarSearchQuery.trim().toLowerCase();
+        events = events.filter(e => 
+          e.title.toLowerCase().includes(q) ||
+          e.displayDate.toLowerCase().includes(q) ||
+          e.typeLabel.toLowerCase().includes(q) ||
+          (e.notes && e.notes.toLowerCase().includes(q))
+        );
+      }
+
+      events.sort((a, b) => a.startDate.localeCompare(b.startDate));
+      const nextEvent = events.find(e => !e.isPast);
+
+      const filterOptions = [
+        { id: "all", label: "All", icon: "fa-list-check" },
+        { id: "exam", label: "Exams", icon: "fa-graduation-cap" },
+        { id: "holiday", label: "Holidays", icon: "fa-umbrella-beach" },
+        { id: "sectional_holiday", label: "Sectional", icon: "fa-star-half-stroke" },
+        { id: "remote_learning", label: "Remote Days", icon: "fa-laptop-code" },
+        { id: "academic", label: "Academic", icon: "fa-bookmark" }
+      ];
+
+      // Group by month
+      const groupedMonths = {};
+      events.forEach(e => {
+        const m = e.startDate.slice(0, 7);
+        if (!groupedMonths[m]) groupedMonths[m] = [];
+        groupedMonths[m].push(e);
+      });
+
+      let html = `
+        <!-- Header & Filter Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-days text-brandBlue"></i>
+                <span>Academic Calendar</span>
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Holidays, CAT-1, CAT-2, TEE, remote instructional days & academic milestones.
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-mono font-bold text-brandBlue bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 px-2.5 py-1 rounded-full">
+                ${upcomingEventsCount} Upcoming
+              </span>
+              ${pastEventsCount > 0 ? `
+              <button onclick="toggleCalendarShowPast()" class="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700 transition flex items-center gap-1" title="Autohide is active by default. Tap to view past events.">
+                <i class="fa-solid ${calendarShowPast ? 'fa-eye-slash' : 'fa-eye'} text-[9px]"></i>
+                <span>${calendarShowPast ? 'Autohide Past' : `Show Past (${pastEventsCount})`}</span>
+              </button>` : ''}
+            </div>
+          </div>
+
+          <!-- Search Bar -->
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+              <i class="fa-solid fa-magnifying-glass text-xs"></i>
+            </div>
+            <input type="text" id="calendarSearchInput" placeholder="Search event or month (e.g. CAT, Pongal, Remote, March)..."
+              value="${calendarSearchQuery.replace(/"/g, '&quot;')}"
+              oninput="handleCalendarSearch(this.value)"
+              class="w-full pl-8 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-semibold focus:outline-none focus:border-brandBlue focus:bg-white dark:focus:bg-slate-800 transition"
+              autocomplete="off" />
+            ${calendarSearchQuery ? `
+            <button onclick="clearCalendarSearch()" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+              <i class="fa-solid fa-circle-xmark text-xs"></i>
+            </button>` : ''}
+          </div>
+
+          <!-- Filter Chips -->
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
+            ${filterOptions.map(f => `
+              <button onclick="setCalendarFilter('${f.id}')"
+                class="px-3 py-1 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1.5 ${calendarFilter === f.id
+                  ? 'bg-brandBlue text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }">
+                <i class="fa-solid ${f.icon} text-[10px]"></i>
+                <span>${f.label}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      // Spotlight Next Event Card
+      if (nextEvent && !calendarSearchQuery && calendarFilter === "all") {
+        html += `
+          <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-4 text-white shadow-md space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full backdrop-blur-xs">
+                <i class="fa-solid fa-bullhorn text-[9px]"></i> Next Upcoming Event
+              </span>
+              <span class="text-xs font-bold bg-white text-blue-700 px-2.5 py-0.5 rounded-full shadow-xs">
+                ${nextEvent.isOngoing ? 'Ongoing Today' : (nextEvent.daysLeft === 1 ? 'Tomorrow' : `In ${nextEvent.daysLeft} days`)}
+              </span>
+            </div>
+            <h3 class="text-sm sm:text-base font-extrabold">${nextEvent.title}</h3>
+            <div class="text-xs text-blue-100 flex items-center gap-2 flex-wrap">
+              <span><i class="fa-regular fa-calendar mr-1"></i>${nextEvent.displayDate}</span>
+              <span>•</span>
+              <span class="bg-white/10 px-2 py-0.5 rounded-md font-semibold">${nextEvent.typeLabel}</span>
+            </div>
+            ${nextEvent.notes ? `<p class="text-[11px] text-blue-50 bg-black/15 rounded-lg px-2.5 py-1.5 mt-1 border border-white/10"><i class="fa-solid fa-circle-info mr-1 text-white"></i>${nextEvent.notes}</p>` : ''}
+          </div>
+        `;
+      }
+
+      // Grouped Month Cards
+      const monthKeys = Object.keys(groupedMonths);
+      if (monthKeys.length === 0) {
+        html += `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center space-y-2">
+            <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+              <i class="fa-regular fa-calendar-xmark text-xl"></i>
+            </div>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100">No events found</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+              ${calendarSearchQuery ? 'Try clearing your search query or selecting another category filter.' : 'All past events are currently auto-hidden. You can tap "Show Past" above to view completed events.'}
+            </p>
+            ${calendarSearchQuery ? `
+            <button onclick="clearCalendarSearch()" class="mt-2 text-xs font-bold text-brandBlue hover:underline">
+              Clear Search
+            </button>` : ''}
+          </div>
+        `;
+      } else {
+        html += `<div class="space-y-5">`;
+        monthKeys.forEach(mKey => {
+          const mEvents = groupedMonths[mKey];
+          html += `
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between px-1">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <i class="fa-regular fa-calendar text-[11px] text-brandBlue"></i>
+                  <span>${getMonthNameYear(mKey)}</span>
+                </h3>
+                <span class="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                  ${mEvents.length} ${mEvents.length === 1 ? 'event' : 'events'}
+                </span>
+              </div>
+              <div class="space-y-2">
+                ${mEvents.map(ev => {
+                  const dateBox = getEventDateBox(ev);
+                  return `
+                    <div class="bg-white dark:bg-slate-900 border ${ev.isOngoing ? 'border-brandBlue/60 dark:border-blue-500/60 ring-2 ring-brandBlue/20' : 'border-slate-200 dark:border-slate-800'} rounded-2xl p-3 sm:p-3.5 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                      <div class="flex items-start gap-3">
+                        <!-- Date Box -->
+                        <div class="shrink-0 w-12 text-center py-1.5 px-1 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                          <div class="text-[9px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">${dateBox.monthAbbr}</div>
+                          <div class="text-base font-extrabold text-slate-900 dark:text-slate-100 leading-tight">${dateBox.dayText}</div>
+                        </div>
+                        <!-- Details -->
+                        <div class="space-y-1">
+                          <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">${ev.title}</h4>
+                          <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 flex-wrap">
+                            <i class="fa-regular fa-calendar text-[10px]"></i>
+                            <span>${ev.displayDate}</span>
+                          </div>
+                          ${ev.notes ? `
+                          <div class="text-[10px] text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/80 rounded-lg px-2 py-0.5 inline-block border border-slate-100 dark:border-slate-800">
+                            <i class="fa-solid fa-circle-info text-brandBlue mr-1"></i>${ev.notes}
+                          </div>` : ''}
+                        </div>
+                      </div>
+                      <!-- Badges -->
+                      <div class="flex items-center gap-1.5 sm:self-center shrink-0 flex-wrap">
+                        ${getCalendarTypeBadge(ev.type, ev.typeLabel)}
+                        ${getCalendarCountdownBadge(ev)}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+      }
+
+      container.innerHTML = html;
     }
 
     /**
@@ -8531,6 +9186,8 @@
           const requestedTab = urlParams.get("tab");
           if (hash === "delivery" || hash === "deliveries" || hash === "parcel" || requestedTab === "parcel") {
             switchTab("parcel");
+          } else if (hash === "calendar" || hash === "calender" || requestedTab === "calendar" || requestedTab === "calender") {
+            switchTab("calendar");
           } else if (hash === "teacher-review" || hash === "teacher_review" || hash === "teachers" || hash === "teacher" || requestedTab === "teacher") {
             switchTab("teacher");
           } else if (hash === "individual" || requestedTab === "individual") {
@@ -8552,6 +9209,8 @@
         renderLiveStatusBanner();
         if (activeTab === "master") {
           renderMobileSlotCards();
+        } else if (activeTab === "calendar") {
+          renderCalendar();
         } else if (activeTab === "parcel") {
           renderParcelHelper();
         }
