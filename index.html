@@ -26,11 +26,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <!-- Google Fonts: Inter -->
+  <!-- Google Fonts: Google Sans & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
     rel="stylesheet">
 
   <!-- Firebase App & Firestore (Compat for seamless browser integration) -->
@@ -43,8 +43,8 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
+            sans: ['"Google Sans"', '"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
           },
           colors: {
             brandBlue: '#2563eb',
@@ -92,7 +92,7 @@
     body {
       background-color: #ffffff;
       color: #1e293b;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Google Sans', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     html.dark body {
@@ -5918,7 +5918,7 @@
                     </div>
                   </div>
                 ` : `
-                  <div class="text-[11px] text-slate-400 dark:text-slate-500 italic pt-0.5 text-center">
+                  <div class="text-[11px] text-slate-400 dark:text-slate-500 pt-0.5 text-center">
                     All active students in class
                   </div>
                 `}
@@ -6481,7 +6481,7 @@
                     `).join("")}
                   </div>
                 ` : ''}
-                <div class="text-[11px] text-slate-400 dark:text-slate-500 italic">
+                <div class="text-[11px] text-slate-400 dark:text-slate-500">
                   Not currently registered with any squad member. You can still rate & review this faculty below!
                 </div>
               </div>
@@ -6659,7 +6659,7 @@
                         </div>
 
                         ${r.comment ? `
-                          <p class="text-[11px] text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 p-2 rounded-lg italic">
+                          <p class="text-[11px] text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 p-2 rounded-lg font-medium">
                             "${r.comment}"
                           </p>
                         ` : ''}
