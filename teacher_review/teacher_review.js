@@ -7,8 +7,9 @@
  * Dedicated collection for faculty ratings, class averages, and anonymous squad reviews.
  */
 
-// Teacher Review Firestore Collection Name
+// Teacher Review Firestore Collection Name & Single Consolidated Document ID (1-Read Architecture)
 export const TEACHER_REVIEWS_COLLECTION_PATH = "teacher_reviews";
+export const TEACHER_REVIEWS_DOC_ID = "all_reviews";
 
 export function formatTeacherId(facultyString) {
   if (!facultyString) return "unknown";

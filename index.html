@@ -6335,14 +6335,25 @@
       let errorBannerHtml = "";
       if (reviewsSyncError && (reviewsSyncError.code === "permission-denied" || (reviewsSyncError.message && reviewsSyncError.message.includes("permission")))) {
         errorBannerHtml = `
-          <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl p-3.5 text-xs text-amber-900 dark:text-amber-200 space-y-1 shadow-sm">
+          <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl p-3.5 text-xs text-amber-900 dark:text-amber-200 space-y-1.5 shadow-sm">
             <div class="font-bold flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
               <i class="fa-solid fa-shield-halved text-sm"></i>
               <span>Firebase Firestore Rules Notice</span>
             </div>
             <p class="text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
-              To allow live reviews, paste the security rule in your Firebase Console (<code class="bg-amber-100 dark:bg-amber-900/60 px-1 py-0.5 rounded font-mono text-[10px]">Firestore Database &gt; Rules</code>) and click <strong>Publish</strong>.
+              To allow 1-read consolidated review storage (<code class="bg-amber-100 dark:bg-amber-900/60 px-1 py-0.5 rounded font-mono text-[10px]">/teacher_reviews/all_reviews</code>), ensure write access is enabled in your Firebase Console (<code class="bg-amber-100 dark:bg-amber-900/60 px-1 py-0.5 rounded font-mono text-[10px]">Firestore Database &gt; Rules</code>):
             </p>
+            <pre class="bg-slate-900 text-emerald-400 p-2.5 rounded-xl font-mono text-[10.5px] leading-relaxed overflow-x-auto select-all border border-slate-800">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /teacher_reviews/{document=**} {
+      allow read, write: if true;
+    }
+    match /deliveries/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
           </div>
         `;
       }
@@ -6744,27 +6755,32 @@
       reviewsSyncError = null;
 
       try {
-        firestore.collection("teacher_reviews").onSnapshot((snapshot) => {
+        // High-efficiency 1-read architecture: listen to single consolidated 'all_reviews' document
+        firestore.collection("teacher_reviews").doc("all_reviews").onSnapshot((docSnap) => {
           isReviewsLoading = false;
           reviewsSyncError = null;
           const newMap = {};
-          snapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.docType && data.docType.startsWith("parcel_")) return;
-            if (!data.teacherName && !data.teacherId) return;
-            const key = data.teacherId || getTeacherStorageKey(data.rawFaculty || data.teacherName || "");
-            if (!key || isExcludedReviewFaculty(key) || isExcludedReviewFaculty(data.rawFaculty) || isExcludedReviewFaculty(data.teacherName)) return;
-            if (!newMap[key]) newMap[key] = [];
-            newMap[key].push({
-              id: doc.id,
-              ...data,
-              rating: Number(data.rating) || 5,
-              classAvg: data.classAvg || null,
-              behavior: data.behavior || "good",
-              lateEntry: data.lateEntry || "allowed",
-              timestamp: data.timestamp || (data.createdAt && data.createdAt.toMillis ? data.createdAt.toMillis() : Date.now())
+
+          if (docSnap && docSnap.exists) {
+            const data = docSnap.data() || {};
+            const reviewsList = Array.isArray(data.reviews) ? data.reviews : [];
+
+            reviewsList.forEach((r) => {
+              if (!r) return;
+              const key = r.teacherId || getTeacherStorageKey(r.rawFaculty || r.teacherName || "");
+              if (!key || isExcludedReviewFaculty(key) || isExcludedReviewFaculty(r.rawFaculty) || isExcludedReviewFaculty(r.teacherName)) return;
+              if (!newMap[key]) newMap[key] = [];
+              newMap[key].push({
+                id: r.id || ("rev_" + (r.timestamp || Date.now())),
+                ...r,
+                rating: Number(r.rating) || 5,
+                classAvg: r.classAvg || null,
+                behavior: r.behavior || "good",
+                lateEntry: r.lateEntry || "allowed",
+                timestamp: r.timestamp || Date.now()
+              });
             });
-          });
+          }
 
           // Sort reviews newest first
           Object.keys(newMap).forEach(k => {
@@ -7042,6 +7058,7 @@
         timestamp: Date.now()
       };
 
+      // 3. Post to Firebase in 1-read consolidated document
       const firestore = getDb();
       if (!firestore) {
         alert("Firestore is not available. Please check your internet connection.");
@@ -7050,13 +7067,26 @@
         return;
       }
 
+      const reviewItem = {
+        id: "rev_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+        ...reviewDoc
+      };
+
       try {
-        await firestore.collection("teacher_reviews").add({
-          ...reviewDoc,
-          createdAt: (typeof firebase !== "undefined" && firebase.firestore && firebase.firestore.FieldValue)
-            ? firebase.firestore.FieldValue.serverTimestamp()
-            : new Date()
-        });
+        const allReviewsDoc = firestore.collection("teacher_reviews").doc("all_reviews");
+
+        if (typeof firebase !== "undefined" && firebase.firestore && firebase.firestore.FieldValue && firebase.firestore.FieldValue.arrayUnion) {
+          await allReviewsDoc.set({
+            reviews: firebase.firestore.FieldValue.arrayUnion(reviewItem),
+            lastUpdated: Date.now()
+          }, { merge: true });
+        } else {
+          // Direct fallback for mock or offline
+          await allReviewsDoc.set({
+            reviews: [reviewItem],
+            lastUpdated: Date.now()
+          }, { merge: true });
+        }
 
         // Automatically expand reviews for this teacher
         expandedTeacherReviews.add(currentReview.teacherKey);
@@ -7067,7 +7097,7 @@
         console.error("Firestore save error:", fbErr);
         let errorMsg = fbErr.message || fbErr;
         if (fbErr.code === "permission-denied" || (typeof errorMsg === "string" && errorMsg.includes("permission"))) {
-          errorMsg = "Permission denied. Please update your Firestore Security Rules in Firebase Console.";
+          errorMsg = "Permission denied. Please update your Firestore Security Rules in Firebase Console to allow write.";
         }
         alert("Could not save review: " + errorMsg);
       } finally {
