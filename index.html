@@ -5581,39 +5581,199 @@
     function renderLiveStatusBanner() {
       const widget = document.getElementById("liveBannerWidget");
       if (!widget) return;
+
+      const identity = getUserIdentity();
+      // Look for identified squad student, or fallback to selected individual student, or first squad student
+      let student = null;
+      if (identity && identity.id) {
+        student = FRIENDS_DATA.find(f => f.id === identity.id || f.name.toLowerCase() === (identity.name || "").toLowerCase());
+      }
+      if (!student && selectedIndividualFriendId) {
+        student = FRIENDS_DATA.find(f => f.id === selectedIndividualFriendId);
+      }
+      if (!student) {
+        student = FRIENDS_DATA[0];
+      }
+
       const { jsDay, currentMins } = getISTTime();
       const timeFormatted = minutesToTimeStr(currentMins);
+      const studentFirstName = student ? student.name.split(" ")[0] : "You";
 
       if (jsDay === 0) {
         widget.innerHTML = `
-          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-          <span class="text-slate-600 dark:text-slate-300">Sunday (${timeFormatted}) — No classes today, full free day!</span>
+          <div class="w-full p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-1.5 text-xs">
+            <div class="flex items-center justify-between gap-2 text-[11px]">
+              <button onclick="openUserIdentityModal()" title="Click to change student"
+                class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-400 font-bold hover:bg-blue-100 transition active:scale-95 truncate max-w-[160px]">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span class="truncate">${studentFirstName}'s Schedule</span>
+                <i class="fa-solid fa-chevron-down text-[8px] opacity-60"></i>
+              </button>
+              <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate">
+                Sunday ${timeFormatted} • Weekend
+              </div>
+            </div>
+            <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-900/60 text-[11px] text-emerald-700 dark:text-emerald-300">
+              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-emerald-600 text-white shrink-0">WEEKEND</span>
+              <span class="truncate font-semibold">No classes today • Full free day! Classes resume Monday 8:30 AM 🌴</span>
+            </div>
+          </div>
         `;
         return;
       }
 
       const dayCode = DAYS_ORDER[jsDay - 1];
+      const daySlots = DAY_MATRIX[dayCode] || [];
+      const slotMap = student ? getFriendSlotMap(student) : {};
+
+      // Collect all scheduled classes for today
+      const todayClasses = [];
+      daySlots.forEach((slotCode, idx) => {
+        const course = slotMap[slotCode];
+        if (course) {
+          todayClasses.push({
+            slotIndex: idx,
+            slotCode: slotCode,
+            timeCol: TIME_COLUMNS[idx],
+            course: course
+          });
+        }
+      });
+
+      // Find current active class if student is in class right now
+      let currentClassItem = null;
+      todayClasses.forEach(item => {
+        if (currentMins >= item.timeCol.startMin && currentMins <= item.timeCol.endMin) {
+          currentClassItem = item;
+        }
+      });
+
+      // Active slot in university matrix right now
       const activeCol = TIME_COLUMNS.find(c => currentMins >= c.startMin && currentMins <= c.endMin);
 
-      if (!activeCol) {
-        widget.innerHTML = `
-          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-          <span class="font-semibold text-slate-800 dark:text-slate-200">${dayCode} ${timeFormatted}</span>
-          <span class="text-slate-400 dark:text-slate-500">• Outside class hours</span>
+      // Find next upcoming class today
+      const upcomingClasses = todayClasses.filter(item => item.timeCol.startMin > currentMins);
+      const nextClassItem = upcomingClasses.length > 0 ? upcomingClasses[0] : null;
+
+      // Count remaining classes today
+      const remainingClasses = todayClasses.filter(item => item.timeCol.endMin > currentMins);
+      const remainingCount = remainingClasses.length;
+
+      let isCurrentlyInClass = false;
+      let currentHtml = "";
+
+      if (currentClassItem) {
+        isCurrentlyInClass = true;
+        const minsLeft = currentClassItem.timeCol.endMin - currentMins;
+        const venue = currentClassItem.course.venue || "Campus";
+        currentHtml = `
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="font-extrabold text-slate-900 dark:text-white truncate">${currentClassItem.course.code}</span>
+            <span class="text-slate-400 dark:text-slate-500">•</span>
+            <span class="text-slate-600 dark:text-slate-300 font-semibold truncate">📍 ${venue}</span>
+            <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold shrink-0 ml-auto">Ends in ${minsLeft}m</span>
+          </div>
         `;
-        return;
+      } else if (activeCol) {
+        currentHtml = `
+          <div class="flex items-center gap-1.5 min-w-0 text-slate-500 dark:text-slate-400 text-[11px]">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+            <span class="font-medium truncate">Free slot (${activeCol.label}: ${activeCol.start} - ${activeCol.end})</span>
+          </div>
+        `;
+      } else if (currentMins < TIME_COLUMNS[0].startMin) {
+        const minsToStart = TIME_COLUMNS[0].startMin - currentMins;
+        currentHtml = `
+          <div class="flex items-center gap-1.5 min-w-0 text-slate-500 dark:text-slate-400 text-[11px]">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+            <span class="font-medium truncate">Classes start at 8:30 AM (in ${formatDuration(minsToStart)})</span>
+          </div>
+        `;
+      } else {
+        currentHtml = `
+          <div class="flex items-center gap-1.5 min-w-0 text-slate-500 dark:text-slate-400 text-[11px]">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+            <span class="font-medium truncate">Classes over for today • Outside class hours</span>
+          </div>
+        `;
       }
 
-      const occ = getSlotOccupancy(dayCode, activeCol.index);
-      const total = occ.freeFriends.length + occ.busyFriends.length;
+      let nextHtml = "";
+      if (nextClassItem) {
+        const minsUntil = nextClassItem.timeCol.startMin - currentMins;
+        const venue = nextClassItem.course.venue || "Campus";
+        nextHtml = `
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="font-extrabold text-slate-900 dark:text-white truncate">${nextClassItem.course.code}</span>
+            <span class="text-slate-400 dark:text-slate-500">•</span>
+            <span class="text-slate-600 dark:text-slate-300 font-semibold truncate">📍 ${venue}</span>
+            <span class="text-[10px] text-blue-600 dark:text-blue-400 font-bold shrink-0 ml-auto">${nextClassItem.timeCol.start} (${minsUntil > 0 ? 'in ' + minsUntil + 'm' : 'now'})</span>
+          </div>
+        `;
+      } else if (todayClasses.length === 0) {
+        nextHtml = `
+          <div class="flex items-center gap-1.5 min-w-0 text-slate-400 dark:text-slate-500 text-[11px]">
+            <span>No classes scheduled for today 🎉</span>
+          </div>
+        `;
+      } else {
+        nextHtml = `
+          <div class="flex items-center gap-1.5 min-w-0 text-slate-500 dark:text-slate-400 text-[11px]">
+            <span>Done for today! All ${todayClasses.length} classes completed 🎉</span>
+          </div>
+        `;
+      }
+
+      let remainingBadge = "";
+      if (todayClasses.length === 0) {
+        remainingBadge = "Free day";
+      } else if (remainingCount === 0) {
+        remainingBadge = "0 left today";
+      } else {
+        remainingBadge = `${remainingCount} of ${todayClasses.length} left`;
+      }
 
       widget.innerHTML = `
-        <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
-        <span class="font-bold text-blue-600 dark:text-blue-400 font-mono">${dayCode} • ${occ.slotCode}</span>
-        <span class="text-slate-500 dark:text-slate-400 text-[11px]">(${occ.timeRange})</span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${occ.freeFriends.length === total ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' : 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'}">
-          ${occ.freeFriends.length}/${total} Free Now
-        </span>
+        <div class="w-full p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-1.5 text-xs">
+          <!-- Top Row: Student selector & Day details -->
+          <div class="flex items-center justify-between gap-2 text-[11px]">
+            <button onclick="openUserIdentityModal()" title="Click to change student"
+              class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-400 font-bold hover:bg-blue-100 dark:hover:bg-blue-900/60 transition active:scale-95 truncate max-w-[170px]">
+              <span class="w-1.5 h-1.5 rounded-full ${isCurrentlyInClass ? 'bg-emerald-500 animate-pulse' : 'bg-blue-600'}"></span>
+              <span class="truncate">${studentFirstName}'s Schedule</span>
+              <i class="fa-solid fa-chevron-down text-[8px] opacity-60"></i>
+            </button>
+            <div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium shrink-0 text-[10px]">
+              <span>${dayCode} ${timeFormatted}</span>
+              <span class="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 font-bold text-slate-600 dark:text-slate-300">
+                ${remainingBadge}
+              </span>
+            </div>
+          </div>
+
+          <!-- Live Class Strip: Current & Next -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-0.5">
+            <!-- Current Class Box -->
+            <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl ${isCurrentlyInClass ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-900/60' : 'bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/80'} min-w-0">
+              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider shrink-0 ${isCurrentlyInClass ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+                ${isCurrentlyInClass ? 'NOW' : 'CURRENT'}
+              </span>
+              <div class="min-w-0 flex-1 truncate">
+                ${currentHtml}
+              </div>
+            </div>
+
+            <!-- Next Class Box -->
+            <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/80 min-w-0">
+              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider shrink-0 bg-blue-600 text-white">
+                NEXT
+              </span>
+              <div class="min-w-0 flex-1 truncate">
+                ${nextHtml}
+              </div>
+            </div>
+          </div>
+        </div>
       `;
     }
 
@@ -9771,6 +9931,7 @@
       } catch (e) { }
 
       updateUserProfileBtn();
+      renderLiveStatusBanner();
       closeUserIdentityModal(false);
 
       // If notifications haven't been prompted yet, show notification banner shortly after onboarding
