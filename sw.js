@@ -1,5 +1,5 @@
 // Service Worker for Campus Saathi (VIT Bhopal Timetable & Squad Sync PWA)
-const CACHE_NAME = 'vitb-timetable-v43';
+const CACHE_NAME = 'vitb-timetable-v44';
 
 const STATIC_ASSETS = [
   './',
@@ -26,7 +26,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate: Clean up older cache versions
+// Activate: Clean up older cache versions and take immediate client control
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -86,15 +86,73 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Notification click: Focus or open window to the parcel tab
+// Client Message Listener: Post notifications from page and handle keep-alive
+self.addEventListener('message', (event) => {
+  if (!event.data) return;
+
+  // Trigger notification natively from the Service Worker thread
+  if (event.data.action === 'show_notification') {
+    const { title, options } = event.data;
+    const finalOptions = {
+      icon: './icons/icon-192.png',
+      badge: './icons/favicon.png',
+      vibrate: [200, 100, 200],
+      renotify: true,
+      tag: 'cs_notif_' + Date.now(),
+      data: { url: './?tab=parcel', tab: 'parcel' },
+      ...options
+    };
+    event.waitUntil(self.registration.showNotification(title, finalOptions));
+  } else if (event.data.action === 'skip_waiting') {
+    self.skipWaiting();
+  } else if (event.data.action === 'ping') {
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage({ status: 'alive', cache: CACHE_NAME });
+    }
+  }
+});
+
+// Web Push Event: Display push notifications sent via Web Push / FCM
+self.addEventListener('push', (event) => {
+  let payload = {};
+  if (event.data) {
+    try {
+      payload = event.data.json();
+    } catch (e) {
+      payload = { title: 'Campus Saathi Alert', body: event.data.text() };
+    }
+  }
+  const title = payload.title || 'Campus Saathi Alert';
+  const targetTab = payload.tab || (payload.data && payload.data.tab) || 'parcel';
+  const targetUrl = payload.url || (payload.data && payload.data.url) || (`./?tab=${targetTab}`);
+
+  const options = {
+    body: payload.body || payload.note || 'New squad update available',
+    icon: payload.icon || './icons/icon-192.png',
+    badge: payload.badge || './icons/favicon.png',
+    vibrate: payload.vibrate || [200, 100, 200],
+    tag: payload.tag || ('cs_push_' + Date.now()),
+    renotify: true,
+    data: {
+      url: targetUrl,
+      tab: targetTab
+    }
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Notification click: Focus or open window and navigate to the requested tab
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = (event.notification.data && event.notification.data.url) || './?tab=parcel';
+  const data = event.notification.data || {};
+  const targetTab = data.tab || 'parcel';
+  const targetUrl = data.url || (`./?tab=${targetTab}`);
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
         if (client.url && 'focus' in client) {
-          client.postMessage({ action: 'navigate_tab', tab: 'parcel' });
+          client.postMessage({ action: 'navigate_tab', tab: targetTab });
           return client.focus();
         }
       }
@@ -103,4 +161,17 @@ self.addEventListener('notificationclick', (event) => {
       }
     })
   );
+});
+
+// Background Sync / Periodic Background Sync handlers
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'check-updates' || event.tag === 'parcel-sync') {
+    event.waitUntil(Promise.resolve());
+  }
+});
+
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'check-updates' || event.tag === 'parcel-sync') {
+    event.waitUntil(Promise.resolve());
+  }
 });

@@ -197,6 +197,30 @@
       </div>
     </header>
 
+    <!-- NOTIFICATION PERMISSION PROMPT BANNER (Shows only if permission is default and not dismissed) -->
+    <div id="notificationPermissionBanner"
+      class="hidden mb-3 p-3 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-blue-500/10 border border-blue-200 dark:border-blue-900/60 flex items-center justify-between gap-3 text-xs shadow-xs transition animate-in fade-in">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-xl bg-brandBlue text-white flex items-center justify-center shrink-0 shadow-2xs">
+          <i class="fa-solid fa-bell text-xs"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="font-bold text-slate-900 dark:text-white truncate">Enable Live Notifications</div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate">Get class reminders & squad parcel alerts</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button onclick="requestAppNotifications('banner')"
+          class="px-3 py-1.5 rounded-xl bg-brandBlue hover:bg-brandBlueHover text-white font-bold text-xs shadow-xs active:scale-95 transition">
+          Enable
+        </button>
+        <button onclick="dismissNotificationBanner()" aria-label="Dismiss notification prompt"
+          class="w-7 h-7 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+    </div>
+
 
     <!-- 2. MAIN NAVIGATION TABS (CENTERED PILL STYLE) -->
     <div class="flex justify-center mb-4">
@@ -8261,8 +8285,16 @@
 
     function isParcelNotificationEnabled() {
       if (typeof window === "undefined" || !("Notification" in window)) return false;
+      if (Notification.permission !== "granted") return false;
       const pref = localStorage.getItem("vitb_parcel_notifications_enabled");
-      return Notification.permission === "granted" && pref === "true";
+      return pref !== "false";
+    }
+
+    function isClassNotificationEnabled() {
+      if (typeof window === "undefined" || !("Notification" in window)) return false;
+      if (Notification.permission !== "granted") return false;
+      const pref = localStorage.getItem("vitb_class_notifications_enabled");
+      return pref !== "false";
     }
 
     function playParcelAlertChime() {
@@ -8300,6 +8332,102 @@
       }
     }
 
+    /**
+     * Dispatch native notification through Service Worker (Universal PWA delivery)
+     */
+    function dispatchAppNotification(title, options = {}) {
+      if (typeof window === "undefined" || !("Notification" in window)) return;
+      if (Notification.permission !== "granted") return;
+
+      const defaultOptions = {
+        icon: "./icons/icon-192.png",
+        badge: "./icons/favicon.png",
+        vibrate: [200, 100, 200],
+        renotify: true,
+        data: { url: "./?tab=parcel", tab: "parcel" }
+      };
+      const finalOptions = { ...defaultOptions, ...options };
+
+      playParcelAlertChime();
+
+      let swDelivered = false;
+
+      // 1. Post to active Service Worker controller
+      if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+        try {
+          navigator.serviceWorker.controller.postMessage({
+            action: "show_notification",
+            title: title,
+            options: finalOptions
+          });
+          swDelivered = true;
+        } catch (e) { }
+      }
+
+      // 2. ServiceWorkerRegistration.showNotification (Guaranteed standard PWA method)
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.ready.then((reg) => {
+          if (reg && reg.showNotification) {
+            reg.showNotification(title, finalOptions).catch(() => {
+              if (!swDelivered) {
+                try { new Notification(title, finalOptions); } catch (e) { }
+              }
+            });
+          }
+        }).catch(() => {
+          if (!swDelivered) {
+            try { new Notification(title, finalOptions); } catch (e) { }
+          }
+        });
+      } else {
+        try { new Notification(title, finalOptions); } catch (e) { }
+      }
+    }
+
+    async function requestAppNotifications(source = "manual") {
+      if (typeof window === "undefined" || !("Notification" in window)) {
+        alert("Web Notifications are not supported by this browser.");
+        return false;
+      }
+
+      if (Notification.permission === "denied") {
+        alert("Notifications are currently blocked in your browser settings. Please allow notifications for this site to receive class & squad alerts.");
+        return false;
+      }
+
+      try {
+        const perm = await Notification.requestPermission();
+        if (perm === "granted") {
+          localStorage.setItem("vitb_parcel_notifications_enabled", "true");
+          localStorage.setItem("vitb_class_notifications_enabled", "true");
+          localStorage.removeItem("vitb_notif_banner_dismissed");
+          
+          dismissNotificationBanner();
+          showReviewToast("🔔 Live notifications enabled!");
+
+          // Fire instant verification notification
+          dispatchAppNotification("🔔 Campus Saathi Alerts Activated!", {
+            body: "You're all set! You will receive live class reminders and squad parcel alerts.",
+            tag: "welcome_alert",
+            data: { url: "./?tab=master", tab: "master" }
+          });
+
+          // Start real-time engines
+          initFirebaseParcelRequests();
+          checkUpcomingClassReminders();
+
+          if (activeTab === "parcel") renderParcelHelper();
+          return true;
+        } else {
+          showReviewToast("Notification permission was not granted.");
+          return false;
+        }
+      } catch (err) {
+        console.warn("Notification request error:", err);
+        return false;
+      }
+    }
+
     async function toggleParcelNotifications() {
       if (typeof window === "undefined" || !("Notification" in window)) {
         alert("Web Notifications are not supported by this browser.");
@@ -8315,33 +8443,31 @@
         return;
       }
 
-      if (Notification.permission === "denied") {
-        alert("Notifications are blocked in your browser settings. Please allow notifications for this site to receive parcel alerts.");
+      if (Notification.permission !== "granted") {
+        await requestAppNotifications("parcel_toggle");
+      } else {
+        localStorage.setItem("vitb_parcel_notifications_enabled", "true");
+        showReviewToast("🔔 Parcel request alerts enabled!");
+        initFirebaseParcelRequests();
+        renderParcelHelper();
+      }
+    }
+
+    function sendTestNotification() {
+      if (typeof window === "undefined" || !("Notification" in window)) {
+        alert("Web Notifications are not supported on this browser.");
         return;
       }
-
-      try {
-        const perm = await Notification.requestPermission();
-        if (perm === "granted") {
-          localStorage.setItem("vitb_parcel_notifications_enabled", "true");
-          playParcelAlertChime();
-          showReviewToast("🔔 Parcel request alerts enabled!");
-          sendParcelNotification({
-            id: "welcome_" + Date.now(),
-            requester: "VITB Squad Bot",
-            courier: "Parcel Helper",
-            note: "You're all set! You will receive instant notifications when squad members post pickup requests.",
-            status: "open",
-            isTest: true
-          });
-          initFirebaseParcelRequests();
-          renderParcelHelper();
-        } else {
-          showReviewToast("Notification permission was not granted.");
-        }
-      } catch (err) {
-        console.warn("Notification request error:", err);
+      if (Notification.permission !== "granted") {
+        requestAppNotifications("test_button");
+        return;
       }
+      dispatchAppNotification("🔔 Test Notification • Campus Saathi", {
+        body: "Notifications are working perfectly on your device! Chime, vibration, and background sync are active.",
+        tag: "test_" + Date.now(),
+        data: { url: "./?tab=parcel", tab: "parcel" }
+      });
+      showReviewToast("🔔 Test notification sent!");
     }
 
     function sendParcelNotification(req) {
@@ -8351,45 +8477,146 @@
 
       // Don't notify the author about their own parcel request
       const myRequester = localStorage.getItem("vitb_last_requester_name") || "";
-      if (myRequester && req.requester && req.requester.toLowerCase() === myRequester.toLowerCase() && !req.isTest) {
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || myRequester;
+      if (myName && req.requester && req.requester.toLowerCase() === myName.toLowerCase() && !req.isTest) {
         return;
       }
 
-      playParcelAlertChime();
+      const notifKey = "parcel_" + (req.id || Date.now());
+      let notifiedParcelIds = [];
+      try {
+        notifiedParcelIds = JSON.parse(localStorage.getItem("vitb_notified_parcel_ids") || "[]");
+      } catch (e) { }
+
+      if (!req.isTest && req.id && notifiedParcelIds.includes(req.id)) {
+        return;
+      }
+      if (req.id && !req.isTest) {
+        notifiedParcelIds.push(req.id);
+        if (notifiedParcelIds.length > 100) notifiedParcelIds = notifiedParcelIds.slice(-100);
+        try {
+          localStorage.setItem("vitb_notified_parcel_ids", JSON.stringify(notifiedParcelIds));
+        } catch (e) { }
+      }
 
       const title = req.isTest
         ? "🔔 Parcel Alerts Activated!"
         : `📦 New Parcel Request: ${req.requester}`;
       const body = req.isTest
         ? (req.note || "You will receive instant alerts when someone asks for a parcel pickup.")
-        : `${req.courier || "Parcel"} delivery waiting between AB & AB02.${req.otp ? " OTP attached." : ""}`;
+        : `${req.courier || "Parcel"} delivery waiting between AB & AB02.${req.otp ? " OTP attached." : ""}${req.note ? ' • Note: ' + req.note : ''}`;
 
-      const options = {
+      dispatchAppNotification(title, {
         body: body,
-        icon: "./icons/icon-192.png",
-        badge: "./icons/favicon.png",
-        tag: "parcel_req_" + (req.id || Date.now()),
-        renotify: true,
-        vibrate: [150, 80, 150],
-        data: { url: "./?tab=parcel" }
-      };
+        tag: notifKey,
+        data: { url: "./?tab=parcel", tab: "parcel" }
+      });
+    }
 
-      if ("serviceWorker" in navigator && navigator.serviceWorker.ready) {
-        navigator.serviceWorker.ready.then(reg => {
-          if (reg && reg.showNotification) {
-            reg.showNotification(title, options);
-          } else {
-            new Notification(title, options);
+    /**
+     * Check for upcoming classes within 15 minutes and notify the student
+     */
+    function checkUpcomingClassReminders() {
+      if (typeof window === "undefined" || !("Notification" in window)) return;
+      if (!isClassNotificationEnabled()) return;
+      if (Notification.permission !== "granted") return;
+
+      const identity = getUserIdentity();
+      if (!identity || !identity.id) return;
+      const student = FRIENDS_DATA.find(f => f.id === identity.id);
+      if (!student) return;
+
+      const { jsDay, currentMins } = getISTTime();
+      if (jsDay === 0) return; // Sunday
+
+      const todayDateStr = new Date().toISOString().slice(0, 10);
+      const dayCode = DAYS_ORDER[jsDay - 1];
+      const daySlots = DAY_MATRIX[dayCode];
+      if (!daySlots) return;
+
+      const slotMap = getFriendSlotMap(student);
+
+      TIME_COLUMNS.forEach((col) => {
+        const timeUntilClass = col.startMin - currentMins;
+        if (timeUntilClass >= 0 && timeUntilClass <= 15) {
+          const slotCode = daySlots[col.index];
+          const course = slotMap[slotCode];
+          if (course) {
+            const notifKey = `class_${todayDateStr}_${col.index}_${student.id}`;
+            let notifiedSlots = [];
+            try {
+              notifiedSlots = JSON.parse(localStorage.getItem("vitb_notified_class_slots") || "[]");
+            } catch (e) { }
+
+            if (!notifiedSlots.includes(notifKey)) {
+              notifiedSlots.push(notifKey);
+              if (notifiedSlots.length > 50) notifiedSlots = notifiedSlots.slice(-50);
+              try {
+                localStorage.setItem("vitb_notified_class_slots", JSON.stringify(notifiedSlots));
+              } catch (e) { }
+
+              const venue = course.venue || "Campus";
+              const title = `⏰ Upcoming Class in ${timeUntilClass > 0 ? timeUntilClass + 'm' : 'now'}: ${course.code}`;
+              const body = `${course.title}\n📍 Venue: ${venue} • Slot ${slotCode} (${col.start} - ${col.end})`;
+
+              dispatchAppNotification(title, {
+                body: body,
+                tag: notifKey,
+                data: { url: "./?tab=master", tab: "master" }
+              });
+            }
           }
-        }).catch(() => {
-          try {
-            new Notification(title, options);
-          } catch (e) { }
-        });
+        }
+      });
+    }
+
+    function checkNotificationState() {
+      if (typeof window === "undefined" || !("Notification" in window)) return;
+
+      if (Notification.permission === "granted") {
+        if (localStorage.getItem("vitb_parcel_notifications_enabled") !== "false") {
+          localStorage.setItem("vitb_parcel_notifications_enabled", "true");
+        }
+        if (localStorage.getItem("vitb_class_notifications_enabled") !== "false") {
+          localStorage.setItem("vitb_class_notifications_enabled", "true");
+        }
+        initFirebaseParcelRequests();
+        checkUpcomingClassReminders();
+        dismissNotificationBanner();
+      } else if (Notification.permission === "default") {
+        const dismissed = localStorage.getItem("vitb_notif_banner_dismissed");
+        if (!dismissed) {
+          showNotificationPermissionBanner();
+        }
       } else {
-        try {
-          new Notification(title, options);
-        } catch (e) { }
+        dismissNotificationBanner();
+      }
+    }
+
+    function showNotificationPermissionBanner() {
+      const banner = document.getElementById("notificationPermissionBanner");
+      if (banner) banner.classList.remove("hidden");
+    }
+
+    function dismissNotificationBanner() {
+      const banner = document.getElementById("notificationPermissionBanner");
+      if (banner) banner.classList.add("hidden");
+      try {
+        localStorage.setItem("vitb_notif_banner_dismissed", "true");
+      } catch (e) { }
+    }
+
+    function ensureNotificationListenersActive() {
+      if (typeof window === "undefined") return;
+      if (isParcelNotificationEnabled() || isClassNotificationEnabled()) {
+        initFirebaseParcelRequests();
+        checkUpcomingClassReminders();
+        if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+          try {
+            navigator.serviceWorker.controller.postMessage({ action: "ping" });
+          } catch (e) { }
+        }
       }
     }
 
@@ -8579,10 +8806,29 @@
         } catch (e) { }
 
         // Check for new real-time parcel requests to dispatch notifications
+        let notifiedParcelIds = [];
+        try {
+          notifiedParcelIds = JSON.parse(localStorage.getItem("vitb_notified_parcel_ids") || "[]");
+        } catch (e) { }
+
+        const now = Date.now();
         if (!hasLoadedInitialParcels) {
           snapshot.forEach(doc => {
             knownParcelDocIds.add(doc.id);
+            const data = doc.data();
+            if (data.docType === "parcel_request" && data.status === "open" && data.requester) {
+              const ageMs = now - (data.timestamp || 0);
+              // If a fresh request was posted within the last 30 minutes and was not notified yet on this device
+              if (ageMs > 0 && ageMs < 30 * 60 * 1000 && !notifiedParcelIds.includes(doc.id)) {
+                sendParcelNotification({ id: doc.id, ...data });
+              } else if (!notifiedParcelIds.includes(doc.id)) {
+                notifiedParcelIds.push(doc.id);
+              }
+            }
           });
+          try {
+            localStorage.setItem("vitb_notified_parcel_ids", JSON.stringify(notifiedParcelIds.slice(-100)));
+          } catch (e) { }
           hasLoadedInitialParcels = true;
         } else {
           snapshot.forEach(doc => {
@@ -8987,7 +9233,7 @@
             </div>
 
             <!-- Action Controls -->
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <button
                 onclick="toggleParcelNotifications()"
                 id="parcelNotificationToggleBtn"
@@ -8999,6 +9245,15 @@
               >
                 <i class="fa-solid ${isParcelNotificationEnabled() ? 'fa-bell text-emerald-600 dark:text-emerald-400' : 'fa-bell-slash text-slate-400'} text-xs"></i>
                 <span class="hidden sm:inline">${isParcelNotificationEnabled() ? 'Alerts On' : 'Alerts'}</span>
+              </button>
+              <button
+                onclick="sendTestNotification()"
+                id="testNotificationBtn"
+                title="Send a test notification to verify your device alerts"
+                class="px-2 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold transition shadow-xs flex items-center gap-1 shrink-0 active:scale-95"
+              >
+                <i class="fa-solid fa-vial text-[11px] text-amber-500"></i>
+                <span class="hidden sm:inline">Test</span>
               </button>
               <button
                 onclick="openParcelRequestModal()"
@@ -9333,6 +9588,12 @@
       deferredInstallPrompt = null;
       checkInstallState();
       console.log("Campus Saathi app installed successfully!");
+      // Automatically prompt to enable notifications now that the app is installed
+      setTimeout(() => {
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+          showNotificationPermissionBanner();
+        }
+      }, 500);
     });
 
     function handleInstallAppClick() {
@@ -9366,6 +9627,12 @@
           .then((reg) => {
             console.log("PWA Service Worker registered:", reg.scope);
             reg.update();
+            // Try to register periodic background sync if supported by browser
+            if ("periodicSync" in reg) {
+              try {
+                reg.periodicSync.register("check-updates", { minInterval: 15 * 60 * 1000 }).catch(() => { });
+              } catch (e) { }
+            }
           })
           .catch((err) => {
             console.log("PWA Service Worker registration note:", err);
@@ -9506,6 +9773,13 @@
       updateUserProfileBtn();
       closeUserIdentityModal(false);
 
+      // If notifications haven't been prompted yet, show notification banner shortly after onboarding
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+        setTimeout(() => {
+          showNotificationPermissionBanner();
+        }, 1200);
+      }
+
       // Show friendly confirmation toast
       const toast = document.getElementById("reviewToast");
       const toastMsg = document.getElementById("reviewToastMsg");
@@ -9541,6 +9815,20 @@
       renderLiveStatusBanner();
       checkInstallState();
       checkUserIdentityPrompt();
+      checkNotificationState();
+
+      // Lifecycle listeners to keep notifications alive across tab switches and network reconnects
+      if (typeof document !== "undefined") {
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") {
+            ensureNotificationListenersActive();
+          }
+        });
+      }
+      if (typeof window !== "undefined") {
+        window.addEventListener("focus", ensureNotificationListenersActive);
+        window.addEventListener("online", ensureNotificationListenersActive);
+      }
       // NOTE: initFirebaseReviews() is lazy-loaded ONLY when the Teacher Finder tab is opened
 
       // Service Worker message listener for notification clicks
@@ -9586,6 +9874,8 @@
 
       setInterval(() => {
         renderLiveStatusBanner();
+        checkUpcomingClassReminders();
+        ensureNotificationListenersActive();
         if (activeTab === "master") {
           renderMobileSlotCards();
         } else if (activeTab === "calendar") {
