@@ -1,7 +1,6 @@
-==============================================================================
 CAMPUS SAATHI - VIT BHOPAL
 Smart timetable, squad schedule sync, teacher finder & reviews, parcel helper
-==============================================================================
+
 
 Repository : github.com/dhrubasamal1/student-data
 Live site  : student-data-crl.pages.dev (Cloudflare Pages)
