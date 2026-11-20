@@ -154,37 +154,45 @@
   <div class="max-w-md mx-auto min-h-screen px-4 pt-4 pb-20 flex flex-col">
 
     <!-- 1. TOP HEADER -->
-    <header class="mb-4 text-center relative">
-      <!-- Top Right Actions: Install Button + Dark Mode Toggle -->
-      <div class="absolute right-0 top-0 flex items-center gap-1.5">
-        <!-- Install App Button (Auto-shows when browser detects installability, or can be clicked for iOS instructions) -->
-        <button id="installAppBtn" onclick="handleInstallAppClick()" aria-label="Install App" title="Install Web App"
-          class="hidden px-2.5 h-8 rounded-full flex items-center gap-1.5 transition border shadow-xs bg-brandBlue hover:bg-brandBlueHover text-white border-blue-600 text-[11px] font-bold active:scale-95">
-          <i class="fa-solid fa-download text-[10px]"></i>
-          <span>Install</span>
-        </button>
+    <header class="mb-4 space-y-2">
+      <!-- Top Row: Logo & Brand on Left, Actions on Right -->
+      <div class="flex items-center justify-between gap-2">
+        <!-- Left: Logo & App Title -->
+        <div class="flex items-center gap-2.5 min-w-0">
+          <img src="icons/icon-192.png" alt="Campus Saathi"
+            class="w-8 h-8 rounded-xl object-cover shadow-xs border border-slate-200/80 dark:border-slate-700/80 shrink-0" />
+          <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white truncate">
+            Campus Saathi
+          </h1>
+        </div>
 
-        <!-- User Profile / Identity Button -->
-        <button id="userProfileBtn" onclick="openUserIdentityModal()" aria-label="User Profile" title="Who are you?"
-          class="h-8 px-2.5 rounded-full flex items-center gap-1.5 transition border shadow-xs bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700 active:scale-95 text-xs font-bold">
-          <i class="fa-regular fa-user text-xs text-brandBlue"></i>
-          <span id="userProfileBtnName" class="max-w-[70px] truncate">You</span>
-        </button>
+        <!-- Right: Action Buttons -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <!-- Install App Button (Auto-shows when browser detects installability, or can be clicked for iOS instructions) -->
+          <button id="installAppBtn" onclick="handleInstallAppClick()" aria-label="Install App" title="Install Web App"
+            class="hidden px-2.5 h-8 rounded-full flex items-center gap-1.5 transition border shadow-xs bg-brandBlue hover:bg-brandBlueHover text-white border-blue-600 text-[11px] font-bold active:scale-95">
+            <i class="fa-solid fa-download text-[10px]"></i>
+            <span>Install</span>
+          </button>
 
-        <!-- Dark Mode Toggle Button -->
-        <button id="themeToggleBtn" onclick="toggleDarkMode()" aria-label="Toggle dark mode"
-          class="w-8 h-8 rounded-full flex items-center justify-center transition border shadow-xs bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-amber-400 dark:hover:bg-slate-700 active:scale-95">
-          <i id="themeToggleIcon" class="fa-solid fa-moon text-xs"></i>
-        </button>
+          <!-- User Profile / Identity Button -->
+          <button id="userProfileBtn" onclick="openUserIdentityModal()" aria-label="User Profile" title="Who are you?"
+            class="h-8 px-2.5 rounded-full flex items-center gap-1.5 transition border shadow-xs bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700 active:scale-95 text-xs font-bold">
+            <i class="fa-regular fa-user text-xs text-brandBlue"></i>
+            <span id="userProfileBtnName" class="max-w-[70px] truncate">You</span>
+          </button>
+
+          <!-- Dark Mode Toggle Button -->
+          <button id="themeToggleBtn" onclick="toggleDarkMode()" aria-label="Toggle dark mode"
+            class="w-8 h-8 rounded-full flex items-center justify-center transition border shadow-xs bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-amber-400 dark:hover:bg-slate-700 active:scale-95">
+            <i id="themeToggleIcon" class="fa-solid fa-moon text-xs"></i>
+          </button>
+        </div>
       </div>
-
-      <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-        Campus Saathi
-      </h1>
 
       <!-- Live Now Micro-Banner for Mobile -->
       <div id="liveBannerWidget"
-        class="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2 flex-wrap">
+        class="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-start gap-2 flex-wrap">
         <!-- Injected dynamically by JS -->
       </div>
     </header>
