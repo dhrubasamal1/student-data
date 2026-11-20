@@ -164,6 +164,13 @@
           <span>Install</span>
         </button>
 
+        <!-- User Profile / Identity Button -->
+        <button id="userProfileBtn" onclick="openUserIdentityModal()" aria-label="User Profile" title="Who are you?"
+          class="h-8 px-2.5 rounded-full flex items-center gap-1.5 transition border shadow-xs bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700 active:scale-95 text-xs font-bold">
+          <i class="fa-regular fa-user text-xs text-brandBlue"></i>
+          <span id="userProfileBtnName" class="max-w-[70px] truncate">You</span>
+        </button>
+
         <!-- Dark Mode Toggle Button -->
         <button id="themeToggleBtn" onclick="toggleDarkMode()" aria-label="Toggle dark mode"
           class="w-8 h-8 rounded-full flex items-center justify-center transition border shadow-xs bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-amber-400 dark:hover:bg-slate-700 active:scale-95">
@@ -675,6 +682,73 @@
             </p>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- USER IDENTITY ONBOARDING MODAL ("WHO ARE YOU?")                       -->
+    <!-- ===================================================================== -->
+    <div id="userIdentityModal"
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      role="dialog" aria-modal="true" aria-labelledby="userIdentityModalTitle">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md shadow-2xl p-4 sm:p-5 space-y-3.5 my-auto animate-in fade-in zoom-in-95 duration-150">
+        
+        <!-- Header -->
+        <div class="text-center space-y-1">
+          <div
+            class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white text-xl shadow-md mx-auto">
+            👋
+          </div>
+          <h3 id="userIdentityModalTitle" class="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100">
+            Who are you?
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+            Select your profile to personalize Campus Saathi. Stored locally on this device.
+          </p>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+          </div>
+          <input type="text" id="identitySearchInput" placeholder="Search your name..."
+            oninput="filterIdentityStudents(this.value)"
+            class="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue transition" />
+        </div>
+
+        <!-- Squad Grid -->
+        <div id="identityStudentsGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-56 overflow-y-auto no-scrollbar py-0.5">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Custom Name Input Option -->
+        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            Not in the list? Enter custom name:
+          </label>
+          <div class="flex items-center gap-1.5">
+            <input type="text" id="customIdentityNameInput" placeholder="e.g. Rahul Sharma"
+              class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue" />
+            <button onclick="saveCustomUserIdentity()"
+              class="px-3.5 py-1.5 rounded-xl bg-brandBlue hover:bg-brandBlueHover text-white text-xs font-bold transition shadow-xs">
+              Save
+            </button>
+          </div>
+        </div>
+
+        <!-- Footer / Skip Option -->
+        <div class="flex items-center justify-between pt-1 text-[11px]">
+          <span class="text-slate-400 dark:text-slate-500">
+            <i class="fa-solid fa-lock text-[10px] mr-1"></i>Saved locally
+          </span>
+          <button onclick="closeUserIdentityModal(true)"
+            class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold transition px-2 py-1">
+            Skip for now
+          </button>
+        </div>
+
       </div>
     </div>
 
@@ -9293,6 +9367,163 @@
 
     /**
      * ========================================================================
+     * 13. USER IDENTITY SYSTEM ("WHO ARE YOU?" FIRST-RUN ONBOARDING)
+     * ========================================================================
+     */
+    function getUserIdentity() {
+      try {
+        const raw = localStorage.getItem("vitb_user_identity") || localStorage.getItem("campus_user_identity");
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function updateUserProfileBtn() {
+      const btnName = document.getElementById("userProfileBtnName");
+      if (!btnName) return;
+      const identity = getUserIdentity();
+      if (identity && identity.name) {
+        btnName.textContent = identity.name.split(" ")[0]; // First name
+      } else {
+        btnName.textContent = "You";
+      }
+    }
+
+    function renderIdentityStudentsList(filterQuery = "") {
+      const grid = document.getElementById("identityStudentsGrid");
+      if (!grid) return;
+      const q = (filterQuery || "").trim().toLowerCase();
+      
+      const sortedSquad = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
+      const filtered = q
+        ? sortedSquad.filter(s => s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q))
+        : sortedSquad;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-4 text-center text-xs text-slate-400 dark:text-slate-500">
+            No squad member matched "${filterQuery}". Use the custom name box below!
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(s => {
+        const initials = s.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+        return `
+          <button type="button" onclick="selectSquadUserIdentity('${s.id}')"
+            class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-brandBlue dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 transition text-left group active:scale-95">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr ${s.avatarBg || 'from-blue-500 to-indigo-600'} text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+              ${initials}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-brandBlue">${s.name}</div>
+              <div class="text-[10px] text-slate-400 dark:text-slate-500 truncate">${s.courses.length} courses</div>
+            </div>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function filterIdentityStudents(val) {
+      renderIdentityStudentsList(val);
+    }
+
+    function openUserIdentityModal() {
+      const modal = document.getElementById("userIdentityModal");
+      if (!modal) return;
+      renderIdentityStudentsList("");
+      const searchInput = document.getElementById("identitySearchInput");
+      if (searchInput) searchInput.value = "";
+      const customInput = document.getElementById("customIdentityNameInput");
+      if (customInput) customInput.value = "";
+      modal.classList.remove("hidden");
+    }
+
+    function closeUserIdentityModal(isSkip = false) {
+      const modal = document.getElementById("userIdentityModal");
+      if (modal) modal.classList.add("hidden");
+      if (isSkip) {
+        try {
+          localStorage.setItem("vitb_identity_prompt_shown", "true");
+        } catch (e) { }
+      }
+    }
+
+    function selectSquadUserIdentity(studentId) {
+      const student = FRIENDS_DATA.find(f => f.id === studentId);
+      if (!student) return;
+      const data = {
+        id: student.id,
+        name: student.name,
+        color: student.color || "blue",
+        avatarBg: student.avatarBg || "from-blue-500 to-indigo-600",
+        isSquadMember: true,
+        savedAt: new Date().toISOString()
+      };
+      saveUserIdentityData(data);
+    }
+
+    function saveCustomUserIdentity() {
+      const input = document.getElementById("customIdentityNameInput");
+      const name = (input ? input.value : "").trim();
+      if (!name) {
+        alert("Please enter your name!");
+        return;
+      }
+      const data = {
+        id: "custom_" + name.toLowerCase().replace(/[^a-z0-9]/g, "_"),
+        name: name,
+        color: "blue",
+        avatarBg: "from-blue-500 to-indigo-600",
+        isSquadMember: false,
+        savedAt: new Date().toISOString()
+      };
+      saveUserIdentityData(data);
+    }
+
+    function saveUserIdentityData(identity) {
+      try {
+        localStorage.setItem("vitb_user_identity", JSON.stringify(identity));
+        localStorage.setItem("campus_user_identity", JSON.stringify(identity));
+        localStorage.setItem("vitb_user_name", identity.name);
+        localStorage.setItem("vitb_user_id", identity.id);
+        localStorage.setItem("vitb_identity_prompt_shown", "true");
+        if (!localStorage.getItem("vitb_last_requester_name")) {
+          localStorage.setItem("vitb_last_requester_name", identity.name);
+        }
+      } catch (e) { }
+
+      updateUserProfileBtn();
+      closeUserIdentityModal(false);
+
+      // Show friendly confirmation toast
+      const toast = document.getElementById("reviewToast");
+      const toastMsg = document.getElementById("reviewToastMsg");
+      if (toast && toastMsg) {
+        toastMsg.textContent = `Welcome, ${identity.name}! Profile saved locally.`;
+        toast.classList.remove("hidden");
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 3000);
+      }
+    }
+
+    function checkUserIdentityPrompt() {
+      updateUserProfileBtn();
+      const existing = getUserIdentity();
+      const promptShown = localStorage.getItem("vitb_identity_prompt_shown");
+      if (!existing && !promptShown) {
+        // First time opening the app!
+        setTimeout(() => {
+          openUserIdentityModal();
+        }, 400);
+      }
+    }
+
+    /**
+     * ========================================================================
      * INITIALIZATION
      * ========================================================================
      */
@@ -9301,6 +9532,7 @@
       updateTopSummaryMetrics();
       renderLiveStatusBanner();
       checkInstallState();
+      checkUserIdentityPrompt();
       // NOTE: initFirebaseReviews() is lazy-loaded ONLY when the Teacher Finder tab is opened
 
       // Service Worker message listener for notification clicks
