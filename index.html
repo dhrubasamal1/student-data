@@ -337,39 +337,58 @@
     <!-- =================================================================== -->
     <!-- TAB 3: TEACHER FINDER (FACULTY & STUDENT SEARCH)                    -->
     <!-- =================================================================== -->
-    <main id="tabPanel-teacher" class="hidden space-y-4 flex-1">
-      <!-- Search & Suggestions Card -->
-      <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+    <main id="tabPanel-teacher" class="hidden space-y-3.5 flex-1">
+      <!-- Simple, Clear, Unmistakable Search Header -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs space-y-2.5">
+        <!-- Header row with title and badge -->
         <div class="flex items-center justify-between">
-          <h2 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <i class="fa-solid fa-chalkboard-user text-brandBlue"></i>
-            <span>Teachers</span>
-          </h2>
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-chalkboard-user text-brandBlue text-sm"></i>
+            <h2 class="text-sm font-bold text-slate-900 dark:text-slate-100">
+              Teachers Directory
+            </h2>
+          </div>
           <span id="teacherCountBadge"
-            class="text-[10px] font-mono font-bold text-brandBlue bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 px-2 py-0.5 rounded-full inline-flex items-center gap-1.5">
+            class="text-[10px] font-mono font-bold text-brandBlue bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
             21 Teachers
           </span>
         </div>
 
-        <p class="text-xs text-slate-500 dark:text-slate-400">
-          Search any teacher to see which students have classes with them.
-        </p>
-
-        <!-- Search Bar -->
+        <!-- Distinct, Prominent Search Bar (Clear 44px height, high-contrast border & icon) -->
         <div class="relative">
-          <div
-            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-brandBlue dark:text-blue-400">
+            <i class="fa-solid fa-magnifying-glass text-sm"></i>
           </div>
-          <input type="text" id="teacherSearchInput" placeholder="Search teacher (e.g. Vinod, Kannan, Abdur)..."
+          <input type="text" id="teacherSearchInput"
+            placeholder="Search teacher, cabin (e.g. A-401), or phone..."
             oninput="handleTeacherSearchInput(this.value)"
-            class="w-full pl-8 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-semibold focus:outline-none focus:border-brandBlue focus:bg-white dark:focus:bg-slate-800 transition"
+            class="w-full h-11 pl-10 pr-9 rounded-xl bg-slate-50 hover:bg-slate-100/70 focus:bg-white dark:bg-slate-800 dark:hover:bg-slate-800/90 dark:focus:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-brandBlue dark:focus:border-blue-500 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs sm:text-sm font-semibold focus:outline-none transition shadow-2xs focus:shadow-xs"
             autocomplete="off" />
           <button id="clearTeacherSearchBtn" onclick="clearTeacherSearch()"
-            class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             title="Clear search">
-            <i class="fa-solid fa-circle-xmark text-xs"></i>
+            <i class="fa-solid fa-circle-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Quick Search Pill Suggestions -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5 text-[11px]">
+          <span class="text-slate-400 dark:text-slate-500 font-medium shrink-0">Try:</span>
+          <button type="button" onclick="quickFillTeacherSearch('Kannan')"
+            class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/40 text-slate-600 dark:text-slate-300 hover:text-brandBlue border border-slate-200/80 dark:border-slate-700 font-medium transition shrink-0 active:scale-95">
+            Kannan
+          </button>
+          <button type="button" onclick="quickFillTeacherSearch('Vinod')"
+            class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/40 text-slate-600 dark:text-slate-300 hover:text-brandBlue border border-slate-200/80 dark:border-slate-700 font-medium transition shrink-0 active:scale-95">
+            Vinod
+          </button>
+          <button type="button" onclick="quickFillTeacherSearch('Arindam')"
+            class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/40 text-slate-600 dark:text-slate-300 hover:text-brandBlue border border-slate-200/80 dark:border-slate-700 font-medium transition shrink-0 active:scale-95">
+            Arindam
+          </button>
+          <button type="button" onclick="quickFillTeacherSearch('A-401')"
+            class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/40 text-slate-600 dark:text-slate-300 hover:text-brandBlue border border-slate-200/80 dark:border-slate-700 font-medium transition shrink-0 active:scale-95">
+            Cabin A-401
           </button>
         </div>
       </div>
@@ -7303,6 +7322,15 @@
       const clearBtn = document.getElementById("clearTeacherSearchBtn");
       if (clearBtn) clearBtn.classList.add("hidden");
       renderTeacherFinder();
+    }
+
+    function quickFillTeacherSearch(term) {
+      const input = document.getElementById("teacherSearchInput");
+      if (input) {
+        input.value = term;
+        if (input.focus) input.focus();
+      }
+      handleTeacherSearchInput(term);
     }
 
     function levenshteinDistance(a, b) {
