@@ -150,6 +150,15 @@
     .safe-bottom {
       padding-bottom: env(safe-area-inset-bottom, 16px);
     }
+
+    /* Prevent flash of unstyled/empty elements */
+    .hidden, [hidden] {
+      display: none !important;
+    }
+
+    #inlineSquadToggles:empty {
+      display: none;
+    }
   </style>
 </head>
 
@@ -272,8 +281,8 @@
       </div>
 
       <!-- Active Squad & Individual Quick Filter Strip -->
-      <div
-        class="bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-1.5 shadow-2xs">
+      <div id="inlineSquadTogglesContainer"
+        class="hidden bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-1.5 shadow-2xs">
         <div id="inlineSquadToggles"
           class="flex items-center gap-1.5 overflow-x-auto flex-nowrap no-scrollbar custom-h-scrollbar">
           <!-- Injected dynamically by JS: All, Aditya, Ajay, ... -->
@@ -6025,6 +6034,8 @@
     function renderInlineSquadToggles() {
       const container = document.getElementById("inlineSquadToggles");
       if (!container) return;
+      const wrapper = document.getElementById("inlineSquadTogglesContainer");
+      if (wrapper) wrapper.classList.remove("hidden");
 
       const isAll = activeFriendIds.size === FRIENDS_DATA.length;
 
@@ -10786,13 +10797,57 @@
 
     /**
      * ========================================================================
-     * INITIALIZATION
+     * INITIALIZATION (INSTANT RENDER + BACKGROUND ENHANCEMENTS)
      * ========================================================================
      */
+    // Route by URL hash (#delivery, #teacher-review) or query param (?tab=...)
+    function applyRoute() {
+      try {
+        const hash = (window.location.hash || "").toLowerCase().replace("#", "").trim();
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedTab = urlParams.get("tab");
+        if (hash === "delivery" || hash === "deliveries" || hash === "parcel" || requestedTab === "parcel") {
+          switchTab("parcel");
+        } else if (hash === "pay-later" || hash === "paylater" || hash === "pay_me_later" || requestedTab === "paylater") {
+          switchTab("paylater");
+        } else if (hash === "calendar" || hash === "calender" || requestedTab === "calendar" || requestedTab === "calender") {
+          switchTab("calendar");
+        } else if (hash === "teacher-review" || hash === "teacher_review" || hash === "teachers" || hash === "teacher" || requestedTab === "teacher") {
+          switchTab("teacher");
+        } else if (hash === "individual" || requestedTab === "individual") {
+          switchTab("individual");
+        } else if (hash === "squad" || requestedTab === "master") {
+          switchTab("master");
+        } else {
+          switchTab("master");
+        }
+      } catch (e) {
+        switchTab("master");
+      }
+    }
+
+    // Fast Synchronous UI Mount: Renders schedule data INSTANTLY in 0ms without waiting for external fonts/images/CDNs
+    function initAppImmediate() {
+      try {
+        updateThemeToggleIcon();
+        updateUserProfileBtn();
+        updateTopSummaryMetrics();
+        renderLiveStatusBanner();
+        applyRoute();
+      } catch (e) {
+        console.warn("Fast UI mount notice:", e);
+      }
+    }
+
+    // Execute immediately since script is at the bottom of <body>
+    initAppImmediate();
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("hashchange", applyRoute);
+    }
+
+    // Background listeners, SW message channels, and network tasks
     window.onload = function () {
-      updateThemeToggleIcon();
-      updateTopSummaryMetrics();
-      renderLiveStatusBanner();
       checkInstallState();
       checkUserIdentityPrompt();
       checkNotificationState();
@@ -10809,7 +10864,6 @@
         window.addEventListener("focus", ensureNotificationListenersActive);
         window.addEventListener("online", ensureNotificationListenersActive);
       }
-      // NOTE: initFirebaseReviews() is lazy-loaded ONLY when the Teacher Finder tab is opened
 
       // Service Worker message listener for notification clicks
       if ("serviceWorker" in navigator && navigator.serviceWorker && navigator.serviceWorker.addEventListener) {
@@ -10827,35 +10881,6 @@
       if (localStorage.getItem("vitb_parcel_notifications_enabled") === "true") {
         initFirebaseParcelRequests();
       }
-
-      // Route by URL hash (#delivery, #teacher-review) or query param (?tab=...)
-      function applyRoute() {
-        try {
-          const hash = (window.location.hash || "").toLowerCase().replace("#", "").trim();
-          const urlParams = new URLSearchParams(window.location.search);
-          const requestedTab = urlParams.get("tab");
-          if (hash === "delivery" || hash === "deliveries" || hash === "parcel" || requestedTab === "parcel") {
-            switchTab("parcel");
-          } else if (hash === "pay-later" || hash === "paylater" || hash === "pay_me_later" || requestedTab === "paylater") {
-            switchTab("paylater");
-          } else if (hash === "calendar" || hash === "calender" || requestedTab === "calendar" || requestedTab === "calender") {
-            switchTab("calendar");
-          } else if (hash === "teacher-review" || hash === "teacher_review" || hash === "teachers" || hash === "teacher" || requestedTab === "teacher") {
-            switchTab("teacher");
-          } else if (hash === "individual" || requestedTab === "individual") {
-            switchTab("individual");
-          } else if (hash === "squad" || requestedTab === "master") {
-            switchTab("master");
-          } else {
-            switchTab("master");
-          }
-        } catch (e) {
-          switchTab("master");
-        }
-      }
-
-      applyRoute();
-      window.addEventListener("hashchange", applyRoute);
 
       setInterval(() => {
         renderLiveStatusBanner();
