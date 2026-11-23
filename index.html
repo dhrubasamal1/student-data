@@ -1185,17 +1185,9 @@
               <i class="fa-solid fa-users-viewfinder"></i>
             </div>
             <div class="min-w-0">
-              <div class="flex items-center gap-2">
-                <h3 id="userTrackerModalTitle" class="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
-                  User Activity Tracker
-                </h3>
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-100 dark:bg-blue-950/80 text-brandBlue dark:text-blue-300 border border-blue-200 dark:border-blue-900/50 shrink-0">
-                  Dhruba Admin
-                </span>
-              </div>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                Track app opens, active dates & section usage across students
-              </p>
+              <h3 id="userTrackerModalTitle" class="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
+                User Activity Tracker
+              </h3>
             </div>
           </div>
           <div class="flex items-center gap-1.5 shrink-0">
@@ -12131,7 +12123,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
       if (headerLogoClickCount >= 3) {
         headerLogoClickCount = 0;
-        const pass = prompt("Dhruba Admin Passcode:");
+        const pass = prompt("Admin Passcode:");
         if (pass && (pass.trim().toLowerCase() === "dhruba" || pass.trim() === "2026")) {
           sessionStorage.setItem("vitb_admin_auth", "true");
           openUserTrackerModal();
@@ -12206,6 +12198,22 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
             id: userId,
             name: userName,
             newOpens: [],
+            sections: {},
+            lastSeen: Date.now(),
+            lastSection: (typeof activeTab !== "undefined" ? activeTab : "master")
+          };
+        }
+
+        const pUser = pending.users[userId];
+        if (userName && !userName.startsWith("Guest (")) {
+          pUser.name = userName;
+        }
+        pUser.lastSeen = Date.now();
+
+        if (type === "open") {
+          pUser.newOpens.push(payload.timestamp || Date.now());
+        } else if (type === "section") {
+          const sec = payload.section || "master";
             sections: {},
             lastSeen: Date.now(),
             lastSection: (typeof activeTab !== "undefined" ? activeTab : "master")
@@ -12649,9 +12657,6 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
                       <div class="flex items-center gap-1.5 flex-wrap">
                         <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">
                           ${u.name}
-                        </span>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                          ${u.id}
                         </span>
                       </div>
                       <div class="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5">
