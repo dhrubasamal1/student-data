@@ -179,7 +179,9 @@
         <!-- Left: Logo & App Title -->
         <div class="flex items-center gap-2.5 min-w-0">
           <img src="icons/icon-192.png" alt="Campus Saathi"
-            class="w-8 h-8 rounded-xl object-cover shadow-xs border border-slate-200/80 dark:border-slate-700/80 shrink-0" />
+            id="appHeaderLogoIcon"
+            onclick="handleHeaderLogoClick()"
+            class="w-8 h-8 rounded-xl object-cover shadow-xs border border-slate-200/80 dark:border-slate-700/80 shrink-0 cursor-pointer active:scale-95 transition" />
           <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white truncate">
             Campus Saathi
           </h1>
@@ -1144,6 +1146,55 @@
             class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold transition px-2 py-1">
             Skip for now
           </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- DHRUBA USER ACTIVITY TRACKER MODAL (ADMIN ONLY)                       -->
+    <!-- ===================================================================== -->
+    <div id="userTrackerModal"
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      role="dialog" aria-modal="true" aria-labelledby="userTrackerModalTitle">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-xl shadow-2xl p-4 sm:p-5 space-y-3.5 my-auto animate-in fade-in zoom-in-95 duration-150 max-h-[92vh] flex flex-col">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-brandBlue dark:text-blue-400 flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+              <i class="fa-solid fa-users-viewfinder"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <h3 id="userTrackerModalTitle" class="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
+                  User Activity Tracker
+                </h3>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-100 dark:bg-blue-950/80 text-brandBlue dark:text-blue-300 border border-blue-200 dark:border-blue-900/50 shrink-0">
+                  Dhruba Admin
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                Track app opens, active dates & section usage across students
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button onclick="refreshUserTrackerData()" aria-label="Refresh Tracker Data" title="Refresh live data"
+              class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition active:scale-95">
+              <i id="userTrackerRefreshIcon" class="fa-solid fa-rotate text-xs"></i>
+            </button>
+            <button onclick="closeUserTrackerModal()" aria-label="Close Modal"
+              class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition active:scale-95">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Scrollable Modal Body -->
+        <div class="overflow-y-auto no-scrollbar space-y-3.5 pr-0.5 flex-1" id="userTrackerModalBody">
+          <!-- Injected dynamically by renderUserTrackerUI() -->
         </div>
 
       </div>
@@ -6168,6 +6219,9 @@
      * ========================================================================
      */
     function switchTab(tabId) {
+      if (typeof trackSectionUsage === "function") {
+        trackSectionUsage(tabId);
+      }
       if (tabId === "calender") tabId = "calendar";
       if (tabId === "individual") {
         tabId = "master";
@@ -11953,6 +12007,9 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       } catch (e) { }
 
       hasUserManuallySelectedPayLaterFilter = false;
+      if (typeof trackUserIdentityAssigned === "function") {
+        trackUserIdentityAssigned(identity);
+      }
       updateUserProfileBtn();
       renderLiveStatusBanner();
       closeUserIdentityModal(false);
@@ -11996,6 +12053,639 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
     /**
      * ========================================================================
+     * 14. USER ACTIVITY TRACKER SYSTEM (DHRUBA ADMIN ANALYTICS)
+     * ========================================================================
+     */
+    const TRACKER_DOC_PATH = { collection: "teacher_reviews", doc: "user_activity_tracker" };
+    let cachedTrackerData = null;
+    let userTrackerActiveTimeframe = "7days"; // '7days', '30days', 'today', 'all'
+    let userTrackerSearchQuery = "";
+    let userTrackerSortBy = "opens"; // 'opens', 'recent', 'name'
+    let isTrackerFlushing = false;
+    let trackerFlushTimeout = null;
+
+    let headerLogoClickCount = 0;
+    let headerLogoClickTimer = null;
+
+    const TRACKER_SECTIONS_META = {
+      master: { name: "Schedule / Squad", icon: "fa-calendar-week", color: "blue" },
+      mess: { name: "Mess Menu", icon: "fa-utensils", color: "emerald" },
+      paylater: { name: "Pay Me Later", icon: "fa-hand-holding-dollar", color: "teal" },
+      teacher: { name: "Teacher Reviews", icon: "fa-chalkboard-user", color: "amber" },
+      parcel: { name: "Parcel / Delivery", icon: "fa-box-open", color: "purple" },
+      calendar: { name: "Academic Calendar", icon: "fa-calendar-days", color: "indigo" }
+    };
+
+    function isCurrentUserDhruba() {
+      try {
+        if (typeof sessionStorage !== "undefined" && sessionStorage.getItem("vitb_admin_auth") === "true") {
+          return true;
+        }
+        const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
+        const name = (identity && identity.name) || (typeof localStorage !== "undefined" ? localStorage.getItem("vitb_user_name") : "") || "";
+        const id = (identity && identity.id) || (typeof localStorage !== "undefined" ? localStorage.getItem("vitb_user_id") : "") || "";
+        return id.toLowerCase() === "dhruba" || name.toLowerCase().includes("dhruba");
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function handleHeaderLogoClick() {
+      // 1. If currently active profile is Dhruba, open directly on a single click!
+      if (isCurrentUserDhruba()) {
+        openUserTrackerModal();
+        return;
+      }
+
+      // 2. Secret backdoor for Dhruba if on a fresh device without identity set yet:
+      // Triple-tap the logo within 1.5s to trigger admin passcode prompt
+      headerLogoClickCount++;
+      if (headerLogoClickTimer) clearTimeout(headerLogoClickTimer);
+      headerLogoClickTimer = setTimeout(() => {
+        headerLogoClickCount = 0;
+      }, 1500);
+
+      if (headerLogoClickCount >= 3) {
+        headerLogoClickCount = 0;
+        const pass = prompt("Dhruba Admin Passcode:");
+        if (pass && (pass.trim().toLowerCase() === "dhruba" || pass.trim() === "2026")) {
+          sessionStorage.setItem("vitb_admin_auth", "true");
+          openUserTrackerModal();
+        }
+      }
+    }
+
+    function getOrCreateDeviceId() {
+      let id = "";
+      try {
+        id = localStorage.getItem("vitb_device_id");
+        if (!id) {
+          id = "dev_" + Math.random().toString(36).substring(2, 8) + Date.now().toString(36).slice(-4);
+          localStorage.setItem("vitb_device_id", id);
+        }
+      } catch (e) {
+        id = "dev_anon";
+      }
+      return id;
+    }
+
+    function getCurrentTrackerUser() {
+      const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
+      let storedName = "";
+      let storedId = "";
+      try {
+        storedName = localStorage.getItem("vitb_user_name") || "";
+        storedId = localStorage.getItem("vitb_user_id") || "";
+      } catch (e) { }
+
+      let userId = (identity && identity.id) || storedId || getOrCreateDeviceId();
+      let userName = (identity && identity.name) || storedName;
+      if (!userName) {
+        userName = "Guest (" + userId.slice(-4) + ")";
+      }
+
+      return {
+        userId: userId.toLowerCase().trim(),
+        userName: userName.trim()
+      };
+    }
+
+    function getPendingTrackerEvents() {
+      try {
+        const raw = localStorage.getItem("vitb_tracker_pending");
+        return raw ? JSON.parse(raw) : { users: {} };
+      } catch (e) {
+        return { users: {} };
+      }
+    }
+
+    function savePendingTrackerEvents(events) {
+      try {
+        localStorage.setItem("vitb_tracker_pending", JSON.stringify(events));
+      } catch (e) { }
+    }
+
+    function clearPendingTrackerEvents() {
+      try {
+        localStorage.removeItem("vitb_tracker_pending");
+      } catch (e) { }
+    }
+
+    function queueTrackerEvent(type, payload) {
+      try {
+        const pending = getPendingTrackerEvents();
+        pending.users = pending.users || {};
+        const { userId, userName } = getCurrentTrackerUser();
+
+        if (!pending.users[userId]) {
+          pending.users[userId] = {
+            id: userId,
+            name: userName,
+            newOpens: [],
+            sections: {},
+            lastSeen: Date.now(),
+            lastSection: (typeof activeTab !== "undefined" ? activeTab : "master")
+          };
+        }
+
+        const pUser = pending.users[userId];
+        if (userName && !userName.startsWith("Guest (")) {
+          pUser.name = userName;
+        }
+        pUser.lastSeen = Date.now();
+
+        if (type === "open") {
+          pUser.newOpens.push(payload.timestamp || Date.now());
+        } else if (type === "section") {
+          const sec = payload.section || "master";
+          pUser.sections[sec] = (pUser.sections[sec] || 0) + 1;
+          pUser.lastSection = sec;
+        }
+
+        savePendingTrackerEvents(pending);
+
+        // Debounce write to Firebase after 1.5 seconds of inactivity
+        if (trackerFlushTimeout) clearTimeout(trackerFlushTimeout);
+        trackerFlushTimeout = setTimeout(() => {
+          flushTrackerEventsToFirebase();
+        }, 1500);
+      } catch (e) {
+        console.warn("queueTrackerEvent error:", e);
+      }
+    }
+
+    async function flushTrackerEventsToFirebase() {
+      if (isTrackerFlushing) return;
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+
+      const pending = getPendingTrackerEvents();
+      if (!pending || !pending.users || Object.keys(pending.users).length === 0) return;
+
+      isTrackerFlushing = true;
+      try {
+        const docRef = firestore.collection(TRACKER_DOC_PATH.collection).doc(TRACKER_DOC_PATH.doc);
+        const snap = await docRef.get();
+        let existing = {};
+        if (snap && snap.exists) {
+          existing = snap.data() || {};
+        }
+        const users = existing.users || {};
+        const now = Date.now();
+        const cutoff60Days = now - (60 * 24 * 60 * 60 * 1000);
+
+        for (const [uid, pUser] of Object.entries(pending.users)) {
+          if (!users[uid]) {
+            users[uid] = {
+              id: uid,
+              name: pUser.name || "Student",
+              totalOpens: 0,
+              openTimestamps: [],
+              sections: {},
+              firstSeen: now,
+              lastSeen: now,
+              lastSection: pUser.lastSection || "master"
+            };
+          }
+
+          const u = users[uid];
+          if (pUser.name && !pUser.name.startsWith("Guest (")) {
+            u.name = pUser.name;
+          }
+
+          if (Array.isArray(pUser.newOpens) && pUser.newOpens.length > 0) {
+            u.openTimestamps = (u.openTimestamps || []).concat(pUser.newOpens);
+            // Prune timestamps older than 60 days to keep doc size lean
+            u.openTimestamps = u.openTimestamps.filter(t => t > cutoff60Days);
+            u.totalOpens = (u.totalOpens || 0) + pUser.newOpens.length;
+          }
+
+          if (pUser.sections) {
+            u.sections = u.sections || {};
+            for (const [sec, count] of Object.entries(pUser.sections)) {
+              u.sections[sec] = (u.sections[sec] || 0) + count;
+            }
+          }
+
+          u.lastSeen = Math.max(u.lastSeen || 0, pUser.lastSeen || now);
+          if (pUser.lastSection) {
+            u.lastSection = pUser.lastSection;
+          }
+        }
+
+        await docRef.set({
+          lastUpdated: now,
+          users: users
+        }, { merge: true });
+
+        clearPendingTrackerEvents();
+        cachedTrackerData = users;
+      } catch (err) {
+        console.warn("Tracker Firebase sync notice:", err);
+      } finally {
+        isTrackerFlushing = false;
+      }
+    }
+
+    function trackAppOpen() {
+      try {
+        const now = Date.now();
+        let lastSessionOpen = 0;
+        try {
+          lastSessionOpen = parseInt(sessionStorage.getItem("vitb_session_open_time") || "0", 10);
+        } catch (e) { }
+
+        // Track as a new open if fresh session or > 15 mins since last recorded session
+        if (!lastSessionOpen || (now - lastSessionOpen > 15 * 60 * 1000)) {
+          try {
+            sessionStorage.setItem("vitb_session_open_time", now.toString());
+          } catch (e) { }
+          queueTrackerEvent("open", { timestamp: now });
+        }
+
+        // Also track the initial section loaded
+        const initialTab = (typeof activeTab !== "undefined" && activeTab) ? activeTab : "master";
+        trackSectionUsage(initialTab);
+      } catch (e) { }
+    }
+
+    function trackSectionUsage(section) {
+      try {
+        if (!section) return;
+        const normalized = (section === "individual") ? "master" : section;
+        queueTrackerEvent("section", { section: normalized });
+      } catch (e) { }
+    }
+
+    function trackUserIdentityAssigned(identity) {
+      try {
+        if (!identity) return;
+        queueTrackerEvent("section", { section: (typeof activeTab !== "undefined" && activeTab) ? activeTab : "master" });
+        flushTrackerEventsToFirebase();
+      } catch (e) { }
+    }
+
+    async function openUserTrackerModal() {
+      const modal = document.getElementById("userTrackerModal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      document.body.classList.add("overflow-hidden");
+
+      const body = document.getElementById("userTrackerModalBody");
+      if (body && !cachedTrackerData) {
+        body.innerHTML = `
+          <div class="py-12 text-center space-y-3">
+            <i class="fa-solid fa-spinner fa-spin text-3xl text-brandBlue"></i>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Fetching live student analytics from Firebase...</p>
+          </div>
+        `;
+      }
+
+      // Flush local pending data then fetch fresh Firestore snapshot
+      await flushTrackerEventsToFirebase();
+      await refreshUserTrackerData();
+    }
+
+    function closeUserTrackerModal() {
+      const modal = document.getElementById("userTrackerModal");
+      if (modal) {
+        modal.classList.add("hidden");
+        document.body.classList.remove("overflow-hidden");
+      }
+    }
+
+    async function refreshUserTrackerData() {
+      const refreshIcon = document.getElementById("userTrackerRefreshIcon");
+      if (refreshIcon) refreshIcon.classList.add("fa-spin");
+
+      try {
+        const firestore = (typeof getDb === "function") ? getDb() : null;
+        if (firestore) {
+          const docRef = firestore.collection(TRACKER_DOC_PATH.collection).doc(TRACKER_DOC_PATH.doc);
+          const snap = await docRef.get();
+          if (snap && snap.exists) {
+            const data = snap.data() || {};
+            cachedTrackerData = data.users || {};
+          } else {
+            cachedTrackerData = {};
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load tracker data:", err);
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove("fa-spin");
+        renderUserTrackerUI();
+      }
+    }
+
+    function setUserTrackerTimeframe(tf) {
+      userTrackerActiveTimeframe = tf;
+      renderUserTrackerUI();
+    }
+
+    function setUserTrackerSort(sort) {
+      userTrackerSortBy = sort;
+      renderUserTrackerUI();
+    }
+
+    function handleUserTrackerSearch(q) {
+      userTrackerSearchQuery = (q || "").trim().toLowerCase();
+      renderUserTrackerUI();
+    }
+
+    function formatTrackerTime(timestamp) {
+      if (!timestamp) return "Never";
+      const now = Date.now();
+      const diffMs = now - Number(timestamp);
+      const diffSecs = Math.floor(diffMs / 1000);
+      const diffMins = Math.floor(diffSecs / 60);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
+      if (diffSecs < 60) return "Just now";
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays === 1) return "Yesterday";
+      if (diffDays < 7) return `${diffDays}d ago`;
+
+      const d = new Date(Number(timestamp));
+      return d.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+    }
+
+    function renderUserTrackerUI() {
+      const body = document.getElementById("userTrackerModalBody");
+      if (!body) return;
+
+      const usersObj = cachedTrackerData || {};
+      const userList = Object.values(usersObj);
+
+      const now = Date.now();
+      let cutoff = 0;
+      let timeframeLabel = "Last 7 Days";
+      if (userTrackerActiveTimeframe === "7days") {
+        cutoff = now - (7 * 24 * 60 * 60 * 1000);
+        timeframeLabel = "Last 7 Days";
+      } else if (userTrackerActiveTimeframe === "30days") {
+        cutoff = now - (30 * 24 * 60 * 60 * 1000);
+        timeframeLabel = "Last 30 Days";
+      } else if (userTrackerActiveTimeframe === "today") {
+        cutoff = now - (24 * 60 * 60 * 1000);
+        timeframeLabel = "Today";
+      } else {
+        cutoff = 0;
+        timeframeLabel = "All Time";
+      }
+
+      // Compute aggregate statistics
+      let totalOpensInPeriod = 0;
+      let activeStudentsInPeriod = 0;
+      const sectionAggregate = { master: 0, mess: 0, paylater: 0, teacher: 0, parcel: 0, calendar: 0 };
+
+      const userStats = userList.map(u => {
+        const timestamps = Array.isArray(u.openTimestamps) ? u.openTimestamps : [];
+        const opensInPeriod = (cutoff === 0)
+          ? (u.totalOpens || timestamps.length)
+          : timestamps.filter(t => t >= cutoff).length;
+
+        const totalOpens = u.totalOpens || timestamps.length;
+        if (opensInPeriod > 0) activeStudentsInPeriod++;
+        totalOpensInPeriod += opensInPeriod;
+
+        // Aggregate sections
+        const sections = u.sections || {};
+        for (const [sec, count] of Object.entries(sections)) {
+          if (sectionAggregate[sec] !== undefined) {
+            sectionAggregate[sec] += (count || 0);
+          }
+        }
+
+        return {
+          ...u,
+          opensInPeriod,
+          totalOpens
+        };
+      });
+
+      // Find top section
+      let topSectionKey = "master";
+      let topSectionCount = 0;
+      for (const [sec, count] of Object.entries(sectionAggregate)) {
+        if (count > topSectionCount) {
+          topSectionCount = count;
+          topSectionKey = sec;
+        }
+      }
+      const topSectionMeta = TRACKER_SECTIONS_META[topSectionKey] || TRACKER_SECTIONS_META.master;
+
+      // Filter by search query
+      let filteredUsers = userStats;
+      if (userTrackerSearchQuery) {
+        filteredUsers = filteredUsers.filter(u => {
+          const name = (u.name || "").toLowerCase();
+          const id = (u.id || "").toLowerCase();
+          return name.includes(userTrackerSearchQuery) || id.includes(userTrackerSearchQuery);
+        });
+      }
+
+      // Sort users
+      filteredUsers.sort((a, b) => {
+        if (userTrackerSortBy === "opens") {
+          if (b.opensInPeriod !== a.opensInPeriod) {
+            return b.opensInPeriod - a.opensInPeriod;
+          }
+          return (b.totalOpens || 0) - (a.totalOpens || 0);
+        } else if (userTrackerSortBy === "recent") {
+          return (b.lastSeen || 0) - (a.lastSeen || 0);
+        } else if (userTrackerSortBy === "name") {
+          return (a.name || "").localeCompare(b.name || "");
+        }
+        return (b.opensInPeriod || 0) - (a.opensInPeriod || 0);
+      });
+
+      body.innerHTML = `
+        <!-- High-Level Metric Stat Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div class="p-2.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/70 dark:border-blue-900/50">
+            <div class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Students</div>
+            <div class="text-lg font-black text-slate-900 dark:text-white mt-0.5">${userList.length}</div>
+            <div class="text-[9px] text-slate-500 dark:text-slate-400">${activeStudentsInPeriod} active in period</div>
+          </div>
+          <div class="p-2.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-900/50">
+            <div class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">App Opens</div>
+            <div class="text-lg font-black text-slate-900 dark:text-white mt-0.5">${totalOpensInPeriod}</div>
+            <div class="text-[9px] text-slate-500 dark:text-slate-400">${timeframeLabel}</div>
+          </div>
+          <div class="p-2.5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/70 dark:border-amber-900/50">
+            <div class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Top Section</div>
+            <div class="text-xs font-black text-slate-900 dark:text-white truncate mt-1">
+              <i class="fa-solid ${topSectionMeta.icon} text-amber-500 mr-1"></i>${topSectionMeta.name.split("/")[0]}
+            </div>
+            <div class="text-[9px] text-slate-500 dark:text-slate-400">${topSectionCount} total views</div>
+          </div>
+          <div class="p-2.5 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200/70 dark:border-purple-900/50">
+            <div class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Cloud Sync</div>
+            <div class="text-xs font-black text-slate-900 dark:text-white truncate mt-1">
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>Firestore Live
+            </div>
+            <div class="text-[9px] text-slate-500 dark:text-slate-400">Single Doc Storage</div>
+          </div>
+        </div>
+
+        <!-- Filter Controls: Timeframe Pills, Search Bar & Sort Dropdown -->
+        <div class="space-y-2 pt-1">
+          <!-- Timeframe selector -->
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+            <button onclick="setUserTrackerTimeframe('7days')"
+              class="px-3 py-1 rounded-full text-xs font-bold transition shrink-0 ${userTrackerActiveTimeframe === '7days'
+                ? 'bg-brandBlue text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }">
+              Last 7 Days
+            </button>
+            <button onclick="setUserTrackerTimeframe('30days')"
+              class="px-3 py-1 rounded-full text-xs font-bold transition shrink-0 ${userTrackerActiveTimeframe === '30days'
+                ? 'bg-brandBlue text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }">
+              Last 30 Days
+            </button>
+            <button onclick="setUserTrackerTimeframe('today')"
+              class="px-3 py-1 rounded-full text-xs font-bold transition shrink-0 ${userTrackerActiveTimeframe === 'today'
+                ? 'bg-brandBlue text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }">
+              Today (24h)
+            </button>
+            <button onclick="setUserTrackerTimeframe('all')"
+              class="px-3 py-1 rounded-full text-xs font-bold transition shrink-0 ${userTrackerActiveTimeframe === 'all'
+                ? 'bg-brandBlue text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }">
+              All Time
+            </button>
+          </div>
+
+          <!-- Search and Sort Row -->
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+              <input type="text"
+                value="${userTrackerSearchQuery}"
+                oninput="handleUserTrackerSearch(this.value)"
+                placeholder="Search student by name or ID..."
+                class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue transition" />
+            </div>
+
+            <select onchange="setUserTrackerSort(this.value)"
+              class="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none shrink-0">
+              <option value="opens" ${userTrackerSortBy === 'opens' ? 'selected' : ''}>Most Opens</option>
+              <option value="recent" ${userTrackerSortBy === 'recent' ? 'selected' : ''}>Recently Active</option>
+              <option value="name" ${userTrackerSortBy === 'name' ? 'selected' : ''}>Name (A-Z)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Student Cards List -->
+        <div class="space-y-2.5 pt-1">
+          ${filteredUsers.length === 0 ? `
+            <div class="py-12 text-center space-y-2 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/60 dark:border-slate-800 p-6">
+              <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-xl mx-auto">
+                <i class="fa-solid fa-user-slash"></i>
+              </div>
+              <div class="text-xs font-bold text-slate-700 dark:text-slate-300">
+                ${userTrackerSearchQuery ? 'No students match your search' : 'No user activity recorded yet'}
+              </div>
+              <p class="text-[11px] text-slate-400 max-w-xs mx-auto">
+                Activity updates automatically to Firebase whenever students open Campus Saathi or switch sections.
+              </p>
+            </div>
+          ` : filteredUsers.map(u => {
+            const sections = u.sections || {};
+            const userInitial = (u.name || "S").charAt(0).toUpperCase();
+            const lastActiveStr = formatTrackerTime(u.lastSeen);
+            const isOnlineRecent = u.lastSeen && (Date.now() - u.lastSeen < 10 * 60 * 1000);
+
+            // Total section clicks for this user
+            const totalSectionViews = Object.values(sections).reduce((acc, c) => acc + (Number(c) || 0), 0);
+
+            return `
+              <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-2.5 hover:border-slate-300 dark:hover:border-slate-700 transition">
+                <!-- User Header Row -->
+                <div class="flex items-center justify-between gap-2.5">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="relative shrink-0">
+                      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-sm flex items-center justify-center shadow-xs">
+                        ${userInitial}
+                      </div>
+                      ${isOnlineRecent ? `
+                        <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 shadow-2xs" title="Active in last 10m"></span>
+                      ` : ''}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">
+                          ${u.name}
+                        </span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                          ${u.id}
+                        </span>
+                      </div>
+                      <div class="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5">
+                        <i class="fa-regular fa-clock text-[9px]"></i>
+                        <span>Last active: <strong class="text-slate-600 dark:text-slate-300 font-semibold">${lastActiveStr}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Opens Metric Badge -->
+                  <div class="text-right shrink-0">
+                    <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-900/60 text-brandBlue dark:text-blue-300 font-black text-xs shadow-2xs">
+                      <span>${u.opensInPeriod} opens</span>
+                    </div>
+                    <div class="text-[9px] text-slate-400 mt-0.5 font-medium">
+                      ${timeframeLabel} • Total: ${u.totalOpens}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Sections Used Breakdown -->
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+                  <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <span>Sections Used</span>
+                    <span>${totalSectionViews} total views</span>
+                  </div>
+
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                    ${Object.entries(TRACKER_SECTIONS_META).map(([key, meta]) => {
+                      const count = Number(sections[key] || 0);
+                      const isUsed = count > 0;
+                      return `
+                        <div class="px-2 py-1.5 rounded-xl border flex items-center justify-between text-[11px] transition ${isUsed
+                          ? 'bg-slate-50 dark:bg-slate-800/70 border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200'
+                          : 'bg-transparent border-slate-100 dark:border-slate-800/40 text-slate-400 dark:text-slate-600 opacity-60'
+                        }">
+                          <span class="flex items-center gap-1.5 truncate">
+                            <i class="fa-solid ${meta.icon} text-[10px] text-${meta.color}-500 shrink-0"></i>
+                            <span class="truncate">${meta.name.split("/")[0].trim()}</span>
+                          </span>
+                          <span class="font-mono font-bold shrink-0 ml-1.5 ${isUsed ? 'text-slate-900 dark:text-white' : 'text-slate-400'}">
+                            ${count}
+                          </span>
+                        </div>
+                      `;
+                    }).join("")}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+
+    /**
+     * ========================================================================
      * INITIALIZATION (INSTANT RENDER + BACKGROUND ENHANCEMENTS)
      * ========================================================================
      */
@@ -12032,6 +12722,9 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       try {
         updateThemeToggleIcon();
         updateUserProfileBtn();
+        if (typeof trackAppOpen === "function") {
+          trackAppOpen();
+        }
         updateTopSummaryMetrics();
         renderLiveStatusBanner();
         applyRoute();
