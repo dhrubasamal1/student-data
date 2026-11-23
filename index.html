@@ -251,6 +251,10 @@
           class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
           Parcels
         </button>
+        <button onclick="switchTab('paylater')" id="tabBtn-paylater"
+          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
+          Pay Me Later
+        </button>
         <button onclick="switchTab('individual')" id="tabBtn-individual" class="hidden"></button>
       </div>
     </div>
@@ -412,6 +416,13 @@
     <!-- =================================================================== -->
     <main id="tabPanel-parcel" class="hidden space-y-4 flex-1">
       <!-- Injected dynamically by renderParcelHelper() -->
+    </main>
+
+    <!-- =================================================================== -->
+    <!-- TAB 5: PAY ME LATER (STUDENT EXPENSE & DEBT TRACKER)                 -->
+    <!-- =================================================================== -->
+    <main id="tabPanel-paylater" class="hidden space-y-4 flex-1">
+      <!-- Injected dynamically by renderPayLaterUI() -->
     </main>
 
 
@@ -739,6 +750,111 @@
               <i class="fa-solid fa-bell text-[10px] text-amber-500"></i>
               <span>Squad members with alerts enabled will be notified</span>
             </p>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- PAY ME LATER ENTRY MODAL                                              -->
+    <!-- ===================================================================== -->
+    <div id="payLaterModal"
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-4 animate-fadeIn">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <div
+              class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white">Pay Me Later</h3>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Record money borrowed by a friend</p>
+            </div>
+          </div>
+          <button onclick="closePayLaterModal()" aria-label="Close Modal"
+            class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
+
+        <form id="payLaterForm" onsubmit="event.preventDefault(); submitPayLaterEntry();" class="space-y-3.5">
+          <!-- Lender (Who lent the money - default identified student) -->
+          <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 flex items-center justify-between">
+            <div class="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+              Lent by: <span id="payLaterLenderLabel" class="font-bold text-slate-900 dark:text-white">You</span>
+            </div>
+            <button type="button" onclick="openUserIdentityModal()" class="text-[10px] font-bold text-brandBlue dark:text-blue-400 hover:underline">
+              Switch
+            </button>
+          </div>
+
+          <!-- Borrower selection -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+              Who took money from you? *
+            </label>
+            <select id="payLaterBorrowerSelect" onchange="handleBorrowerSelectChange()" required
+              class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-emerald-500">
+              <option value="">-- Choose a friend --</option>
+            </select>
+            <!-- Custom borrower name input (hidden unless "Other" selected) -->
+            <input type="text" id="payLaterCustomBorrowerInput" placeholder="Enter friend's full name..."
+              class="hidden mt-2 w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-emerald-500" />
+          </div>
+
+          <!-- Amount -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+              Amount (₹) *
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                ₹
+              </span>
+              <input type="number" id="payLaterAmountInput" required min="1" step="any" placeholder="0"
+                class="w-full pl-8 pr-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-base font-bold focus:outline-none focus:border-emerald-500" />
+            </div>
+            <!-- Quick preset amounts -->
+            <div class="flex items-center gap-1.5 mt-2 overflow-x-auto no-scrollbar">
+              <button type="button" onclick="setQuickPayLaterAmount(20)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹20</button>
+              <button type="button" onclick="setQuickPayLaterAmount(50)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹50</button>
+              <button type="button" onclick="setQuickPayLaterAmount(100)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹100</button>
+              <button type="button" onclick="setQuickPayLaterAmount(200)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹200</button>
+              <button type="button" onclick="setQuickPayLaterAmount(500)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹500</button>
+            </div>
+          </div>
+
+          <!-- Note / Description -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+              For what? (Reason / Note)
+            </label>
+            <input type="text" id="payLaterNoteInput" placeholder="e.g. Canteen lunch, Chai & Maggi, Auto fare..."
+              class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-emerald-500" />
+            <!-- Quick reason chips -->
+            <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+              <button type="button" onclick="setQuickPayLaterNote('Canteen')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900">🍔 Canteen</button>
+              <button type="button" onclick="setQuickPayLaterNote('Chai & Snacks')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900">☕ Chai</button>
+              <button type="button" onclick="setQuickPayLaterNote('Auto / Cab')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900">🚖 Auto</button>
+              <button type="button" onclick="setQuickPayLaterNote('Printout')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900">🖨️ Printout</button>
+              <button type="button" onclick="setQuickPayLaterNote('Borrowed Cash')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900">💵 Cash</button>
+            </div>
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="pt-2 flex items-center justify-end gap-2">
+            <button type="button" onclick="closePayLaterModal()"
+              class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+              Cancel
+            </button>
+            <button type="submit" id="submitPayLaterBtn"
+              class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm active:scale-95 flex items-center gap-1.5">
+              <span id="submitPayLaterBtnText"><i class="fa-solid fa-check mr-1"></i>Save &amp; Notify Friend</span>
+            </button>
           </div>
         </form>
       </div>
@@ -5818,7 +5934,7 @@
         }
       }
       activeTab = tabId;
-      const tabs = ["master", "calendar", "teacher", "parcel"];
+      const tabs = ["master", "calendar", "teacher", "parcel", "paylater"];
 
       tabs.forEach(t => {
         const panel = document.getElementById(`tabPanel-${t}`);
@@ -5840,7 +5956,8 @@
             parcel: "#delivery",
             teacher: "#teacher-review",
             master: "#squad",
-            calendar: "#calendar"
+            calendar: "#calendar",
+            paylater: "#pay-later"
           };
           if (hashMapping[tabId] && window.location.hash !== hashMapping[tabId]) {
             if (window.history && window.history.replaceState) {
@@ -5863,6 +5980,9 @@
       } else if (tabId === "parcel") {
         initFirebaseParcelRequests();
         renderParcelHelper();
+      } else if (tabId === "paylater") {
+        initFirebasePayLaterRequests();
+        renderPayLaterUI();
       }
     }
 
@@ -8805,6 +8925,7 @@
 
     function ensureNotificationListenersActive() {
       if (typeof window === "undefined") return;
+      initFirebasePayLaterRequests();
       if (isParcelNotificationEnabled() || isClassNotificationEnabled()) {
         initFirebaseParcelRequests();
         checkUpcomingClassReminders();
@@ -9721,6 +9842,668 @@
       `;
     }
 
+    /**
+     * ========================================================================
+     * 11.5. TAB 5: PAY ME LATER (STUDENT EXPENSE & DEBT TRACKER)
+     * ========================================================================
+     */
+    let PAY_ME_LATER_LIST = [];
+    let isFirebasePayLaterListenerActive = false;
+    let isPayLaterLoading = false;
+    let payLaterSyncError = null;
+    let payLaterActiveFilter = "all"; // 'all', 'owed_to_me', 'i_owe'
+    let payLaterSearchQuery = "";
+
+    function initFirebasePayLaterRequests() {
+      if (isFirebasePayLaterListenerActive) return;
+      const firestore = getDb();
+      if (!firestore) return;
+
+      isFirebasePayLaterListenerActive = true;
+      isPayLaterLoading = true;
+      payLaterSyncError = null;
+
+      try {
+        firestore.collection("pay_me_later").onSnapshot((snapshot) => {
+          isPayLaterLoading = false;
+          payLaterSyncError = null;
+          const items = [];
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            if (!data || !data.amount) return;
+            items.push({
+              id: doc.id,
+              ...data,
+              createdAt: data.createdAt || Date.now()
+            });
+          });
+
+          // Sort newest first
+          items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          PAY_ME_LATER_LIST = items;
+
+          try {
+            localStorage.setItem("vitb_pay_me_later", JSON.stringify(items));
+          } catch (e) { }
+
+          // Check if current student is the borrower on any newly added record and notify!
+          checkPayLaterNotifications(items);
+
+          if (activeTab === "paylater") {
+            renderPayLaterUI();
+          }
+        }, (err) => {
+          console.warn("Pay Me Later Firestore listener error:", err);
+          isPayLaterLoading = false;
+          payLaterSyncError = err.message || "Failed to sync with Firebase";
+          if (activeTab === "paylater") {
+            renderPayLaterUI();
+          }
+        });
+      } catch (e) {
+        console.warn("Pay Me Later listener init exception:", e);
+        isPayLaterLoading = false;
+      }
+    }
+
+    function checkPayLaterNotifications(items) {
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
+      const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
+      if (!myName && !myId) return;
+
+      let notifiedIds = [];
+      try {
+        notifiedIds = JSON.parse(localStorage.getItem("vitb_notified_paylater_ids") || "[]");
+      } catch (e) {
+        notifiedIds = [];
+      }
+      const notifiedSet = new Set(notifiedIds);
+      let hasNew = false;
+
+      items.forEach(item => {
+        // Check if the current user is the borrower (the one who took the money)
+        const isBorrower = (myId && item.borrowerId && item.borrowerId.toLowerCase() === myId.toLowerCase()) ||
+                           (myName && item.borrowerName && item.borrowerName.toLowerCase() === myName.toLowerCase());
+
+        if (isBorrower && !notifiedSet.has(item.id)) {
+          notifiedSet.add(item.id);
+          hasNew = true;
+
+          const title = "💸 Pay Me Later Reminder";
+          const notePart = item.note ? ' for "' + item.note + '"' : "";
+          const body = (item.lenderName || "A friend") + " added a reminder: you owe ₹" + item.amount + notePart + ". Tap to view.";
+
+          dispatchAppNotification(title, {
+            body: body,
+            tag: "paylater_" + item.id,
+            data: { url: "./?tab=paylater", tab: "paylater" }
+          });
+
+          showReviewToast("🔔 " + (item.lenderName || "Friend") + " added: You owe ₹" + item.amount + notePart);
+        }
+      });
+
+      if (hasNew) {
+        try {
+          localStorage.setItem("vitb_notified_paylater_ids", JSON.stringify([...notifiedSet].slice(-100)));
+        } catch (e) { }
+      }
+    }
+
+    function openPayLaterModal() {
+      const modal = document.getElementById("payLaterModal");
+      if (!modal) return;
+
+      const identity = getUserIdentity();
+      const myId = identity && identity.id ? identity.id.toLowerCase() : "";
+      const myName = identity && identity.name ? identity.name : "";
+
+      const lenderLabel = document.getElementById("payLaterLenderLabel");
+      if (lenderLabel) {
+        lenderLabel.textContent = myName ? (myName + " (You)") : "You";
+      }
+
+      const borrowerSelect = document.getElementById("payLaterBorrowerSelect");
+      if (borrowerSelect) {
+        const sortedSquad = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
+        borrowerSelect.innerHTML = '<option value="">-- Choose a friend --</option>' +
+          sortedSquad.map(s => {
+            const isSelf = myId && s.id.toLowerCase() === myId;
+            return '<option value="' + s.id + '" data-name="' + s.name + '" ' + (isSelf ? "disabled" : "") + '>' + s.name + (isSelf ? " (You)" : "") + '</option>';
+          }).join("") +
+          '<option value="__custom__">➕ Other / Custom Friend Name...</option>';
+      }
+
+      const amountInput = document.getElementById("payLaterAmountInput");
+      if (amountInput) amountInput.value = "";
+      const noteInput = document.getElementById("payLaterNoteInput");
+      if (noteInput) noteInput.value = "";
+      const customBorrowerInput = document.getElementById("payLaterCustomBorrowerInput");
+      if (customBorrowerInput) {
+        customBorrowerInput.value = "";
+        customBorrowerInput.classList.add("hidden");
+      }
+
+      modal.classList.remove("hidden");
+    }
+
+    function closePayLaterModal() {
+      const modal = document.getElementById("payLaterModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function handleBorrowerSelectChange() {
+      const select = document.getElementById("payLaterBorrowerSelect");
+      const customInput = document.getElementById("payLaterCustomBorrowerInput");
+      if (!select || !customInput) return;
+      if (select.value === "__custom__") {
+        customInput.classList.remove("hidden");
+        customInput.focus();
+      } else {
+        customInput.classList.add("hidden");
+      }
+    }
+
+    function setQuickPayLaterAmount(val) {
+      const amountInput = document.getElementById("payLaterAmountInput");
+      if (!amountInput) return;
+      const cur = parseFloat(amountInput.value) || 0;
+      amountInput.value = cur + val;
+    }
+
+    function setQuickPayLaterNote(note) {
+      const noteInput = document.getElementById("payLaterNoteInput");
+      if (!noteInput) return;
+      noteInput.value = note;
+    }
+
+    function submitPayLaterEntry() {
+      const borrowerSelect = document.getElementById("payLaterBorrowerSelect");
+      const customBorrowerInput = document.getElementById("payLaterCustomBorrowerInput");
+      const amountInput = document.getElementById("payLaterAmountInput");
+      const noteInput = document.getElementById("payLaterNoteInput");
+      const submitBtn = document.getElementById("submitPayLaterBtn");
+      const btnText = document.getElementById("submitPayLaterBtnText");
+
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "Dhruba";
+      const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "dhruba";
+
+      let borrowerId = "";
+      let borrowerName = "";
+
+      if (borrowerSelect && borrowerSelect.value === "__custom__") {
+        borrowerName = customBorrowerInput ? customBorrowerInput.value.trim() : "";
+        borrowerId = borrowerName.toLowerCase().replace(/\s+/g, "_");
+      } else if (borrowerSelect && borrowerSelect.value) {
+        borrowerId = borrowerSelect.value;
+        const selectedOpt = borrowerSelect.options[borrowerSelect.selectedIndex];
+        borrowerName = selectedOpt ? selectedOpt.getAttribute("data-name") || selectedOpt.text : borrowerId;
+      }
+
+      if (!borrowerName) {
+        alert("Please choose who took money from you.");
+        return;
+      }
+
+      const amount = parseFloat(amountInput ? amountInput.value : 0);
+      if (!amount || amount <= 0) {
+        alert("Please enter a valid amount in ₹.");
+        return;
+      }
+
+      const note = noteInput ? noteInput.value.trim() : "";
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving to Firebase...';
+
+      const entry = {
+        lenderId: myId,
+        lenderName: myName,
+        borrowerId: borrowerId,
+        borrowerName: borrowerName,
+        amount: amount,
+        note: note || "Money borrowed",
+        createdAt: Date.now(),
+        status: "unpaid"
+      };
+
+      const firestore = getDb();
+      if (firestore) {
+        firestore.collection("pay_me_later").add(entry)
+          .then((docRef) => {
+            closePayLaterModal();
+            showReviewToast("✅ Added! ₹" + amount + " with " + borrowerName + " saved.");
+            try {
+              const notified = JSON.parse(localStorage.getItem("vitb_notified_paylater_ids") || "[]");
+              notified.push(docRef.id);
+              localStorage.setItem("vitb_notified_paylater_ids", JSON.stringify(notified));
+            } catch (e) { }
+          })
+          .catch((err) => {
+            console.warn("Error adding Pay Me Later doc:", err);
+            entry.id = "local_" + Date.now();
+            PAY_ME_LATER_LIST.unshift(entry);
+            try {
+              localStorage.setItem("vitb_pay_me_later", JSON.stringify(PAY_ME_LATER_LIST));
+            } catch (e) { }
+            closePayLaterModal();
+            showReviewToast("Saved locally: ₹" + amount + " with " + borrowerName);
+            renderPayLaterUI();
+          })
+          .finally(() => {
+            if (submitBtn) submitBtn.disabled = false;
+            if (btnText) btnText.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Save &amp; Notify Friend';
+          });
+      } else {
+        entry.id = "local_" + Date.now();
+        PAY_ME_LATER_LIST.unshift(entry);
+        try {
+          localStorage.setItem("vitb_pay_me_later", JSON.stringify(PAY_ME_LATER_LIST));
+        } catch (e) { }
+        closePayLaterModal();
+        showReviewToast("Saved locally: ₹" + amount + " with " + borrowerName);
+        renderPayLaterUI();
+        if (submitBtn) submitBtn.disabled = false;
+        if (btnText) btnText.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Save &amp; Notify Friend';
+      }
+    }
+
+    function markPayLaterAsPaid(docId, friendName, amount) {
+      if (!confirm("Mark ₹" + amount + " from " + friendName + " as paid?\n\nThis will settle and delete this record from Firebase.")) {
+        return;
+      }
+
+      PAY_ME_LATER_LIST = PAY_ME_LATER_LIST.filter(item => item.id !== docId);
+      try {
+        localStorage.setItem("vitb_pay_me_later", JSON.stringify(PAY_ME_LATER_LIST));
+      } catch (e) { }
+      renderPayLaterUI();
+
+      const firestore = getDb();
+      if (firestore && docId && !String(docId).startsWith("local_")) {
+        firestore.collection("pay_me_later").doc(docId).delete()
+          .then(() => {
+            showReviewToast("🎉 Settled! ₹" + amount + " marked as paid and removed.");
+          })
+          .catch((err) => {
+            console.warn("Error deleting Pay Me Later doc:", err);
+            showReviewToast("Settled locally. (Sync error: " + err.message + ")");
+          });
+      } else {
+        showReviewToast("🎉 Settled! ₹" + amount + " marked as paid and removed.");
+      }
+    }
+
+    function sendPayLaterReminderWhatsApp(friendName, amount, note) {
+      const text = "Hey " + friendName + "! Friendly reminder to clear ₹" + amount + (note ? (" for " + note) : "") + " on Pay Me Later (Campus Saathi). Thank you! 😊";
+      const url = "https://wa.me/?text=" + encodeURIComponent(text);
+      window.open(url, "_blank");
+    }
+
+    function openUPIPayment(payeeName, amount, note) {
+      const upiUrl = "upi://pay?pn=" + encodeURIComponent(payeeName) + "&am=" + amount + "&cu=INR&tn=" + encodeURIComponent("PayMeLater: " + (note || "Dues"));
+      window.location.href = upiUrl;
+    }
+
+    function setPayLaterFilter(filter) {
+      payLaterActiveFilter = filter;
+      renderPayLaterUI();
+    }
+
+    function handlePayLaterSearch(query) {
+      payLaterSearchQuery = (query || "").trim().toLowerCase();
+      renderPayLaterUI();
+    }
+
+    function formatRelativePayLaterTime(timestamp) {
+      if (!timestamp) return "Just now";
+      const diffMs = Date.now() - timestamp;
+      const mins = Math.floor(diffMs / 60000);
+      if (mins < 1) return "Just now";
+      if (mins < 60) return mins + "m ago";
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return hours + "h ago";
+      const days = Math.floor(hours / 24);
+      if (days === 1) return "Yesterday";
+      if (days < 7) return days + "d ago";
+      const d = new Date(timestamp);
+      return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+    }
+
+    function getStudentAvatarClass(name) {
+      const friend = FRIENDS_DATA.find(f => f.name.toLowerCase() === (name || "").toLowerCase());
+      if (friend && friend.avatarBg) {
+        return "bg-gradient-to-tr " + friend.avatarBg;
+      }
+      return "bg-gradient-to-tr from-blue-500 to-indigo-600";
+    }
+
+    function renderPayLaterUI() {
+      const container = document.getElementById("tabPanel-paylater");
+      if (!container) return;
+
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
+      const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
+
+      // Load cached local records if PAY_ME_LATER_LIST is empty
+      if (PAY_ME_LATER_LIST.length === 0) {
+        try {
+          const cached = localStorage.getItem("vitb_pay_me_later");
+          if (cached) PAY_ME_LATER_LIST = JSON.parse(cached);
+        } catch (e) { }
+      }
+
+      // Compute statistics for current student
+      let totalOwedToMe = 0;
+      let countOwedToMe = 0;
+      let totalIOwe = 0;
+      let countIOwe = 0;
+
+      PAY_ME_LATER_LIST.forEach(item => {
+        const isLender = (myName && item.lenderName && item.lenderName.toLowerCase() === myName.toLowerCase()) ||
+                         (myId && item.lenderId && item.lenderId.toLowerCase() === myId.toLowerCase());
+        const isBorrower = (myName && item.borrowerName && item.borrowerName.toLowerCase() === myName.toLowerCase()) ||
+                           (myId && item.borrowerId && item.borrowerId.toLowerCase() === myId.toLowerCase());
+
+        if (isLender) {
+          totalOwedToMe += Number(item.amount || 0);
+          countOwedToMe++;
+        }
+        if (isBorrower) {
+          totalIOwe += Number(item.amount || 0);
+          countIOwe++;
+        }
+      });
+
+      const netBalance = totalOwedToMe - totalIOwe;
+
+      // Filter dues list
+      let displayList = PAY_ME_LATER_LIST.filter(item => {
+        const isLender = (myName && item.lenderName && item.lenderName.toLowerCase() === myName.toLowerCase()) ||
+                         (myId && item.lenderId && item.lenderId.toLowerCase() === myId.toLowerCase());
+        const isBorrower = (myName && item.borrowerName && item.borrowerName.toLowerCase() === myName.toLowerCase()) ||
+                           (myId && item.borrowerId && item.borrowerId.toLowerCase() === myId.toLowerCase());
+
+        if (payLaterActiveFilter === "owed_to_me") return isLender;
+        if (payLaterActiveFilter === "i_owe") return isBorrower;
+        return true;
+      });
+
+      if (payLaterSearchQuery) {
+        displayList = displayList.filter(item => {
+          const l = (item.lenderName || "").toLowerCase();
+          const b = (item.borrowerName || "").toLowerCase();
+          const n = (item.note || "").toLowerCase();
+          return l.includes(payLaterSearchQuery) || b.includes(payLaterSearchQuery) || n.includes(payLaterSearchQuery);
+        });
+      }
+
+      container.innerHTML = `
+        <!-- Sleek Header Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
+                    Pay Me Later
+                  </h2>
+                  ${isPayLaterLoading
+                    ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 animate-pulse"><i class="fa-solid fa-rotate text-[8px] fa-spin"></i> Syncing</span>'
+                    : '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live</span>'
+                  }
+                </div>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                  Campus expense & debt tracker
+                </p>
+              </div>
+            </div>
+
+            <button onclick="openPayLaterModal()"
+              class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 shrink-0 active:scale-95">
+              <i class="fa-solid fa-plus text-[10px]"></i>
+              <span>Add Due</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Identity Banner (Identifies who is who) -->
+        ${!myName ? `
+          <div class="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-between gap-3 shadow-2xs">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <i class="fa-solid fa-circle-user text-amber-600 dark:text-amber-400 text-base shrink-0"></i>
+              <div class="text-[11px] text-amber-900 dark:text-amber-200">
+                <span class="font-bold">Select who you are:</span> Connect your name to see your dues and get notified.
+              </div>
+            </div>
+            <button onclick="openUserIdentityModal()" class="px-2.5 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold shrink-0 transition">
+              Select Name
+            </button>
+          </div>
+        ` : `
+          <div class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-[11px]">
+            <div class="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>Logged in as <strong class="text-slate-900 dark:text-white">${myName}</strong></span>
+            </div>
+            <button onclick="openUserIdentityModal()" class="text-[10px] font-bold text-brandBlue dark:text-blue-400 hover:underline">
+              Switch
+            </button>
+          </div>
+        `}
+
+        <!-- Balance Metric Summary Cards -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- Card 1: You are Owed -->
+          <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 border border-emerald-200/80 dark:border-emerald-800/60 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold tracking-wider uppercase text-emerald-800 dark:text-emerald-300">
+                You Are Owed
+              </span>
+              <span class="w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px]">
+                <i class="fa-solid fa-arrow-down-left"></i>
+              </span>
+            </div>
+            <div class="mt-1.5">
+              <div class="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-300">
+                ₹${totalOwedToMe.toLocaleString("en-IN")}
+              </div>
+              <div class="text-[10px] font-semibold text-emerald-600/80 dark:text-emerald-400/80">
+                ${countOwedToMe} friend${countOwedToMe === 1 ? "" : "s"} owe you
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: You Owe -->
+          <div class="bg-gradient-to-br from-rose-50 to-amber-50 dark:from-rose-950/30 dark:to-amber-950/20 border border-rose-200/80 dark:border-rose-800/60 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold tracking-wider uppercase text-rose-800 dark:text-rose-300">
+                You Owe
+              </span>
+              <span class="w-6 h-6 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center text-[10px]">
+                <i class="fa-solid fa-arrow-up-right"></i>
+              </span>
+            </div>
+            <div class="mt-1.5">
+              <div class="text-xl sm:text-2xl font-black text-rose-700 dark:text-rose-300">
+                ₹${totalIOwe.toLocaleString("en-IN")}
+              </div>
+              <div class="text-[10px] font-semibold text-rose-600/80 dark:text-rose-400/80">
+                To ${countIOwe} friend${countIOwe === 1 ? "" : "s"}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Net Balance Pill -->
+        <div class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 text-[11px] font-bold flex items-center justify-between">
+          <span class="text-slate-500 dark:text-slate-400">Net Squad Position:</span>
+          <span class="${netBalance > 0 ? 'text-emerald-600 dark:text-emerald-400' : netBalance < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'} font-black">
+            ${netBalance > 0 ? '+₹' + netBalance.toLocaleString("en-IN") + ' (In Surplus)' : netBalance < 0 ? '-₹' + Math.abs(netBalance).toLocaleString("en-IN") + ' (In Due)' : 'All Settled (₹0)'}
+          </span>
+        </div>
+
+        <!-- Filter Buttons & Search -->
+        <div class="space-y-2">
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <button onclick="setPayLaterFilter('all')"
+              class="px-3 py-1 rounded-full text-xs font-bold transition shrink-0 ${payLaterActiveFilter === 'all'
+                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }">
+              All (${PAY_ME_LATER_LIST.length})
+            </button>
+            <button onclick="setPayLaterFilter('owed_to_me')"
+              class="px-3 py-1 rounded-full text-xs font-bold transition shrink-0 ${payLaterActiveFilter === 'owed_to_me'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }">
+              Owed to Me (${countOwedToMe})
+            </button>
+            <button onclick="setPayLaterFilter('i_owe')"
+              class="px-3 py-1 rounded-full text-xs font-bold transition shrink-0 ${payLaterActiveFilter === 'i_owe'
+                ? 'bg-rose-600 text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }">
+              I Owe (${countIOwe})
+            </button>
+          </div>
+
+          <!-- Search Filter Bar -->
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+            <input type="text"
+              value="${payLaterSearchQuery}"
+              oninput="handlePayLaterSearch(this.value)"
+              placeholder="Filter by friend name or note..."
+              class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-xs font-medium focus:outline-none focus:border-emerald-500 transition" />
+            ${payLaterSearchQuery ? `
+              <button onclick="handlePayLaterSearch('')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- Dues Cards Feed -->
+        <div class="space-y-2.5">
+          ${displayList.length === 0 ? `
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-8 text-center space-y-3">
+              <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl mx-auto">
+                <i class="fa-solid fa-circle-check"></i>
+              </div>
+              <div class="space-y-1">
+                <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  ${payLaterSearchQuery ? 'No matching dues' : 'All Clear! No pending dues'}
+                </h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                  ${payLaterSearchQuery ? 'Try searching for a different friend or reason.' : 'Nobody owes anyone right now. Tap "Add Due" if a friend borrowed money!'}
+                </p>
+              </div>
+              <div>
+                <button onclick="openPayLaterModal()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs">
+                  <i class="fa-solid fa-plus mr-1"></i> Add New Due
+                </button>
+              </div>
+            </div>
+          ` : displayList.map(item => {
+            const isLender = (myName && item.lenderName && item.lenderName.toLowerCase() === myName.toLowerCase()) ||
+                             (myId && item.lenderId && item.lenderId.toLowerCase() === myId.toLowerCase());
+            const isBorrower = (myName && item.borrowerName && item.borrowerName.toLowerCase() === myName.toLowerCase()) ||
+                               (myId && item.borrowerId && item.borrowerId.toLowerCase() === myId.toLowerCase());
+
+            const displayFriendName = isLender ? item.borrowerName : isBorrower ? item.lenderName : (item.borrowerName + ' (from ' + item.lenderName + ')');
+            const avatarClass = getStudentAvatarClass(displayFriendName);
+
+            return `
+              <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 shadow-2xs hover:shadow-xs transition space-y-2.5">
+                <div class="flex items-start justify-between gap-3">
+                  <!-- Left: Avatar + Details -->
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-9 h-9 rounded-xl ${avatarClass} text-white flex items-center justify-center text-xs font-black shadow-xs shrink-0">
+                      ${(displayFriendName || 'S').charAt(0).toUpperCase()}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                          ${displayFriendName}
+                        </span>
+                        ${isLender ? `
+                          <span class="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
+                            Owes You
+                          </span>
+                        ` : isBorrower ? `
+                          <span class="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/60">
+                            You Owe
+                          </span>
+                        ` : `
+                          <span class="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            Squad Due
+                          </span>
+                        `}
+                      </div>
+                      <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
+                        <span class="truncate">${item.note || 'Money borrowed'}</span>
+                        <span>•</span>
+                        <span class="shrink-0 text-[10px] text-slate-400">${formatRelativePayLaterTime(item.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right: Amount -->
+                  <div class="text-right shrink-0">
+                    <div class="text-base sm:text-lg font-black ${isLender ? 'text-emerald-600 dark:text-emerald-400' : isBorrower ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}">
+                      ${isLender ? '+' : isBorrower ? '-' : ''}₹${Number(item.amount || 0).toLocaleString("en-IN")}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Toolbar -->
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+                  <div class="text-[10px] text-slate-400 dark:text-slate-500 truncate">
+                    ${isLender ? ('Lent by You') : ('Lent by ' + item.lenderName)}
+                  </div>
+
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    ${isLender ? `
+                      <button onclick="sendPayLaterReminderWhatsApp('${(item.borrowerName || '').replace(/'/g, "\\'")}', ${item.amount}, '${(item.note || '').replace(/'/g, "\\'")}')"
+                        class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 hover:text-emerald-600 text-[11px] font-bold transition flex items-center gap-1">
+                        <i class="fa-brands fa-whatsapp text-emerald-500 text-xs"></i>
+                        <span>Remind</span>
+                      </button>
+                    ` : ''}
+
+                    ${isBorrower ? `
+                      <button onclick="openUPIPayment('${(item.lenderName || '').replace(/'/g, "\\'")}', ${item.amount}, '${(item.note || '').replace(/'/g, "\\'")}')"
+                        class="px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 text-brandBlue dark:text-blue-400 text-[11px] font-bold transition flex items-center gap-1 border border-blue-200 dark:border-blue-800">
+                        <i class="fa-solid fa-bolt text-amber-500 text-xs"></i>
+                        <span>Pay UPI</span>
+                      </button>
+                    ` : ''}
+
+                    <!-- Mark as Paid Button (Deletes record from Firebase!) -->
+                    <button onclick="markPayLaterAsPaid('${item.id}', '${(isLender ? item.borrowerName : item.lenderName || '').replace(/'/g, "\\'")}', ${item.amount})"
+                      class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
+                      title="Mark as paid and delete from Firebase">
+                      <i class="fa-solid fa-check text-[10px]"></i>
+                      <span>Mark Paid</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+
     function updateThemeToggleIcon() {
       const isDark = document.documentElement.classList.contains("dark");
       const icon = document.getElementById("themeToggleIcon");
@@ -10037,6 +10820,9 @@
         });
       }
 
+      // Always listen for Pay Me Later squad dues & notifications
+      initFirebasePayLaterRequests();
+
       // If parcel notifications are enabled, listen for incoming squad requests immediately
       if (localStorage.getItem("vitb_parcel_notifications_enabled") === "true") {
         initFirebaseParcelRequests();
@@ -10050,6 +10836,8 @@
           const requestedTab = urlParams.get("tab");
           if (hash === "delivery" || hash === "deliveries" || hash === "parcel" || requestedTab === "parcel") {
             switchTab("parcel");
+          } else if (hash === "pay-later" || hash === "paylater" || hash === "pay_me_later" || requestedTab === "paylater") {
+            switchTab("paylater");
           } else if (hash === "calendar" || hash === "calender" || requestedTab === "calendar" || requestedTab === "calender") {
             switchTab("calendar");
           } else if (hash === "teacher-review" || hash === "teacher_review" || hash === "teachers" || hash === "teacher" || requestedTab === "teacher") {
@@ -10079,6 +10867,8 @@
           renderCalendar();
         } else if (activeTab === "parcel") {
           renderParcelHelper();
+        } else if (activeTab === "paylater") {
+          renderPayLaterUI();
         }
       }, 30000);
     };

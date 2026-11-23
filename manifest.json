@@ -1,7 +1,7 @@
 {
   "name": "Campus Saathi",
   "short_name": "Campus Saathi",
-  "description": "Campus Saathi — Smart timetable, squad schedule sync, teacher finder, and parcel helper for VIT Bhopal.",
+  "description": "Campus Saathi \u2014 Smart timetable, squad schedule sync, teacher finder, and parcel helper for VIT Bhopal.",
   "start_url": "./index.html",
   "scope": "./",
   "id": "vitb-timetable-squad",
@@ -77,6 +77,18 @@
       "short_name": "Teachers",
       "description": "Find teachers and who has classes with them",
       "url": "./index.html?tab=teacher",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Pay Me Later",
+      "short_name": "Pay Later",
+      "description": "Track money borrowed and owed with friends",
+      "url": "./index.html?tab=paylater",
       "icons": [
         {
           "src": "icons/icon-192.png",
