@@ -1,0 +1,11733 @@
+
+    /**
+     * ========================================================================
+     * FIREBASE CONFIGURATION & INITIALIZATION
+     * ========================================================================
+     */
+    const firebaseConfig = {
+      apiKey: "AIzaSyAHg2aVfVglI-f9f64hK1HPHNHQgASeGg4",
+      authDomain: "student-data-b1244.firebaseapp.com",
+      projectId: "student-data-b1244",
+      storageBucket: "student-data-b1244.firebasestorage.app",
+      messagingSenderId: "168742789692",
+      appId: "1:168742789692:web:d0b4e6598a5a5a05979939"
+    };
+
+    let db = null;
+    let firebaseReady = false;
+
+    function getDb() {
+      if (db) return db;
+      try {
+        if (typeof firebase !== "undefined") {
+          if (!firebase.apps || !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          db = firebase.firestore();
+          firebaseReady = true;
+          return db;
+        }
+      } catch (e) {
+        console.warn("Firebase initialization notice:", e);
+      }
+      return null;
+    }
+
+    // Initialize Firebase early if script tag is loaded
+    getDb();
+
+    /**
+     * ========================================================================
+     * EXTRA / HARDCODED FACULTY LIST
+     * ========================================================================
+     * Easily add any other faculty here who are NOT currently in any squad
+     * student's timetable. They will automatically appear in Teacher Finder,
+     * search, and faculty reviews!
+     *
+     * Example structure:
+     * {
+     *   name: "FACULTY NAME",
+     *   school: "SCOPE", // e.g. SCOPE, SASL, SEEE, SMEC, SCAI, ACAD
+     *   rawFaculty: "FACULTY NAME - SCOPE", // optional, defaults to name - school
+     *   subjects: ["Course Title 1", "Course Title 2"] // optional
+     * }
+     */
+    /**
+ * ========================================================================
+ * COMPLETE VIT BHOPAL FACULTY DIRECTORY (326+ FACULTY MEMBERS)
+ * Ingested from Combined_Faculty_List.csv
+ * Includes: Teacher Name, School/Department Code, Phone Number, Room/Cabin Number
+ * ========================================================================
+ */
+    const ALL_FACULTY_DATA = [
+      {
+        "name": "Dr. Arindam Dutta",
+        "school": "SEEE",
+        "phone": "",
+        "room": "AB-227",
+        "email": "arindamdutta@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Benevatho Jaison A",
+        "school": "SASL",
+        "phone": "9994066779",
+        "room": "A-401",
+        "email": "benevatho.jaison@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Suresh Dara",
+        "school": "SASL",
+        "phone": "7353268058",
+        "room": "A-321",
+        "email": "suresh.dara@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Mayank Sharma",
+        "school": "SASL",
+        "phone": "9826081038",
+        "room": "B-503",
+        "email": "mayank.sharma@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Bhumika Choksi",
+        "school": "SASL",
+        "phone": "7016527953",
+        "room": "A-318",
+        "email": "bhumika.choksi@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Pavan Kumar",
+        "school": "SASL",
+        "phone": "8179700264",
+        "room": "B-514",
+        "email": "pavan.kumar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Navneet Kumar Verma",
+        "school": "SASL",
+        "phone": "9598663322",
+        "room": "A-203",
+        "email": "navneet.verma@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Sayed Mohammed Zeeshan",
+        "school": "SASL",
+        "phone": "7004465671",
+        "room": "B-511",
+        "email": "sayed.zeeshan@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Reena Jain",
+        "school": "SASL",
+        "phone": "8989982847",
+        "room": "A-110",
+        "email": "reena.jain@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Mamta Agrawal",
+        "school": "SASL",
+        "phone": "9425027637",
+        "room": "A-201",
+        "email": "mamta.agrawal@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Anant Kant Shukla",
+        "school": "SASL",
+        "phone": "8050710905",
+        "room": "G-11",
+        "email": "anantkant.shukla@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Neha Choubey",
+        "school": "SASL",
+        "phone": "9713606045",
+        "room": "ADMISSION OFFICE-02",
+        "email": "neha.choubey@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Manisha Pandey",
+        "school": "SASL",
+        "phone": "9039826104",
+        "room": "G-04",
+        "email": "manisha.jain@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Ajay Kumar Bhurjee",
+        "school": "SASL",
+        "phone": "9178913172",
+        "room": "A-301",
+        "email": "ajay.kumarbhurjee@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Rabia Musheer",
+        "school": "SASL",
+        "phone": "9479967401",
+        "room": "B-408",
+        "email": "rabia.musheer@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Akshara Makrariya",
+        "school": "SASL",
+        "phone": "7748836973",
+        "room": "A-302",
+        "email": "akshara.makrariya@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Yogesh Shukla",
+        "school": "SASL",
+        "phone": "9479877102",
+        "room": "ADMISSION OFFICE-01",
+        "email": "yogesh.shukla@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Jyoti Badge",
+        "school": "SASL",
+        "phone": "9993945259",
+        "room": "B-504",
+        "email": "jyoti.badge@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Manickam . A",
+        "school": "SASL",
+        "phone": "9789742540",
+        "room": "C-503",
+        "email": "manickam.a@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Kumar Abhishek",
+        "school": "SASL",
+        "phone": "9043642001",
+        "room": "AB 428 or AB 442",
+        "email": "kumar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Ms. Priyanka Roy",
+        "school": "SASL",
+        "phone": "8296603348",
+        "room": "C-525",
+        "email": "priyanka.roy@vitbhopal.ac.in"
+      },
+      {
+        "name": "Ms. Sheerin Kayenat",
+        "school": "SASL",
+        "phone": "7870955315",
+        "room": "B-303",
+        "email": "sheerin.kayenat@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Nilam Venkatakoteswararao",
+        "school": "SASL",
+        "phone": "9177477722",
+        "room": "B-302",
+        "email": "nilam.venkatakoteswararao@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Harihara Padhy",
+        "school": "SASL",
+        "phone": "9668780860",
+        "room": "",
+        "email": "harihara.padhy@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Manoj Acharya",
+        "school": "SASL",
+        "phone": "9827206056",
+        "room": "G-06",
+        "email": "manoj.acharya@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Sumit Mittal",
+        "school": "SASL",
+        "phone": "9318325748",
+        "room": "B-304",
+        "email": "sumit.mittal@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Arockiasamy",
+        "school": "SASL",
+        "phone": "9176825969",
+        "room": "",
+        "email": "arockiasamy.s@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. G L Balaji",
+        "school": "SASL",
+        "phone": "9994613458",
+        "room": "A-414",
+        "email": "balaji.gl@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Saurav prasad",
+        "school": "SASL",
+        "phone": "9310157546",
+        "room": "C-506",
+        "email": "saurav.prasad@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Satyam ravi",
+        "school": "SASL",
+        "phone": "9646937054",
+        "room": "C-536",
+        "email": "satyam@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Vivek Kumar Yadav",
+        "school": "SASL",
+        "phone": "9452266088",
+        "room": "",
+        "email": "vivek@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Saurabh Bhargava",
+        "school": "SASL",
+        "phone": "8901539669",
+        "room": "B-401",
+        "email": "saurabhbhargava@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Shweta Mukherjee",
+        "school": "SASL",
+        "phone": "7354155194 / 7354155194/9826215494",
+        "room": "A-204",
+        "email": "shweta.mukherjee@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Avirup Das",
+        "school": "SASL",
+        "phone": "9674927124",
+        "room": "A-313",
+        "email": "avirup.das@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Sharad Chandra Tripathi",
+        "school": "SASL",
+        "phone": "7697867027",
+        "room": "PAT OFFICE",
+        "email": "sharadchandra.tripathi@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Divya Haridas",
+        "school": "SASL",
+        "phone": "9930594727",
+        "room": "C-515 / AB-110",
+        "email": "divya.haridas@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Ramu Pasupathi Sugavaneshwar",
+        "school": "SASL",
+        "phone": "7899036744",
+        "room": "A-308",
+        "email": "ramupasupathi.s@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Rajdeep Singh Payal",
+        "school": "SASL",
+        "phone": "9389634514",
+        "room": "B-515",
+        "email": "rajdeep.payal@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Pradeep Kumar Kashyap",
+        "school": "SASL",
+        "phone": "7465967251",
+        "room": "A-325",
+        "email": "pradeep.kashyap@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Xavier Suresh",
+        "school": "SASL",
+        "phone": "9486915394",
+        "room": "B-312",
+        "email": "xavier.m@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Suchetana Sadhukan",
+        "school": "SASL",
+        "phone": "9748005527",
+        "room": "A-311",
+        "email": "suchetana@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Chandan Kumar",
+        "school": "SEEE",
+        "phone": "8896677605",
+        "room": "",
+        "email": "chandan.kumar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Siddhartha Maiti",
+        "school": "SBE",
+        "phone": "9326132839",
+        "room": "A-245",
+        "email": "siddhartha.maiti@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Neetu Kalra",
+        "school": "SBE",
+        "phone": "9479661282",
+        "room": "B-410",
+        "email": "neetu.karla@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Arumay PAL",
+        "school": "SBE",
+        "phone": "7439611148",
+        "room": "",
+        "email": "arumay.pal@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Mahendran B",
+        "school": "SBE",
+        "phone": "7382145827",
+        "room": "A-506",
+        "email": "mahendran.b@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Justin Joseph",
+        "school": "SBE",
+        "phone": "9961438040",
+        "room": "",
+        "email": "justin.joseph@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Anita Yadav",
+        "school": "SASL",
+        "phone": "9977588551",
+        "room": "A-315",
+        "email": "anita.yadav@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Vinod Bhatt",
+        "school": "SASL",
+        "phone": "9826143220",
+        "room": "G-02",
+        "email": "vinod.bhatt@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Rajeev Saxena",
+        "school": "SASL",
+        "phone": "9701336323",
+        "room": "A-248",
+        "email": "rajeev.saxena@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Ravi Bhatt",
+        "school": "SASL",
+        "phone": "9630400659",
+        "room": "A-515",
+        "email": "ravi.bhatt@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Soumya Sankar Ghosh",
+        "school": "SASL",
+        "phone": "9748581767",
+        "room": "C-507",
+        "email": "soumya.sankar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Vidhi Agrawal",
+        "school": "SASL",
+        "phone": "9838889590",
+        "room": "",
+        "email": "vidhiagrawal2021@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Atul Aman",
+        "school": "SASL",
+        "phone": "8420862335",
+        "room": "A-512",
+        "email": "atul.aman@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Pushpinder Singh Patheja",
+        "school": "SCSE",
+        "phone": "9893273243",
+        "room": "G-09",
+        "email": "pushpinder.singh@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Sandip Mal",
+        "school": "SCSE",
+        "phone": "7974537024",
+        "room": "A-207",
+        "email": "sandip.mal@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Kanchan Lata Kashyap",
+        "school": "SCSE",
+        "phone": "9826733258",
+        "room": "B-310",
+        "email": "kanchan.k@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Sountharrajan S",
+        "school": "SCSE",
+        "phone": "9786066776",
+        "room": "",
+        "email": "s.sountharrajan@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Shriram R",
+        "school": "SCSE",
+        "phone": "7358194673",
+        "room": "PAT OFFICE",
+        "email": "shriram.r@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Baseera.A",
+        "school": "SCSE",
+        "phone": "9698960667",
+        "room": "G-01",
+        "email": "baseera.a@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Shishir Kumar Shandilya",
+        "school": "SCSE",
+        "phone": "9009972032",
+        "room": "AB-507",
+        "email": "shishirkumar.s@vitbhopal.ac.in"
+      },
+      {
+        "name": "Ms. Suganya E",
+        "school": "SCSE",
+        "phone": "9884970535",
+        "room": "",
+        "email": "suganya.e@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Praveen Lalwani",
+        "school": "SCSE",
+        "phone": "9826573350",
+        "room": "A-101",
+        "email": "praveen.lalwani@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Nilamadhab Mishra",
+        "school": "SCSE",
+        "phone": "7735627711",
+        "room": "B-308",
+        "email": "nilamadhab.mishra@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Pon Harshavardhanan",
+        "school": "SCSE",
+        "phone": "9840768153",
+        "room": "A-202",
+        "email": "pon.harshavardhanan@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Manas Kumar Mishra",
+        "school": "SCSE",
+        "phone": "9956250356",
+        "room": "",
+        "email": "manaskumar.mishra@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Amudhavel J",
+        "school": "SCSE",
+        "phone": "9597788658",
+        "room": "",
+        "email": "amudhavel.j@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Anand Motwani",
+        "school": "SCSE",
+        "phone": "8818965776",
+        "room": "B-407",
+        "email": "anand.motwani@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Chandan Kumar Behera",
+        "school": "SCSE",
+        "phone": "8847872575 / 9039490306",
+        "room": "B-314",
+        "email": "chandankumar.behara@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Ashwin M",
+        "school": "SCSE",
+        "phone": "9710970034",
+        "room": "",
+        "email": "ashwin.m@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Ashish Kumar Sahu",
+        "school": "SCSE",
+        "phone": "9506347438",
+        "room": "",
+        "email": "ashish.kumar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. L Sathish Kumar",
+        "school": "SCSE",
+        "phone": "9597200240",
+        "room": "B-402",
+        "email": "sathish.kumar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. V Pandimurugan",
+        "school": "SCSE",
+        "phone": "9976277455",
+        "room": "",
+        "email": "pandi.murugan@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Subhash Chandra Patel",
+        "school": "SCSE",
+        "phone": "7905407837",
+        "room": "A-404",
+        "email": "subhash.patel@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Muneeswaran",
+        "school": "SCSE",
+        "phone": "9842541667",
+        "room": "",
+        "email": "muneeswaran@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Paras Jain",
+        "school": "SCSE",
+        "phone": "9963023330",
+        "room": "G-07",
+        "email": "paras.jain@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Virendra Singh Kushwaha",
+        "school": "SCSE",
+        "phone": "7415869616",
+        "room": "A-309",
+        "email": "virendra.kushwah@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Venkat Prasad Padhy",
+        "school": "SCSE",
+        "phone": "8310597038",
+        "room": "G-15",
+        "email": "venkat.prasad@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. H Azath",
+        "school": "SCSE",
+        "phone": "9865164505",
+        "room": "B-311",
+        "email": "azath.h@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. L. Shakeera",
+        "school": "SCSE",
+        "phone": "9444679387",
+        "room": "",
+        "email": "shakkeera.l@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Sharmasth Vali Y",
+        "school": "SCSE",
+        "phone": "9444679387",
+        "room": "",
+        "email": "sharmasth.vali@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Rajasoundaran S",
+        "school": "SCSE",
+        "phone": "9025678818",
+        "room": "",
+        "email": "raja.soundaran@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. R.Thilagavathy",
+        "school": "SCSE",
+        "phone": "9894984025",
+        "room": "",
+        "email": "thilagavathy.r@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Nitish Andola",
+        "school": "SCSE",
+        "phone": "8218880567",
+        "room": "",
+        "email": "nitish.andola@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. R.Rakesh",
+        "school": "SCSE",
+        "phone": "9840768026",
+        "room": "",
+        "email": "rakesh.r@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Alangudi Balaji",
+        "school": "SCSE",
+        "phone": "9894391980",
+        "room": "",
+        "email": "alangudi.balaji@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Hariharasitaraman. S",
+        "school": "SCSE",
+        "phone": "99402 95262",
+        "room": "PAT OFFICE",
+        "email": "hariharasitaraman.s@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Amit Mishra",
+        "school": "SCSE",
+        "phone": "8619430401",
+        "room": "",
+        "email": "amit.mishra@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Vikas Panthi",
+        "school": "SCSE",
+        "phone": "9778460751",
+        "room": "A-324 / C-519",
+        "email": "vikas.panthi@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Nidhi Mishra",
+        "school": "SCSE",
+        "phone": "9887677357",
+        "room": "",
+        "email": "Nidhi.mishra@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Saravanan",
+        "school": "SCSE",
+        "phone": "9865483413",
+        "room": "A-249 / C-517",
+        "email": "Saravanan.d@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Durga Prasad",
+        "school": "SCSE",
+        "phone": "8008562322",
+        "room": "",
+        "email": "durga.prasad@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Aprna Tripathi",
+        "school": "SCSE",
+        "phone": "9415736072",
+        "room": "",
+        "email": "aprna.tripathi@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Suthir S",
+        "school": "SCSE",
+        "phone": "9944042932",
+        "room": "",
+        "email": "suthir.s@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Trapti Sharma",
+        "school": "SCSE",
+        "phone": "9425630895",
+        "room": "C-526",
+        "email": "traptisharma@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Kannan S",
+        "school": "SCSE",
+        "phone": "9976878278 / 7702672411",
+        "room": "B-403 / C-528",
+        "email": "kannanshanmugam@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. A.V.R Mayuri",
+        "school": "SCSE",
+        "phone": "9441438843",
+        "room": "B-313",
+        "email": "Mayuri2021@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Murugeswari.k",
+        "school": "SCSE",
+        "phone": "9994276824",
+        "room": "A-403",
+        "email": "murugeswari.k2021@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Abha Trivedi",
+        "school": "SCSE",
+        "phone": "7839319383",
+        "room": "C-530",
+        "email": "Abhatrivedi2021@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. D. Lakshmi",
+        "school": "SCSE",
+        "phone": "9945379089 / 86100 93319",
+        "room": "G-08",
+        "email": "lakshmi.d@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Swagat Kumar",
+        "school": "SCSE",
+        "phone": "9437181775 / 7978166023",
+        "room": "A-247",
+        "email": "swagatkumarsamantaray@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Ganeshan R",
+        "school": "SCSE",
+        "phone": "9789920281 / 8610285129",
+        "room": "A-312",
+        "email": "ganeshan.r@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Manickavasagam",
+        "school": "SCSE",
+        "phone": "9600156423",
+        "room": "",
+        "email": "manickavasagam@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Ashok Patel",
+        "school": "SCSE",
+        "phone": "9770890583",
+        "room": "A-326 / C-535",
+        "email": "ashok.patel@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Balaji A",
+        "school": "SCSE",
+        "phone": "9444422518 / 9444433518",
+        "room": "A-241",
+        "email": "balaji.a@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Rizwan Ur Rahman",
+        "school": "SCSE",
+        "phone": "9893526322",
+        "room": "C-518",
+        "email": "rizwan.ur@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Poonkuntran",
+        "school": "SCSE",
+        "phone": "9894432890",
+        "room": "AB-019 (C)",
+        "email": "poonkuntran.s@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. G. Elangovan",
+        "school": "SCSE",
+        "phone": "7904994756",
+        "room": "",
+        "email": "elangovan.g@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mrs. Simi V.R",
+        "school": "SCSE",
+        "phone": "9567987449",
+        "room": "",
+        "email": "simi@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Hariharan Rajadurai",
+        "school": "SCSE",
+        "phone": "9791322178",
+        "room": "B-301",
+        "email": "hariharan.r@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Mohandas R",
+        "school": "SCSE",
+        "phone": "9840595406",
+        "room": "",
+        "email": "mohandas@vitbhopal"
+      },
+      {
+        "name": "Mr. Ab Rouf Khan",
+        "school": "SCSE",
+        "phone": "8825073337",
+        "room": "",
+        "email": "roufkhan@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. J. Manikandan",
+        "school": "SCSE",
+        "phone": "7871174176",
+        "room": "PAT OFFICE",
+        "email": "manikandan.j@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. M. Maragatharajan",
+        "school": "SCSE",
+        "phone": "9003613484",
+        "room": "B-406",
+        "email": "maragatharajan@vitbhopal.ac.in"
+      },
+      {
+        "name": "Ms. Rakhi",
+        "school": "SCSE",
+        "phone": "8750078320",
+        "room": "",
+        "email": "rakhi@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Shweta Saxena",
+        "school": "SCSE",
+        "phone": "9893954987",
+        "room": "C-511",
+        "email": "shweta.saxena@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Ankush Jain",
+        "school": "SCSE",
+        "phone": "8949224010",
+        "room": "",
+        "email": "ankush.jain@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Surendra Nagar",
+        "school": "SCSE",
+        "phone": "8602783396",
+        "room": "",
+        "email": "surendra.nagar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Mahendra Pratap Yadav",
+        "school": "SCSE",
+        "phone": "9125933765",
+        "room": "",
+        "email": "mahendra.pratap@vitbhopal.ac.in"
+      },
+      {
+        "name": "Ms. Meenakshi Choudhary",
+        "school": "SCSE",
+        "phone": "7000176561",
+        "room": "",
+        "email": "meenakshi.choudhary@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Gyan Prakash Tiwary",
+        "school": "SCSE",
+        "phone": "9752791331",
+        "room": "",
+        "email": "gyan.prakash@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Komarasamy G",
+        "school": "SCSE",
+        "phone": "9715614081",
+        "room": "A-402",
+        "email": "komarasamy.g@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Suryakanta Panda",
+        "school": "SCSE",
+        "phone": "9439518626",
+        "room": "",
+        "email": "suryakantapanda@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Kailash Wamanrao Kalare",
+        "school": "SCSE",
+        "phone": "8605050085",
+        "room": "",
+        "email": "kailash.kalare@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mrs. E. Nirmala",
+        "school": "SCSE",
+        "phone": "8778539987",
+        "room": "B-412",
+        "email": "nirmala.e@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Ribu Mathew",
+        "school": "SEEE",
+        "phone": "9003397713",
+        "room": "G-05",
+        "email": "ribu.mathew@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Mayank Gupta",
+        "school": "SEEE",
+        "phone": "7722993939",
+        "room": "ADMISSION OFFICE-03",
+        "email": "mayank.gupta@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Anirban Bhowmick",
+        "school": "SEEE",
+        "phone": "9547155428",
+        "room": "PAT OFFICE",
+        "email": "anirban.bhowmick@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Nella Anveshkumar",
+        "school": "SEEE",
+        "phone": "9503132874",
+        "room": "A-322",
+        "email": "nella.anveshkumar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Pallabi Sarkar",
+        "school": "SEEE",
+        "phone": "6294524861",
+        "room": "A-305",
+        "email": "pallabi.sarkar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Maheswar R",
+        "school": "SEEE",
+        "phone": "9894512300",
+        "room": "",
+        "email": "Maheswar.r@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Ankur Beohar",
+        "school": "SEEE",
+        "phone": "9893383443, 9425704533",
+        "room": "A-244",
+        "email": "ankur.beohar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Soumitra Keshari Nayak",
+        "school": "SEEE",
+        "phone": "9321923010",
+        "room": "A-246",
+        "email": "soumitra.nayak@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Rahul Kottath",
+        "school": "SEEE",
+        "phone": "8591515682",
+        "room": "",
+        "email": "rahul.kottath@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Abhay Vidyarthi",
+        "school": "SEEE",
+        "phone": "6265754892",
+        "room": "B-413",
+        "email": "abhay.vidyarthi@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Susant Kumar Panigrahi",
+        "school": "SEEE",
+        "phone": "8249232450",
+        "room": "A-310",
+        "email": "susant.kumar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Om Prakash Pahari",
+        "school": "SEEE",
+        "phone": "9583085832",
+        "room": "A-316",
+        "email": "om.prakash@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. V. Sivasankaran",
+        "school": "SEEE",
+        "phone": "9843856991",
+        "room": "A-243",
+        "email": "sivasankaran@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Baldev Swamy",
+        "school": "SEEE",
+        "phone": "9985175896",
+        "room": "",
+        "email": "baldevswamy@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Debashis Adhikari",
+        "school": "SEEE",
+        "phone": "9822347215",
+        "room": "AB-019 (B)",
+        "email": "debashis@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Praveen Kumar Shukla",
+        "school": "SEEE",
+        "phone": "7999517129 9752100000",
+        "room": "",
+        "email": "praveen.kumar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Jino Ramson",
+        "school": "SEEE",
+        "phone": "9791327895",
+        "room": "",
+        "email": "jino.ramson@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Amit Kumar",
+        "school": "SEEE",
+        "phone": "870 846 2784",
+        "room": "",
+        "email": "amit.kumar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Satyajit Mahapatra",
+        "school": "SEEE",
+        "phone": "8249354604, 9853348191",
+        "room": "",
+        "email": "satyajit.mahapatra@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Amit Kumar Singh",
+        "school": "SEEE",
+        "phone": "8840574075",
+        "room": "C-502",
+        "email": "amit.singh@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. P. Narendra Babu",
+        "school": "SEEE",
+        "phone": "6281571216, 9553773487",
+        "room": "AB-410",
+        "email": "narendrababu.p@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Mohammed Irfan Alam",
+        "school": "SMEC",
+        "phone": "9869841985",
+        "room": "",
+        "email": "mohammed.alam@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Ankush D Tharkar",
+        "school": "SMEC",
+        "phone": "8087181373",
+        "room": "B-411",
+        "email": "ankush.tharkar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Prashant G K",
+        "school": "SMEC",
+        "phone": "9910010941",
+        "room": "A-250",
+        "email": "prashant.gk@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Rohit Sharma",
+        "school": "SMEC",
+        "phone": "9131960256",
+        "room": "A-320",
+        "email": "rohit.sharma@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Pushpdant Jain",
+        "school": "SMEC",
+        "phone": "9437786562",
+        "room": "A-412",
+        "email": "pushpdant.jain@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Balaguru S",
+        "school": "SMEC",
+        "phone": "9444465649",
+        "room": "A-210",
+        "email": "balaguru.s@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Shivmanjree Gopaliya",
+        "school": "SMEC",
+        "phone": "9891354291",
+        "room": "A-307",
+        "email": "shivmanjaree@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Ashish Tripathi",
+        "school": "VITBS",
+        "phone": "7579287442",
+        "room": "",
+        "email": "ashish.tripathi@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Bhakti Parashar",
+        "school": "VITBS",
+        "phone": "9826722177",
+        "room": "A-304",
+        "email": "bhakti.parashar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Prince Jason",
+        "school": "VITBS",
+        "phone": "9445268898",
+        "room": "",
+        "email": "prince.jason@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Manisha Singh",
+        "school": "VITBS",
+        "phone": "9425005177",
+        "room": "B-415",
+        "email": "manisha.singh@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Saravanan J",
+        "school": "VITBS",
+        "phone": "9047240141",
+        "room": "A-405",
+        "email": "saravanan.j@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Pankaj Kumar",
+        "school": "VITBS",
+        "phone": "9508237322",
+        "room": "C-520",
+        "email": "pankajkumar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Hemlata Gangwar",
+        "school": "VITBS",
+        "phone": "9766001510",
+        "room": "A-407",
+        "email": "hemlata.gangwar@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. Sheetal Sharma",
+        "school": "SOA",
+        "phone": "8103555591",
+        "room": "A-102",
+        "email": "sheetal.sharma@vitbhopal.ac.in"
+      },
+      {
+        "name": "Mr. Ujjal Halder",
+        "school": "SOA",
+        "phone": "8981693828",
+        "room": "C-533",
+        "email": "ujjalhalder@vitbhopal.ac.in"
+      },
+      {
+        "name": "Dr. A. Sirajudeen",
+        "school": "",
+        "phone": "9043787298",
+        "room": "A-314 / G-05",
+        "email": ""
+      },
+      {
+        "name": "Dr. Pradeep Kumar Mishra",
+        "school": "",
+        "phone": "9926170794 / 9926177094",
+        "room": "A-317 / C-521",
+        "email": ""
+      },
+      {
+        "name": "Dr. S. Periyanayagi",
+        "school": "",
+        "phone": "9994458455",
+        "room": "C-529 / A-323",
+        "email": ""
+      },
+      {
+        "name": "Dr. Shantanu Mandal",
+        "school": "",
+        "phone": "9233184705",
+        "room": "LIBRARY / A-414",
+        "email": ""
+      },
+      {
+        "name": "Dr. Saurabh Mishra",
+        "school": "",
+        "phone": "7394999590",
+        "room": "LIBRARY / B-506",
+        "email": ""
+      },
+      {
+        "name": "Dr. G. Vishnuvarthanan",
+        "school": "",
+        "phone": "9360654171",
+        "room": "G-03",
+        "email": ""
+      },
+      {
+        "name": "Dr. Dev brat Gupta",
+        "school": "",
+        "phone": "9079344563",
+        "room": "G-10",
+        "email": ""
+      },
+      {
+        "name": "Dr. Javed Khan Sheikh",
+        "school": "",
+        "phone": "9320017780",
+        "room": "G-12",
+        "email": ""
+      },
+      {
+        "name": "Dr. Nikhil Pateria",
+        "school": "",
+        "phone": "7999324362",
+        "room": "G-13",
+        "email": ""
+      },
+      {
+        "name": "Dr. G.R. Hemalakshmi",
+        "school": "",
+        "phone": "9500396629",
+        "room": "G-14",
+        "email": ""
+      },
+      {
+        "name": "Nagarajan I",
+        "school": "",
+        "phone": "9131128386",
+        "room": "G-16",
+        "email": ""
+      },
+      {
+        "name": "VIJAY KUMAR TRIVEDI",
+        "school": "",
+        "phone": "8098999684",
+        "room": "G-17",
+        "email": ""
+      },
+      {
+        "name": "Dr. Abha Sharma",
+        "school": "",
+        "phone": "8838270601",
+        "room": "G-18",
+        "email": ""
+      },
+      {
+        "name": "Dr. Dileep Kumar",
+        "school": "",
+        "phone": "9926639291",
+        "room": "G-19",
+        "email": ""
+      },
+      {
+        "name": "D.Harish Babu",
+        "school": "",
+        "phone": "9455222528",
+        "room": "G-20",
+        "email": ""
+      },
+      {
+        "name": "J.P.Shritharanyaa",
+        "school": "",
+        "phone": "9893948272",
+        "room": "G-21",
+        "email": ""
+      },
+      {
+        "name": "Dr. Buvaneswari",
+        "school": "",
+        "phone": "9885168010",
+        "room": "G-22",
+        "email": ""
+      },
+      {
+        "name": "I. Jasmine Selvakumari Jeya",
+        "school": "",
+        "phone": "9443381609",
+        "room": "A-103",
+        "email": ""
+      },
+      {
+        "name": "Ar. Poonam Upadhyay",
+        "school": "",
+        "phone": "8860125107",
+        "room": "A-104",
+        "email": ""
+      },
+      {
+        "name": "Dr. Suparna Patowary",
+        "school": "",
+        "phone": "7433819775",
+        "room": "A-107",
+        "email": ""
+      },
+      {
+        "name": "Dr. Arun Kumar K.",
+        "school": "",
+        "phone": "",
+        "room": "A-108",
+        "email": ""
+      },
+      {
+        "name": "Dr. Hemant Kumar Nashine",
+        "school": "",
+        "phone": "8770771319",
+        "room": "A-109",
+        "email": ""
+      },
+      {
+        "name": "Dr. Ranju Yadav",
+        "school": "",
+        "phone": "9406834330",
+        "room": "A-111",
+        "email": ""
+      },
+      {
+        "name": "Dr. Chandrabhan Seniya",
+        "school": "",
+        "phone": "9755213002",
+        "room": "A-112",
+        "email": ""
+      },
+      {
+        "name": "Dr. Faisal Rasheed Lone",
+        "school": "",
+        "phone": "7006910686",
+        "room": "A-113",
+        "email": ""
+      },
+      {
+        "name": "Dr. Sajjad Ahmed",
+        "school": "",
+        "phone": "7006483148",
+        "room": "A-114",
+        "email": ""
+      },
+      {
+        "name": "Sripriyan",
+        "school": "",
+        "phone": "8754089331",
+        "room": "A-115",
+        "email": ""
+      },
+      {
+        "name": "Mr. Abhishek Kumar Shukla",
+        "school": "",
+        "phone": "7470529298",
+        "room": "A-116",
+        "email": ""
+      },
+      {
+        "name": "Azra Nazir",
+        "school": "",
+        "phone": "7006543347",
+        "room": "A-117",
+        "email": ""
+      },
+      {
+        "name": "Ms Manorama Chouhan",
+        "school": "",
+        "phone": "7415659511",
+        "room": "A-118",
+        "email": ""
+      },
+      {
+        "name": "Arindam Sadhukhan",
+        "school": "",
+        "phone": "8804552592",
+        "room": "A-119",
+        "email": ""
+      },
+      {
+        "name": "Ajay Sharma",
+        "school": "",
+        "phone": "9203837010",
+        "room": "A-120",
+        "email": ""
+      },
+      {
+        "name": "Bhupendra Panchal",
+        "school": "",
+        "phone": "9770240818",
+        "room": "A-121",
+        "email": ""
+      },
+      {
+        "name": "Pranshu Pranjal",
+        "school": "",
+        "phone": "8979609032",
+        "room": "A-122",
+        "email": ""
+      },
+      {
+        "name": "Dr. Subash Chandra Bose",
+        "school": "",
+        "phone": "9445842201",
+        "room": "A-205",
+        "email": ""
+      },
+      {
+        "name": "Dr. Sasmita Padhy",
+        "school": "",
+        "phone": "9040946658",
+        "room": "A-206",
+        "email": ""
+      },
+      {
+        "name": "Dr. Preetam Suman",
+        "school": "",
+        "phone": "7376333523",
+        "room": "A-208",
+        "email": ""
+      },
+      {
+        "name": "Karishma Tiwari",
+        "school": "",
+        "phone": "7227881018",
+        "room": "A-209",
+        "email": ""
+      },
+      {
+        "name": "Dr Vinesh Kumar",
+        "school": "",
+        "phone": "9758648636",
+        "room": "A-211",
+        "email": ""
+      },
+      {
+        "name": "Dr. A Usha Ruby",
+        "school": "",
+        "phone": "7708465168",
+        "room": "A-212",
+        "email": ""
+      },
+      {
+        "name": "Dr. Ranjeeta Kumar",
+        "school": "",
+        "phone": "",
+        "room": "A-213",
+        "email": ""
+      },
+      {
+        "name": "Dr. M. Manimaran",
+        "school": "",
+        "phone": "",
+        "room": "A-214",
+        "email": ""
+      },
+      {
+        "name": "Dr. S. Devaraju",
+        "school": "",
+        "phone": "9788445867",
+        "room": "A-215",
+        "email": ""
+      },
+      {
+        "name": "Harish Chandra",
+        "school": "",
+        "phone": "7248659909",
+        "room": "A-216",
+        "email": ""
+      },
+      {
+        "name": "Dr. Dheresh Soni",
+        "school": "",
+        "phone": "8878743351",
+        "room": "A-217",
+        "email": ""
+      },
+      {
+        "name": "Dr. Gopal S Tandel",
+        "school": "",
+        "phone": "9893773358",
+        "room": "A-218",
+        "email": ""
+      },
+      {
+        "name": "Jaynthi J.",
+        "school": "",
+        "phone": "9646491907",
+        "room": "A-219",
+        "email": ""
+      },
+      {
+        "name": "Ujjwal Kumar Mishra",
+        "school": "",
+        "phone": "9852977391",
+        "room": "A-220",
+        "email": ""
+      },
+      {
+        "name": "MR. JAY PRAKASH MAURYA",
+        "school": "",
+        "phone": "7354549227",
+        "room": "A-221",
+        "email": ""
+      },
+      {
+        "name": "Chandrama Swain",
+        "school": "",
+        "phone": "8460934933",
+        "room": "A-222",
+        "email": ""
+      },
+      {
+        "name": "Dr. Abdul Rehman",
+        "school": "",
+        "phone": "",
+        "room": "A-223",
+        "email": ""
+      },
+      {
+        "name": "Dr. S.AANJANKUMAR",
+        "school": "",
+        "phone": "9786501012",
+        "room": "A-224",
+        "email": ""
+      },
+      {
+        "name": "Karthik Rao M C",
+        "school": "",
+        "phone": "9742739015",
+        "room": "A-225",
+        "email": ""
+      },
+      {
+        "name": "Dr. Vijay Kumar Patidar",
+        "school": "",
+        "phone": "",
+        "room": "A-226",
+        "email": ""
+      },
+      {
+        "name": "Dr. Rajdeep Ghosh",
+        "school": "",
+        "phone": "9085577988",
+        "room": "A-227",
+        "email": ""
+      },
+      {
+        "name": "Dr. Umakanta Meher",
+        "school": "",
+        "phone": "",
+        "room": "A-228",
+        "email": ""
+      },
+      {
+        "name": "Abhishek Shrivastava",
+        "school": "",
+        "phone": "8887820195",
+        "room": "A-229",
+        "email": ""
+      },
+      {
+        "name": "Mr. Ashish Kumar Kesarwany",
+        "school": "",
+        "phone": "",
+        "room": "A-230",
+        "email": ""
+      },
+      {
+        "name": "Bhawna Bagherwal",
+        "school": "",
+        "phone": "9111116600",
+        "room": "A-230",
+        "email": ""
+      },
+      {
+        "name": "Vijay Kumar Patel",
+        "school": "",
+        "phone": "9026050579",
+        "room": "A-232",
+        "email": ""
+      },
+      {
+        "name": "Suchismita Patra",
+        "school": "",
+        "phone": "9540610053",
+        "room": "A-233",
+        "email": ""
+      },
+      {
+        "name": "Rahul Kumar Chaturvedi",
+        "school": "",
+        "phone": "8858709096/8299748659",
+        "room": "A-234",
+        "email": ""
+      },
+      {
+        "name": "Dr. Shahana Gajala Qureshi",
+        "school": "",
+        "phone": "8770762947",
+        "room": "A-235",
+        "email": ""
+      },
+      {
+        "name": "Swati Chauhan",
+        "school": "",
+        "phone": "6398505154",
+        "room": "A-236",
+        "email": ""
+      },
+      {
+        "name": "Anil Kumar Shukla",
+        "school": "",
+        "phone": "9918094075",
+        "room": "A-237",
+        "email": ""
+      },
+      {
+        "name": "Dr. Juhi Yasmeen",
+        "school": "",
+        "phone": "8273788594",
+        "room": "A-238",
+        "email": ""
+      },
+      {
+        "name": "Dr. Vivek Parashar",
+        "school": "",
+        "phone": "",
+        "room": "A-239",
+        "email": ""
+      },
+      {
+        "name": "Dr. Kiran Pandey",
+        "school": "",
+        "phone": "9179948303",
+        "room": "A-240",
+        "email": ""
+      },
+      {
+        "name": "Dr. Siddharth S Chouhan",
+        "school": "",
+        "phone": "",
+        "room": "A-242",
+        "email": ""
+      },
+      {
+        "name": "Prashant Kumar Pandey",
+        "school": "",
+        "phone": "8178376418",
+        "room": "A-303",
+        "email": ""
+      },
+      {
+        "name": "Rajneesh Kumar Patel",
+        "school": "",
+        "phone": "8871235814",
+        "room": "A-306",
+        "email": ""
+      },
+      {
+        "name": "Dr. Sonal Gupta",
+        "school": "",
+        "phone": "",
+        "room": "A-314",
+        "email": ""
+      },
+      {
+        "name": "Dr. Anjali Mathur",
+        "school": "",
+        "phone": "9928986023",
+        "room": "A-319",
+        "email": ""
+      },
+      {
+        "name": "Dr. Monika Sankat",
+        "school": "",
+        "phone": "",
+        "room": "B-305",
+        "email": ""
+      },
+      {
+        "name": "Harshlata Vishwakarma",
+        "school": "",
+        "phone": "8349780109",
+        "room": "B-306",
+        "email": ""
+      },
+      {
+        "name": "Narottam Das Patel",
+        "school": "",
+        "phone": "9450095800",
+        "room": "B-307",
+        "email": ""
+      },
+      {
+        "name": "Dr. C. P. Koushik",
+        "school": "",
+        "phone": "9840403316",
+        "room": "B-309",
+        "email": ""
+      },
+      {
+        "name": "Dr. Ajeet Singh",
+        "school": "",
+        "phone": "9805075085",
+        "room": "B-315",
+        "email": ""
+      },
+      {
+        "name": "Abdul Rashid",
+        "school": "",
+        "phone": "8109171886",
+        "room": "A-406",
+        "email": ""
+      },
+      {
+        "name": "Dr. M. Suresh (Asso. Professor)",
+        "school": "",
+        "phone": "",
+        "room": "A-408",
+        "email": ""
+      },
+      {
+        "name": "Shiv Shankar Prasad Shukla",
+        "school": "",
+        "phone": "8349390186",
+        "room": "A-409",
+        "email": ""
+      },
+      {
+        "name": "Ajay Kumar Phulre",
+        "school": "",
+        "phone": "8770450967 9009218023",
+        "room": "A-410",
+        "email": ""
+      },
+      {
+        "name": "M.SURESH nirmala",
+        "school": "",
+        "phone": "9962212030",
+        "room": "A-411",
+        "email": ""
+      },
+      {
+        "name": "Jitendra Pratap Singh Mathur",
+        "school": "",
+        "phone": "9893536675",
+        "room": "A-413",
+        "email": ""
+      },
+      {
+        "name": "Dr. Ganeshan G.",
+        "school": "",
+        "phone": "",
+        "room": "A-415",
+        "email": ""
+      },
+      {
+        "name": "Devraj Vishnu",
+        "school": "",
+        "phone": "9475451245",
+        "room": "B-404",
+        "email": ""
+      },
+      {
+        "name": "Dr Ankur Jain",
+        "school": "",
+        "phone": "7415259169",
+        "room": "B-405",
+        "email": ""
+      },
+      {
+        "name": "Sonali Shrivastava",
+        "school": "",
+        "phone": "9045914940",
+        "room": "B-409",
+        "email": ""
+      },
+      {
+        "name": "Karthick S.",
+        "school": "",
+        "phone": "9514264651/8103981414",
+        "room": "B-414",
+        "email": ""
+      },
+      {
+        "name": "Dr. Nilesh Kunhare",
+        "school": "",
+        "phone": "9685251246",
+        "room": "C-401",
+        "email": ""
+      },
+      {
+        "name": "Joshi Abhishek Dilip",
+        "school": "",
+        "phone": "9421803544",
+        "room": "C-402",
+        "email": ""
+      },
+      {
+        "name": "Adarsh Patel",
+        "school": "",
+        "phone": "9399414598",
+        "room": "C-403",
+        "email": ""
+      },
+      {
+        "name": "Dr. Gaurav Soni",
+        "school": "",
+        "phone": "9826018671",
+        "room": "C-404",
+        "email": ""
+      },
+      {
+        "name": "Dr Saravanan S",
+        "school": "",
+        "phone": "9944059288",
+        "room": "A-501",
+        "email": ""
+      },
+      {
+        "name": "Ankit Pal",
+        "school": "",
+        "phone": "8586875502",
+        "room": "A-502",
+        "email": ""
+      },
+      {
+        "name": "Dr. Sandeep Sahu",
+        "school": "",
+        "phone": "9407337972",
+        "room": "A-503",
+        "email": ""
+      },
+      {
+        "name": "Dr. Raghavendra Mishra",
+        "school": "",
+        "phone": "8085102581",
+        "room": "A-504",
+        "email": ""
+      },
+      {
+        "name": "Arindam Ghosh",
+        "school": "",
+        "phone": "8328808499",
+        "room": "A-505",
+        "email": ""
+      },
+      {
+        "name": "Dipankar Sutradhar",
+        "school": "",
+        "phone": "7308126760",
+        "room": "A-507",
+        "email": ""
+      },
+      {
+        "name": "Dr. Jyoti Chauhan",
+        "school": "",
+        "phone": "8700502598",
+        "room": "A-508",
+        "email": ""
+      },
+      {
+        "name": "Humaira Fatima",
+        "school": "",
+        "phone": "7455838246/8307962979",
+        "room": "A-509",
+        "email": ""
+      },
+      {
+        "name": "Dr. Anju Shukla",
+        "school": "",
+        "phone": "9111211104",
+        "room": "A-510",
+        "email": ""
+      },
+      {
+        "name": "Dr. Manoj Kumar",
+        "school": "",
+        "phone": "8269576451",
+        "room": "A-511",
+        "email": ""
+      },
+      {
+        "name": "Animesh Bhandari",
+        "school": "",
+        "phone": "8257041061, 9007847469",
+        "room": "A-513",
+        "email": ""
+      },
+      {
+        "name": "Dr. Ravi Verma",
+        "school": "",
+        "phone": "8770995536",
+        "room": "A-514",
+        "email": ""
+      },
+      {
+        "name": "DR. RUDRA KALYAN NAYAK",
+        "school": "",
+        "phone": "9861366884",
+        "room": "B-501",
+        "email": ""
+      },
+      {
+        "name": "Dr. Dip Mukherjee",
+        "school": "",
+        "phone": "",
+        "room": "B-502",
+        "email": ""
+      },
+      {
+        "name": "Dr. Feroz Babu",
+        "school": "",
+        "phone": "",
+        "room": "B-505",
+        "email": ""
+      },
+      {
+        "name": "Dr. Shiju. E",
+        "school": "",
+        "phone": "",
+        "room": "B-506",
+        "email": ""
+      },
+      {
+        "name": "Ms. Geeta Singh",
+        "school": "",
+        "phone": "7680854848",
+        "room": "B-507",
+        "email": ""
+      },
+      {
+        "name": "Dr. S. K. Das",
+        "school": "",
+        "phone": "",
+        "room": "B-508",
+        "email": ""
+      },
+      {
+        "name": "Usama Khan",
+        "school": "",
+        "phone": "",
+        "room": "B-509",
+        "email": ""
+      },
+      {
+        "name": "Mr. Vipin Jain",
+        "school": "",
+        "phone": "",
+        "room": "B-510",
+        "email": ""
+      },
+      {
+        "name": "Dr. Suneet Joshi",
+        "school": "",
+        "phone": "7748946630",
+        "room": "B-512",
+        "email": ""
+      },
+      {
+        "name": "Dr. Shafiul Alom Ahmed",
+        "school": "",
+        "phone": "9706931206",
+        "room": "B-513",
+        "email": ""
+      },
+      {
+        "name": "Dr. Ram Kumar",
+        "school": "",
+        "phone": "9770045634",
+        "room": "C-501",
+        "email": ""
+      },
+      {
+        "name": "Dr. Sultan Alam",
+        "school": "",
+        "phone": "",
+        "room": "C-504",
+        "email": ""
+      },
+      {
+        "name": "Vijendra Singh Bramhe",
+        "school": "",
+        "phone": "8954675017",
+        "room": "C-505",
+        "email": ""
+      },
+      {
+        "name": "Ms. Nancy Kumari",
+        "school": "",
+        "phone": "7011745833",
+        "room": "C-508",
+        "email": ""
+      },
+      {
+        "name": "Dr. Hemraj S.L.",
+        "school": "",
+        "phone": "7387114521",
+        "room": "C-509",
+        "email": ""
+      },
+      {
+        "name": "Dr. Vinod Kumar Jatav",
+        "school": "",
+        "phone": "8239074693",
+        "room": "C-510",
+        "email": ""
+      },
+      {
+        "name": "Soma Saha",
+        "school": "",
+        "phone": "8269896171",
+        "room": "C-512",
+        "email": ""
+      },
+      {
+        "name": "Santosh Kumar Tripathy",
+        "school": "",
+        "phone": "8658297935",
+        "room": "C-513",
+        "email": ""
+      },
+      {
+        "name": "Mr. Sanat Jain",
+        "school": "",
+        "phone": "9893979695",
+        "room": "C-514",
+        "email": ""
+      },
+      {
+        "name": "Dr. G. PRABU KANNA",
+        "school": "",
+        "phone": "9791802829",
+        "room": "C-516",
+        "email": ""
+      },
+      {
+        "name": "Dr. Rajit Nair",
+        "school": "",
+        "phone": "9907694424, 7000760748",
+        "room": "C-522",
+        "email": ""
+      },
+      {
+        "name": "Dr. NITIN KUMAR MISHRA",
+        "school": "",
+        "phone": "9826449051",
+        "room": "C-523",
+        "email": ""
+      },
+      {
+        "name": "Deep Chandra Upadhyay",
+        "school": "",
+        "phone": "9119935285",
+        "room": "C-524",
+        "email": ""
+      },
+      {
+        "name": "Dr. Ashish Mohan Yadav",
+        "school": "",
+        "phone": "7999836793",
+        "room": "C-527",
+        "email": ""
+      },
+      {
+        "name": "Ashok Kumar Baral",
+        "school": "",
+        "phone": "9861999643",
+        "room": "C-531",
+        "email": ""
+      },
+      {
+        "name": "Dr. KR. SIVABALAN",
+        "school": "",
+        "phone": "9698766754",
+        "room": "C-532",
+        "email": ""
+      },
+      {
+        "name": "Garima Jain",
+        "school": "",
+        "phone": "9302920647",
+        "room": "C-534",
+        "email": ""
+      },
+      {
+        "name": "Udai Kumar",
+        "school": "",
+        "phone": "7651914458",
+        "room": "C-537",
+        "email": ""
+      },
+      {
+        "name": "Shilpa Suman",
+        "school": "",
+        "phone": "9693750319",
+        "room": "C-538",
+        "email": ""
+      },
+      {
+        "name": "PRATOSH KUMAR PAL",
+        "school": "",
+        "phone": "8989806880",
+        "room": "C-539",
+        "email": ""
+      },
+      {
+        "name": "Prasad Begde",
+        "school": "",
+        "phone": "8225048609",
+        "room": "C-540",
+        "email": ""
+      },
+      {
+        "name": "Dr. J. George Chellin Chandran",
+        "school": "",
+        "phone": "9384174987",
+        "room": "AB-011",
+        "email": ""
+      },
+      {
+        "name": "Dr. PRADYUMNA YADAV",
+        "school": "",
+        "phone": "8109961099/7024111639",
+        "room": "AB-019 (A)",
+        "email": ""
+      },
+      {
+        "name": "Mr. ANIL MEWADA (Secy. of Registrar)",
+        "school": "",
+        "phone": "9131094751",
+        "room": "AB-019 (L)",
+        "email": ""
+      },
+      {
+        "name": "Dr. S. Ananthakumaran",
+        "school": "",
+        "phone": "9842221962",
+        "room": "PAT OFFICE",
+        "email": ""
+      },
+      {
+        "name": "R.Sukumar",
+        "school": "",
+        "phone": "9962029293",
+        "room": "PAT OFFICE",
+        "email": ""
+      },
+      {
+        "name": "Rajendra Mahanandia",
+        "school": "",
+        "phone": "9438659192",
+        "room": "PAT OFFICE",
+        "email": ""
+      },
+      {
+        "name": "Dr. Abha Gupta",
+        "school": "",
+        "phone": "",
+        "room": "AB-306",
+        "email": ""
+      },
+      {
+        "name": "Dr. Juhi Kesarwani",
+        "school": "",
+        "phone": "",
+        "room": "AB-306",
+        "email": ""
+      },
+      {
+        "name": "Mr. RAVI KUMAR SINGH",
+        "school": "",
+        "phone": "",
+        "room": "AB-310",
+        "email": ""
+      },
+      {
+        "name": "Priyanka Mishra",
+        "school": "",
+        "phone": "9140871509",
+        "room": "AB-406",
+        "email": ""
+      },
+      {
+        "name": "Dr S.VAIRACHILAI",
+        "school": "",
+        "phone": "8106813402",
+        "room": "AB-406",
+        "email": ""
+      },
+      {
+        "name": "Dr Kamlesh Chandravanshi",
+        "school": "",
+        "phone": "9009217763",
+        "room": "AB-410",
+        "email": ""
+      },
+      {
+        "name": "Mr. Vikas Kumar Jain",
+        "school": "",
+        "phone": "9981008680",
+        "room": "AB-506",
+        "email": ""
+      },
+      {
+        "name": "Mr. Narendra Kumar",
+        "school": "",
+        "phone": "8968945650",
+        "room": "AB-506",
+        "email": ""
+      },
+      {
+        "name": "Dr. Anil Kumar Yadav",
+        "school": "",
+        "phone": "9479499566",
+        "room": "AB-510",
+        "email": ""
+      },
+      {
+        "name": "M.R. Thiyagu Priyadharsan",
+        "school": "",
+        "phone": "9994115629",
+        "room": "AB-510",
+        "email": ""
+      },
+      {
+        "name": "Dr. Sumit Som",
+        "school": "",
+        "phone": "",
+        "room": "LIBRARY",
+        "email": ""
+      },
+      {
+        "name": "Dr. Sanjay Pan",
+        "school": "",
+        "phone": "",
+        "room": "LIBRARY",
+        "email": ""
+      },
+      {
+        "name": "Dr. Sanjeev Nayak",
+        "school": "",
+        "phone": "",
+        "room": "LIBRARY",
+        "email": ""
+      },
+      {
+        "name": "Dr. Shweta Singh",
+        "school": "",
+        "phone": "",
+        "room": "LIBRARY",
+        "email": ""
+      },
+      {
+        "name": "Dr. Ravindra Prasad",
+        "school": "",
+        "phone": "",
+        "room": "LIBRARY",
+        "email": ""
+      },
+      {
+        "name": "Dr. Saurabh kumar morya",
+        "school": "",
+        "phone": "9532437348",
+        "room": "LIBRARY",
+        "email": ""
+      },
+      {
+        "name": "Dr. P.V.N. Kishor",
+        "school": "",
+        "phone": "9553773590",
+        "room": "LIBRARY",
+        "email": ""
+      },
+      {
+        "name": "Dr. Kashinath",
+        "school": "SCSE",
+        "phone": "9730951876",
+        "room": "",
+        "email": ""
+      },
+      {
+        "name": "Dr. Santosh Kumar Bahl",
+        "school": "SASL",
+        "phone": "9373410389",
+        "room": "",
+        "email": ""
+      },
+      {
+        "name": "Dr. Dipanjana Hazra",
+        "school": "SASL",
+        "phone": "9340355344",
+        "room": "",
+        "email": ""
+      },
+      {
+        "name": "Dr. Kiran Kumar Behra",
+        "school": "SASL",
+        "phone": "8267808230",
+        "room": "",
+        "email": ""
+      },
+      {
+        "name": "Dr. Gounder Thangamani Jayaram",
+        "school": "SASL",
+        "phone": "8110019705",
+        "room": "",
+        "email": ""
+      },
+      {
+        "name": "Dr. Hemanta Kalita",
+        "school": "SASL",
+        "phone": "8811039996",
+        "room": "",
+        "email": ""
+      }
+    ];
+
+    const EXTRA_FACULTY_DATA = [
+      // Add more faculty here whenever you want:
+      {
+        name: "DR. PRADEEP KUMAR",
+        school: "SCOPE",
+        rawFaculty: "DR. PRADEEP KUMAR - SCOPE",
+        subjects: ["Operating Systems", "Cloud Computing"]
+      },
+      {
+        name: "DR. SARAVANAN R",
+        school: "SCOPE",
+        rawFaculty: "DR. SARAVANAN R - SCOPE",
+        subjects: ["Computer Networks", "Cyber Security"]
+      }
+    ];
+
+    /**
+     * ========================================================================
+     * 1. VERIFIED TIMETABLE DATA: DHRUBA, AJAY, SIDDHARTHA, JAIVARDHAN, SIDDHANT, ANAND, ARAVIND, JUDWE, SUVAYAN, PRAKHAR, VANSH, ASHESH, ANSH, PRAKRIT & NILAN
+     * ========================================================================
+     */
+    const FRIENDS_DATA = [
+      {
+        id: "dhruba",
+        name: "Dhruba",
+        color: "emerald",
+        avatarBg: "from-blue-500 to-indigo-600",
+        courses: [
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Open Elective",
+            classNo: "BL2026270500828",
+            slots: ["A24", "E21", "F22"],
+            venue: "AB-102",
+            faculty: "G.PRABU KANNA - O/o-COE"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Open Elective",
+            classNo: "BL2026270501333",
+            slots: ["F11"],
+            venue: "CR-021",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Open Elective",
+            classNo: "BL2026270501408",
+            slots: ["D21"],
+            venue: "CR-016",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500900",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB02-217",
+            faculty: "IAMNEO 5 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Open Elective",
+            classNo: "BL2026270500696",
+            slots: ["A11", "A12", "A13"],
+            venue: "AB-315",
+            faculty: "ARINDAM DUTTA - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science",
+            classNo: "BL2026270500530",
+            slots: ["B13"],
+            venue: "AB-501",
+            faculty: "ABDUR RAHMAN M S - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500379",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-101",
+            faculty: "KUMAR ABHISHEK - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500138",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB-230",
+            faculty: "ASHOK KUMAR BARAL - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500557",
+            slots: ["B11"],
+            venue: "AB-530",
+            faculty: "ABDUR RAHMAN M S - SASL"
+          }
+        ]
+      },
+      {
+        id: "ajay",
+        name: "Ajay",
+        color: "blue",
+        avatarBg: "from-sky-500 to-blue-600",
+        courses: [
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Open Elective",
+            classNo: "BL2026270500828",
+            slots: ["A24", "E21", "F22"],
+            venue: "AB-102",
+            faculty: "G.PRABU KANNA - O/o-COE"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Open Elective",
+            classNo: "BL2026270501333",
+            slots: ["F11"],
+            venue: "CR-021",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Open Elective",
+            classNo: "BL2026270501408",
+            slots: ["D21"],
+            venue: "CR-016",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500900",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB02-217",
+            faculty: "IAMNEO 5 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Open Elective",
+            classNo: "BL2026270500696",
+            slots: ["A11", "A12", "A13"],
+            venue: "AB-315",
+            faculty: "ARINDAM DUTTA - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science",
+            classNo: "BL2026270500530",
+            slots: ["B13"],
+            venue: "AB-429",
+            faculty: "VINOD BHATT - SASL" // Single different teacher
+          },
+          {
+            group: "General",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500379",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-101",
+            faculty: "KUMAR ABHISHEK - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500138",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB-230",
+            faculty: "ASHOK KUMAR BARAL - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500557",
+            slots: ["B11"],
+            venue: "AB-530",
+            faculty: "ABDUR RAHMAN M S - SASL"
+          }
+        ]
+      },
+      {
+        id: "siddhartha",
+        name: "Siddhartha",
+        color: "amber",
+        avatarBg: "from-amber-500 to-orange-600",
+        courses: [
+          {
+            group: "General",
+            code: "CHY1001",
+            title: "ENGINEERING CHEMISTRY",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500159",
+            slots: ["B14", "B23", "D21"],
+            venue: "AB-128",
+            faculty: "ARINDAM GHOSH - SASL"
+          },
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501319",
+            slots: ["C21", "F11", "F12"],
+            venue: "AB-007",
+            faculty: "SANTHOSH KUMAR S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501331",
+            slots: ["C12"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501411",
+            slots: ["A23"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "ECE2002",
+            title: "Digital Logic Design",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500651",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB-216",
+            faculty: "V. SIVASANKARAN - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG1004",
+            title: "EFFECTIVE TECHNICAL COMMUNICATION",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500512",
+            slots: ["C11"],
+            venue: "AB-518",
+            faculty: "ANITA YADAV - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT2005",
+            title: "Transform Techniques and Difference Equations",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 3.0,
+            category: "University Elective - Natural Science Electives",
+            classNo: "BL2026270500412",
+            slots: ["A11", "A12"],
+            venue: "AB-415",
+            faculty: "VINOD KUMAR JATAV - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1001",
+            title: "ENGINEERING PHYSICS",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500112",
+            slots: ["B21", "E14", "E22"],
+            venue: "AB-102",
+            faculty: "AVIRUP DAS - SASL"
+          }
+        ]
+      },
+      {
+        id: "jaivardhan",
+        name: "Jaivardhan Singh",
+        color: "purple",
+        avatarBg: "from-purple-500 to-indigo-600",
+        courses: [
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501305",
+            slots: ["B21", "E14", "E22"],
+            venue: "AB-025",
+            faculty: "T. VENKATESWARA RAO - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non - Graded Mandatory Courses",
+            classNo: "BL2026270501328",
+            slots: ["E11"],
+            venue: "CR-017",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non - Graded Mandatory Courses",
+            classNo: "BL2026270501339",
+            slots: ["F14"],
+            venue: "CR-010",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500952",
+            slots: ["A11", "A12", "A13"],
+            venue: "AB02-216",
+            faculty: "IAMNEO 8 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500694",
+            slots: ["B14", "B23", "D21"],
+            venue: "AB-228",
+            faculty: "PAUL RAJ T - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500521",
+            slots: ["D12"],
+            venue: "AB02-104",
+            faculty: "JYOTI SHARMA - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500408",
+            slots: ["A24", "E21", "F22"],
+            venue: "AB02-317",
+            faculty: "ANIL KUMAR SHUKLA - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500131",
+            slots: ["A21", "A22", "A23"],
+            venue: "AB-330",
+            faculty: "SARAVANAN L - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500552",
+            slots: ["D11"],
+            venue: "AB02-420",
+            faculty: "JUHI YASMEEN - SASL"
+          }
+        ]
+      },
+      {
+        id: "siddhant",
+        name: "Siddhant",
+        color: "rose",
+        avatarBg: "from-rose-500 to-pink-600",
+        courses: [
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501294",
+            slots: ["B22", "B24", "F21"],
+            venue: "AB-007",
+            faculty: "A. SIRAJUDEEN - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501327",
+            slots: ["B13"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501344",
+            slots: ["B23"],
+            venue: "CR-010",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500946",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB02-323",
+            faculty: "IAMNEO 8 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500693",
+            slots: ["C21", "F11", "F12"],
+            venue: "AB-501",
+            faculty: "PAUL RAJ T - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500519",
+            slots: ["A12"],
+            venue: "AB-514",
+            faculty: "DEV BRAT GUPTA - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500409",
+            slots: ["B21", "E14", "E22"],
+            venue: "AB02-419",
+            faculty: "PAUL D - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial ,practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500130",
+            slots: ["A21", "A22", "A23"],
+            venue: "AB-318",
+            faculty: "JAYACHANDIRAN J - SASL"
+          },
+          {
+            group: "General",
+            code: "SST2003",
+            title: "Dynamics of workplace communication Skills",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500462",
+            slots: ["A11"],
+            venue: "AB-429",
+            faculty: "DEV BRAT GUPTA - SASL"
+          }
+        ]
+      },
+      {
+        id: "anand",
+        name: "Anand",
+        color: "teal",
+        avatarBg: "from-teal-500 to-cyan-600",
+        courses: [
+          {
+            group: "General",
+            code: "CHY1005",
+            title: "Introduction to Computational Chemistry",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500175",
+            slots: ["A11", "A12", "A13"],
+            venue: "AB-126",
+            faculty: "MANOJ ACHARYA - SASL"
+          },
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501319",
+            slots: ["C21", "F11", "F12"],
+            venue: "AB-007",
+            faculty: "SANTHOSH KUMAR S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501326",
+            slots: ["B12"],
+            venue: "CR-002",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501411",
+            slots: ["A23"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500900",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB02-216",
+            faculty: "IAMNEO 4 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500694",
+            slots: ["B14", "B23", "D21"],
+            venue: "AB-228",
+            faculty: "PAUL RAJ T - SEEE"
+          },
+          {
+            group: "General",
+            code: "MAT2005",
+            title: "Transform Techniques and Difference Equations",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 3.0,
+            category: "University Elective - Natural Science Electives",
+            classNo: "BL2026270500454",
+            slots: ["B21", "E14"],
+            venue: "AB02-417",
+            faculty: "RANJITHA - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500142",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB-403",
+            faculty: "VENKATESAN K - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500574",
+            slots: ["A21"],
+            venue: "AB-503",
+            faculty: "SAMIKHYA DASH - SASL"
+          }
+        ]
+      },
+      {
+        id: "aravind",
+        name: "Aravind",
+        color: "indigo",
+        avatarBg: "from-indigo-500 to-purple-600",
+        courses: [
+          {
+            group: "General",
+            code: "ASE2005",
+            title: "INTRODUCTION TO AEROSPACE ENGINEERING",
+            type: "Lecture and Practical Hours Only",
+            shortType: "LP",
+            credit: 3.0,
+            category: "Programme Core",
+            classNo: "BL2026270501417",
+            slots: ["C11", "F14"],
+            venue: "AB-103",
+            faculty: "RAVINDRA - SMEC"
+          },
+          {
+            group: "General",
+            code: "CHY1001",
+            title: "ENGINEERING CHEMISTRY",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500158",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-216",
+            faculty: "JAGRITI GUPTA - SASL"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501328",
+            slots: ["E11"],
+            venue: "CR-017",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501335",
+            slots: ["E14"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500667",
+            slots: ["A21", "A22", "A23"],
+            venue: "AB-319",
+            faculty: "GOPAL SINGH - SEEE"
+          },
+          {
+            group: "General",
+            code: "MAT2002",
+            title: "Discrete Mathematics and Graph Theory",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500387",
+            slots: ["B14", "B23", "D21"],
+            venue: "AB-216",
+            faculty: "MOSTAID AHMED - SASL"
+          },
+          {
+            group: "General",
+            code: "MEE1002",
+            title: "Engineering Mechanics",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 3.0,
+            category: "Programme Core",
+            classNo: "BL2026270500591",
+            slots: ["C12", "C13"],
+            venue: "AB-002",
+            faculty: "BALAGURU S - SMEC"
+          },
+          {
+            group: "General",
+            code: "PHY1001",
+            title: "ENGINEERING PHYSICS",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500109",
+            slots: ["A11", "A12", "A13"],
+            venue: "AB-107",
+            faculty: "SHWETA MUKHERJEE - SASL"
+          }
+        ]
+      },
+      {
+        id: "judwe",
+        name: "Judwe",
+        color: "fuchsia",
+        avatarBg: "from-fuchsia-500 to-pink-600",
+        courses: [
+          {
+            group: "General",
+            code: "CHY1005",
+            title: "Introduction to Computational chemistry",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500181",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB-107",
+            faculty: "MANOJ ACHARYA - SASL"
+          },
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501307",
+            slots: ["B14", "B23", "D21"],
+            venue: "AB-025",
+            faculty: "RAKESH SRIVASTAVA - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501334",
+            slots: ["F12"],
+            venue: "CR-010",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501339",
+            slots: ["F14"],
+            venue: "CR-010",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500891",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB02-217",
+            faculty: "IAMNEO 3 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500686",
+            slots: ["B11", "B12", "B13"],
+            venue: "AB-315",
+            faculty: "ARINDAM SADHUKHAN - SEEE"
+          },
+          {
+            group: "General",
+            code: "MAT2005",
+            title: "Transform Techniques and Difference Equations",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 3.0,
+            category: "University Elective - Natural Science Electives",
+            classNo: "BL2026270500412",
+            slots: ["A11", "A12"],
+            venue: "AB-415",
+            faculty: "VINOD KUMAR JATAV - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500139",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB-319",
+            faculty: "GEETANJALI GIRI - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500567",
+            slots: ["F11"],
+            venue: "AB02-102",
+            faculty: "JUHI YASMEEN - SASL"
+          }
+        ]
+      },
+      {
+        id: "suvayan",
+        name: "Suvayan",
+        color: "orange",
+        avatarBg: "from-orange-500 to-amber-600",
+        courses: [
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501290",
+            slots: ["B11", "B12", "B13"],
+            venue: "AB-007",
+            faculty: "JYOTI CHAUHAN - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501328",
+            slots: ["E11"],
+            venue: "CR-017",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501411",
+            slots: ["A23"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500905",
+            slots: ["B21", "E14", "E22"],
+            venue: "AB02-119",
+            faculty: "IAMNEO 4 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500696",
+            slots: ["A11", "A12", "A13"],
+            venue: "AB-315",
+            faculty: "ARINDAM DUTTA - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500545",
+            slots: ["B14"],
+            venue: "AB02-119",
+            faculty: "SARANYA JAYAPRAKASH A - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500379",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-101",
+            faculty: "KUMAR ABHISHEK - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500124",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB-315",
+            faculty: "P. VAYUNANDANAKISHORE - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500562",
+            slots: ["C14"],
+            venue: "AB-025",
+            faculty: "ABDUR RAHMAN M S - SASL"
+          }
+        ]
+      },
+      {
+        id: "prakhar",
+        name: "Prakhar",
+        color: "cyan",
+        avatarBg: "from-cyan-500 to-teal-600",
+        courses: [
+          {
+            group: "General",
+            code: "CHY1005",
+            title: "Introduction to Computational chemistry",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500194",
+            slots: ["C21", "F11", "F12"],
+            venue: "AB-429",
+            faculty: "PIJUSH KANTI MONDAL - SASL"
+          },
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501305",
+            slots: ["B21", "E14", "E22"],
+            venue: "AB-025",
+            faculty: "T. VENKATESWARA RAO - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501326",
+            slots: ["B12"],
+            venue: "CR-002",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501338",
+            slots: ["C14"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500895",
+            slots: ["B22", "B24", "F21"],
+            venue: "AB02-205",
+            faculty: "IAMNEO 3 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500621",
+            slots: ["B14", "B23", "D21"],
+            venue: "AB-217",
+            faculty: "PALLAV - SEEE"
+          },
+          {
+            group: "General",
+            code: "MAT2005",
+            title: "Transform Techniques and Difference Equations",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 3.0,
+            category: "University Elective - Natural Science Electives",
+            classNo: "BL2026270500427",
+            slots: ["A21", "A23"],
+            venue: "AB-303",
+            faculty: "BHUMIKA CHOKSI - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500154",
+            slots: ["A24", "E21", "F22"],
+            venue: "AB-103",
+            faculty: "JAYACHANDIRAN J - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500577",
+            slots: ["A22"],
+            venue: "AB-431",
+            faculty: "SAMIKHYA DASH - SASL"
+          }
+        ]
+      },
+      {
+        id: "vansh",
+        name: "Vansh",
+        color: "violet",
+        avatarBg: "from-violet-500 to-purple-600",
+        courses: [
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501311",
+            slots: ["C21", "F11", "F12"],
+            venue: "AB-103",
+            faculty: "PRAKASH N B - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501331",
+            slots: ["C12"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501343",
+            slots: ["E22"],
+            venue: "CR-015",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500895",
+            slots: ["B22", "B24", "F21"],
+            venue: "AB02-205",
+            faculty: "IAMNEO 3 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500713",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB-330",
+            faculty: "KANIMOZHI M - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500522",
+            slots: ["A13"],
+            venue: "AB-415",
+            faculty: "DEV BRAT GUPTA - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500398",
+            slots: ["B14", "B23", "D21"],
+            venue: "AB02-417",
+            faculty: "PAUL D - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500120",
+            slots: ["B11", "B12", "B13"],
+            venue: "AB-420",
+            faculty: "GAYATHRI HEGDE - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500574",
+            slots: ["A21"],
+            venue: "AB-503",
+            faculty: "SAMIKHYA DASH - SASL"
+          }
+        ]
+      },
+      {
+        id: "ashesh",
+        name: "Ashesh",
+        color: "emerald",
+        avatarBg: "from-emerald-500 to-teal-600",
+        courses: [
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501313",
+            slots: ["B11", "B12", "B13"],
+            venue: "AB-023",
+            faculty: "PRAVINDRA SHEKHAR SHAKUNT - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501333",
+            slots: ["F11"],
+            venue: "CR-021",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501342",
+            slots: ["B22"],
+            venue: "CR-007",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500924",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB02-218",
+            faculty: "IAMNEO 6 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500662",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-023",
+            faculty: "ABHAY VIDYARTHI - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500545",
+            slots: ["B14"],
+            venue: "AB02-119",
+            faculty: "SARANYA JAYAPRAKASH A - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500356",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB-101",
+            faculty: "SUCHISMITA PATRA - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500115",
+            slots: ["A11", "A12", "A13"],
+            venue: "AB-101",
+            faculty: "SHARAD CHANDRA TRIPATHI - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500570",
+            slots: ["F12"],
+            venue: "AB-318",
+            faculty: "DEBRAJ GOGOI - SASL"
+          }
+        ]
+      },
+      {
+        id: "ansh",
+        name: "Ansh",
+        color: "sky",
+        avatarBg: "from-sky-500 to-indigo-600",
+        courses: [
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501308",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB-023",
+            faculty: "RAKESH SRIVASTAVA - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501334",
+            slots: ["F12"],
+            venue: "CR-010",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501339",
+            slots: ["E14"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500897",
+            slots: ["A11", "A12", "A13"],
+            venue: "AB02-202",
+            faculty: "IAMNEO 3 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500706",
+            slots: ["B11", "B12", "B13"],
+            venue: "AB-302",
+            faculty: "AMIT KUMAR SINGH - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500533",
+            slots: ["F11"],
+            venue: "AB02-103",
+            faculty: "TAUSEEF QAMAR - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500383",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-228",
+            faculty: "SALMAN ZAHEER - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500140",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB-329",
+            faculty: "ABHINAV KUMAR - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500585",
+            slots: ["B22"],
+            venue: "AB-317",
+            faculty: "DEBRAJ GOGOI - SASL"
+          }
+        ]
+      },
+      {
+        id: "prakrit",
+        name: "Prakrit",
+        color: "lime",
+        avatarBg: "from-lime-500 to-emerald-600",
+        courses: [
+          {
+            group: "General",
+            code: "CHY1005",
+            title: "Introduction to Computational chemistry",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500193",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB-313",
+            faculty: "SAURABH MISHRA - SASL"
+          },
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501291",
+            slots: ["A24", "E21", "F22"],
+            venue: "AB-007",
+            faculty: "RUDRA KALYAN NAYAK - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501334",
+            slots: ["F12"],
+            venue: "CR-010",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501342",
+            slots: ["B22"],
+            venue: "CR-007",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500712",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB-313",
+            faculty: "ARINDAM DUTTA - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500540",
+            slots: ["A23"],
+            venue: "AB02-103",
+            faculty: "JUHI YASMEEN - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT2002",
+            title: "Discrete Mathematics and Graph Theory",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500337",
+            slots: ["B14", "B23", "D21"],
+            venue: "AB-216",
+            faculty: "MOSTAID AHMED - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY2011",
+            title: "Biophysics",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 3.0,
+            category: "University Elective - Natural Science Electives",
+            classNo: "BL2026270500116",
+            slots: ["E14", "E22"],
+            venue: "AB-313",
+            faculty: "XAVIER SURESH - SASL"
+          }
+        ]
+      },
+      {
+        id: "nilan",
+        name: "Nilan",
+        color: "pink",
+        avatarBg: "from-pink-500 to-rose-600",
+        courses: [
+          {
+            group: "General",
+            code: "CHY1001",
+            title: "ENGINEERING CHEMISTRY",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500158",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-216",
+            faculty: "JAGRITI GUPTA - SASL"
+          },
+          {
+            group: "General",
+            code: "CHY1006",
+            title: "Environmental Sustainability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500171",
+            slots: ["D21"],
+            venue: "AB-314",
+            faculty: "VIPIN KUMAR MISHRA - SASL"
+          },
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501293",
+            slots: ["C21", "F11", "F12"],
+            venue: "AB-024",
+            faculty: "DEVARAJU S - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501328",
+            slots: ["E11"],
+            venue: "CR-017",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501409",
+            slots: ["D22"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2006",
+            title: "Programming in Java",
+            type: "Lecture and Practical Hours Only",
+            shortType: "LP",
+            credit: 3.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270501002",
+            slots: ["A12", "A13"],
+            venue: "AB02-421",
+            faculty: "FACE TRAINER 8 - ACAD"
+          },
+          {
+            group: "General",
+            code: "ENG1004",
+            title: "EFFECTIVE TECHNICAL COMMUNICATION",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500513",
+            slots: ["B14"],
+            venue: "AB-331",
+            faculty: "VINOD BHATT - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT2002",
+            title: "Discrete Mathematics and Graph Theory",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500339",
+            slots: ["B21", "E14", "E22"],
+            venue: "AB02-206",
+            faculty: "HARISH CHANDRA - SASL"
+          },
+          {
+            group: "General",
+            code: "MEE1002",
+            title: "Engineering Mechanics",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 3.0,
+            category: "Programme Core",
+            classNo: "BL2026270500591",
+            slots: ["C12", "C13"],
+            venue: "AR-002",
+            faculty: "BALAGURU S - SMEC"
+          }
+        ]
+      },
+      {
+        id: "suryansh",
+        name: "Suryansh",
+        color: "indigo",
+        avatarBg: "from-indigo-600 to-blue-600",
+        courses: [
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270501306",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB-023",
+            faculty: "RAKESH SRIVASTAVA - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501333",
+            slots: ["F11"],
+            venue: "CR-021",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501410",
+            slots: ["A22"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500924",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB02-218",
+            faculty: "IAMNEO 6 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500660",
+            slots: ["B11", "B12", "B13"],
+            venue: "AB-413",
+            faculty: "GOPAL SINGH - SEEE"
+          },
+          {
+            group: "General",
+            code: "ENG2005",
+            title: "Advanced Technical Communication",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "University Core - Humanities Social Science and Management Core",
+            classNo: "BL2026270500542",
+            slots: ["E14"],
+            venue: "AB-403",
+            faculty: "RAJEEV SAXENA - SASL"
+          },
+          {
+            group: "General",
+            code: "MAT3003",
+            title: "Probability, Statistics and Reliability",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500383",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-228",
+            faculty: "SALMAN ZAHEER - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500128",
+            slots: ["A11", "A12", "A13"],
+            venue: "AB-127",
+            faculty: "SUGAVANESHWAR R P - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500581",
+            slots: ["B14"],
+            venue: "AB-413",
+            faculty: "ABDUR RAHMAN M S - SASL"
+          }
+        ]
+      },
+      {
+        id: "divyansh",
+        name: "Divyansh",
+        color: "amber",
+        avatarBg: "from-amber-500 to-rose-600",
+        courses: [
+          {
+            group: "General",
+            code: "CHY1005",
+            title: "Introduction to Computational chemistry",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500193",
+            slots: ["C14", "E11", "E12"],
+            venue: "AB-313",
+            faculty: "SAURABH MISHRA - SASL"
+          },
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270501295",
+            slots: ["A24", "E21", "F22"],
+            venue: "AB-023",
+            faculty: "G. VISHNUVARTHANAN - SCAI"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501326",
+            slots: ["B12"],
+            venue: "CR-002",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501410",
+            slots: ["A22"],
+            venue: "CR-018",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500948",
+            slots: ["B14", "B23", "D21"],
+            venue: "AB02-218",
+            faculty: "IAMNEO 8 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500697",
+            slots: ["B21", "E14", "E22"],
+            venue: "AB-230",
+            faculty: "LOKESH SONI - SEEE"
+          },
+          {
+            group: "General",
+            code: "MAT2005",
+            title: "Transform Techniques and Difference Equations",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 3.0,
+            category: "University Elective - Natural Science Electives",
+            classNo: "BL2026270500429",
+            slots: ["A21", "A23"],
+            venue: "AB-430",
+            faculty: "PALAS MANDAL - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500136",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-128",
+            faculty: "P. VAYUNANDANAKISHORE - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500565",
+            slots: ["B13"],
+            venue: "AB02-322",
+            faculty: "JUHI YASMEEN - SASL"
+          }
+        ]
+      },
+      {
+        id: "aditya",
+        name: "Aditya",
+        color: "sky",
+        avatarBg: "from-sky-500 to-indigo-600",
+        courses: [
+          {
+            group: "General",
+            code: "CHY1005",
+            title: "Introduction to Computational chemistry",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500190",
+            slots: ["A14", "D11", "D12"],
+            venue: "AB-230",
+            faculty: "HIMANSHU HARISH SHARMA - SASL"
+          },
+          {
+            group: "General",
+            code: "CSA2001",
+            title: "Fundamentals in AI and ML",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270501297",
+            slots: ["A24", "E21", "F22"],
+            venue: "AB-025",
+            faculty: "VIVEK PARASHAR - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0001",
+            title: "Digital Literacy",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 1.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501328",
+            slots: ["E11"],
+            venue: "CR-017",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE0002",
+            title: "OPEN SOURCE SOFTWARE (LINUX ADMINISTRATION)",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 2.0,
+            category: "Non-Graded Mandatory Courses",
+            classNo: "BL2026270501343",
+            slots: ["E22"],
+            venue: "CR-015",
+            faculty: "KANNAN S - SCOPE"
+          },
+          {
+            group: "General",
+            code: "CSE2001",
+            title: "Object Oriented Programming with C++",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "Programme Core",
+            classNo: "BL2026270500895",
+            slots: ["B22", "B24", "F21"],
+            venue: "AB02-205",
+            faculty: "IAMNEO 3 - ACAD"
+          },
+          {
+            group: "General",
+            code: "EEE1001",
+            title: "Electric Circuits and Systems",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Basic Engineering Sciences Core",
+            classNo: "BL2026270500709",
+            slots: ["C11", "C12", "C13"],
+            venue: "AB-329",
+            faculty: "DIPAK PRASAD - SEEE"
+          },
+          {
+            group: "General",
+            code: "MAT2005",
+            title: "Transform Techniques and Difference Equations",
+            type: "Lecture and Tutorial Hours Only",
+            shortType: "LT",
+            credit: 3.0,
+            category: "University Elective - Natural Science Electives",
+            classNo: "BL2026270500411",
+            slots: ["B11", "B12"],
+            venue: "AB-502",
+            faculty: "NAVNEET KUMAR VERMA - SASL"
+          },
+          {
+            group: "General",
+            code: "PHY1003",
+            title: "Introduction to Computational Physics",
+            type: "Lecture and Tutorial, practical hours only",
+            shortType: "LTP",
+            credit: 4.0,
+            category: "University Core - Natural Science Core",
+            classNo: "BL2026270500144",
+            slots: ["B14", "B23", "D21"],
+            venue: "AB-102",
+            faculty: "RAJDEEP SINGH PAYAL - SASL"
+          },
+          {
+            group: "General",
+            code: "SST1003",
+            title: "Professional Communication Skills for Engineers",
+            type: "Practical Hours Only",
+            shortType: "P",
+            credit: 1.0,
+            category: "University Core - Skill Development Courses",
+            classNo: "BL2026270500574",
+            slots: ["A21"],
+            venue: "AB-503",
+            faculty: "SAMIKHYA DASH - SASL"
+          }
+        ]
+      }
+    ];
+
+    /**
+     * ========================================================================
+     * 2. VIT BHOPAL 7-SLOT MATRIX (LUNCH COMPLETELY REMOVED!)
+     * ========================================================================
+     */
+    const TIME_COLUMNS = [
+      { index: 0, start: "8:30 AM", end: "10:00 AM", startMin: 510, endMin: 600, label: "Slot 1" },
+      { index: 1, start: "10:05 AM", end: "11:35 AM", startMin: 605, endMin: 695, label: "Slot 2" },
+      { index: 2, start: "11:40 AM", end: "1:10 PM", startMin: 700, endMin: 790, label: "Slot 3" },
+      { index: 3, start: "1:15 PM", end: "2:45 PM", startMin: 795, endMin: 885, label: "Slot 4" },
+      { index: 4, start: "2:50 PM", end: "4:20 PM", startMin: 890, endMin: 980, label: "Slot 5" },
+      { index: 5, start: "4:25 PM", end: "5:55 PM", startMin: 985, endMin: 1075, label: "Slot 6" },
+      { index: 6, start: "6:00 PM", end: "7:30 PM", startMin: 1080, endMin: 1170, label: "Slot 7" }
+    ];
+
+    // Exactly 7 theory slots per day, lunch row completely removed
+    const DAY_MATRIX = {
+      MON: ["A11", "B11", "C11", "A21", "A14", "B21", "C21"],
+      TUE: ["D11", "E11", "F11", "D21", "E14", "E21", "F21"],
+      WED: ["A12", "B12", "C12", "A22", "B14", "B22", "A24"],
+      THU: ["D12", "E12", "F12", "D22", "F14", "E22", "F22"],
+      FRI: ["A13", "B13", "C13", "A23", "C14", "B23", "B24"],
+      SAT: ["D13", "E13", "F13", "D23", "D14", "D24", "E23"]
+    };
+
+    const DAYS_ORDER = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const DAY_FULL_NAMES = {
+      MON: "Monday",
+      TUE: "Tuesday",
+      WED: "Wednesday",
+      THU: "Thursday",
+      FRI: "Friday",
+      SAT: "Saturday"
+    };
+
+    /**
+     * ========================================================================
+     * 3. APPLICATION STATE
+     * ========================================================================
+     */
+    let activeTab = "master";
+    let activeFriendIds = new Set(FRIENDS_DATA.map(f => f.id));
+    let selectedMasterDay = "MON";
+    let selectedSlotIndex = null;
+    let selectedIndividualFriendId = "dhruba";
+
+    // Detect today's day on startup (IST)
+    const { jsDay: currentJsDay } = getISTTime();
+    if (currentJsDay >= 1 && currentJsDay <= 6) {
+      selectedMasterDay = DAYS_ORDER[currentJsDay - 1];
+    }
+
+    /**
+     * ========================================================================
+     * 4. HELPER UTILITIES
+     * ========================================================================
+     */
+    function getISTTime() {
+      const now = new Date();
+      try {
+        const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+        const istDate = new Date(istString);
+        const jsDay = istDate.getDay();
+        const hours = istDate.getHours();
+        const minutes = istDate.getMinutes();
+        return { jsDay, hours, minutes, currentMins: hours * 60 + minutes };
+      } catch (e) {
+        const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const istDate = new Date(utcMs + (5.5 * 3600000));
+        const jsDay = istDate.getDay();
+        const hours = istDate.getHours();
+        const minutes = istDate.getMinutes();
+        return { jsDay, hours, minutes, currentMins: hours * 60 + minutes };
+      }
+    }
+    function getFriendSlotMap(friend) {
+      const map = {};
+      if (!friend || !friend.courses) return map;
+      for (const course of friend.courses) {
+        for (const slot of course.slots) {
+          map[slot.trim().toUpperCase()] = course;
+        }
+      }
+      return map;
+    }
+
+    function timeStrToMinutes(timeStr) {
+      if (!timeStr) return 0;
+      const isPM = /pm/i.test(timeStr);
+      const isAM = /am/i.test(timeStr);
+      const clean = timeStr.replace(/[^\d:]/g, "");
+      const [rawH, rawM] = clean.split(":").map(Number);
+      let h = rawH || 0;
+      const m = rawM || 0;
+      if (isPM && h < 12) h += 12;
+      if (isAM && h === 12) h = 0;
+      return h * 60 + m;
+    }
+
+    function minutesToTimeStr(totalMinutes) {
+      let h = Math.floor(totalMinutes / 60) % 24;
+      const m = Math.round(totalMinutes % 60);
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12;
+      if (h === 0) h = 12;
+      return `${h}:${String(m).padStart(2, "0")} ${ampm}`;
+    }
+
+    function formatDuration(mins) {
+      if (mins <= 0) return "0m";
+      const h = Math.floor(mins / 60);
+      const m = Math.round(mins % 60);
+      if (h > 0 && m > 0) return `${h}h ${m}m`;
+      if (h > 0) return `${h}h`;
+      return `${m}m`;
+    }
+
+    function getActiveFriendsList() {
+      return FRIENDS_DATA.filter(f => activeFriendIds.has(f.id));
+    }
+
+    function getSlotOccupancy(day, colIndex) {
+      const col = TIME_COLUMNS[colIndex];
+      const slotCode = DAY_MATRIX[day][colIndex];
+      const activeFriends = getActiveFriendsList();
+
+      const freeFriends = [];
+      const busyFriends = [];
+
+      for (const friend of activeFriends) {
+        const slotMap = getFriendSlotMap(friend);
+        const course = slotMap[slotCode];
+        if (course) {
+          busyFriends.push({ friend, course });
+        } else {
+          freeFriends.push(friend);
+        }
+      }
+
+      // Sort in alphabetical order (A to Z) by student name for all slot displays
+      busyFriends.sort((a, b) => a.friend.name.localeCompare(b.friend.name));
+      freeFriends.sort((a, b) => a.name.localeCompare(b.name));
+
+      return {
+        day,
+        colIndex,
+        slotCode,
+        timeRange: `${col.start} – ${col.end}`,
+        start: col.start,
+        end: col.end,
+        label: col.label,
+        freeFriends,
+        busyFriends
+      };
+    }
+
+    /**
+     * ========================================================================
+     * 5. TOP CARDS & LIVE STATUS METRICS
+     * ========================================================================
+     */
+    function updateTopSummaryMetrics() {
+      const totalEl = document.getElementById("statTotalSlots");
+      const busyEl = document.getElementById("statBusySlots");
+      const freeEl = document.getElementById("statFreeSlots");
+      if (!totalEl || !busyEl || !freeEl) return;
+
+      const totalWeekSlots = 42; // 6 days * 7 slots
+      const activeFriends = getActiveFriendsList();
+
+      if (activeFriends.length === 0) {
+        totalEl.textContent = "42";
+        busyEl.textContent = "0";
+        freeEl.textContent = "42";
+        return;
+      }
+
+      // Calculate unique busy slots across active friends
+      let busyCount = 0;
+      DAYS_ORDER.forEach(day => {
+        for (let i = 0; i < 7; i++) {
+          const occ = getSlotOccupancy(day, i);
+          if (occ.busyFriends.length > 0) {
+            busyCount++;
+          }
+        }
+      });
+
+      const freeCount = totalWeekSlots - busyCount;
+      totalEl.textContent = totalWeekSlots;
+      busyEl.textContent = busyCount;
+      freeEl.textContent = freeCount;
+    }
+
+    function renderLiveStatusBanner() {
+      const widget = document.getElementById("liveBannerWidget");
+      if (!widget) return;
+
+      const identity = getUserIdentity();
+      // Look for identified squad student, or fallback to selected individual student, or first squad student
+      let student = null;
+      if (identity && identity.id) {
+        student = FRIENDS_DATA.find(f => f.id === identity.id || f.name.toLowerCase() === (identity.name || "").toLowerCase());
+      }
+      if (!student && selectedIndividualFriendId) {
+        student = FRIENDS_DATA.find(f => f.id === selectedIndividualFriendId);
+      }
+      if (!student) {
+        student = FRIENDS_DATA[0];
+      }
+
+      const { jsDay, currentMins } = getISTTime();
+      const timeFormatted = minutesToTimeStr(currentMins);
+      const studentFirstName = student ? student.name.split(" ")[0] : "You";
+
+      if (jsDay === 0) {
+        widget.innerHTML = `
+          <div class="w-full p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-1.5 text-xs">
+            <div class="flex items-center justify-between gap-2 text-[11px]">
+              <button onclick="openUserIdentityModal()" title="Click to change student"
+                class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-400 font-bold hover:bg-blue-100 transition active:scale-95 truncate max-w-[160px]">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span class="truncate">${studentFirstName}'s Schedule</span>
+                <i class="fa-solid fa-chevron-down text-[8px] opacity-60"></i>
+              </button>
+              <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate">
+                Sunday ${timeFormatted} • Weekend
+              </div>
+            </div>
+            <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-900/60 text-[11px] text-emerald-700 dark:text-emerald-300">
+              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-emerald-600 text-white shrink-0">WEEKEND</span>
+              <span class="truncate font-semibold">No classes today • Full free day! Classes resume Monday 8:30 AM 🌴</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const dayCode = DAYS_ORDER[jsDay - 1];
+      const daySlots = DAY_MATRIX[dayCode] || [];
+      const slotMap = student ? getFriendSlotMap(student) : {};
+
+      // Collect all scheduled classes for today
+      const todayClasses = [];
+      daySlots.forEach((slotCode, idx) => {
+        const course = slotMap[slotCode];
+        if (course) {
+          todayClasses.push({
+            slotIndex: idx,
+            slotCode: slotCode,
+            timeCol: TIME_COLUMNS[idx],
+            course: course
+          });
+        }
+      });
+
+      // Find current active class if student is in class right now
+      let currentClassItem = null;
+      todayClasses.forEach(item => {
+        if (currentMins >= item.timeCol.startMin && currentMins <= item.timeCol.endMin) {
+          currentClassItem = item;
+        }
+      });
+
+      // Active slot in university matrix right now
+      const activeCol = TIME_COLUMNS.find(c => currentMins >= c.startMin && currentMins <= c.endMin);
+
+      // Find next upcoming class today
+      const upcomingClasses = todayClasses.filter(item => item.timeCol.startMin > currentMins);
+      const nextClassItem = upcomingClasses.length > 0 ? upcomingClasses[0] : null;
+
+      // Count remaining classes today
+      const remainingClasses = todayClasses.filter(item => item.timeCol.endMin > currentMins);
+      const remainingCount = remainingClasses.length;
+
+      let isCurrentlyInClass = false;
+      let currentHtml = "";
+
+      if (currentClassItem) {
+        isCurrentlyInClass = true;
+        const minsLeft = currentClassItem.timeCol.endMin - currentMins;
+        const venue = currentClassItem.course.venue || "Campus";
+        currentHtml = `
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="font-extrabold text-slate-900 dark:text-white truncate">${currentClassItem.course.code}</span>
+            <span class="text-slate-400 dark:text-slate-500">•</span>
+            <span class="text-slate-600 dark:text-slate-300 font-semibold truncate">📍 ${venue}</span>
+            <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold shrink-0 ml-auto">Ends in ${minsLeft}m</span>
+          </div>
+        `;
+      } else if (activeCol) {
+        currentHtml = `
+          <div class="flex items-center gap-1.5 min-w-0 text-slate-500 dark:text-slate-400 text-[11px]">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+            <span class="font-medium truncate">Free slot (${activeCol.label}: ${activeCol.start} - ${activeCol.end})</span>
+          </div>
+        `;
+      } else if (currentMins < TIME_COLUMNS[0].startMin) {
+        const minsToStart = TIME_COLUMNS[0].startMin - currentMins;
+        currentHtml = `
+          <div class="flex items-center gap-1.5 min-w-0 text-slate-500 dark:text-slate-400 text-[11px]">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+            <span class="font-medium truncate">Classes start at 8:30 AM (in ${formatDuration(minsToStart)})</span>
+          </div>
+        `;
+      } else {
+        currentHtml = `
+          <div class="flex items-center gap-1.5 min-w-0 text-slate-500 dark:text-slate-400 text-[11px]">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+            <span class="font-medium truncate">Classes over for today • Outside class hours</span>
+          </div>
+        `;
+      }
+
+      let nextHtml = "";
+      if (nextClassItem) {
+        const minsUntil = nextClassItem.timeCol.startMin - currentMins;
+        const venue = nextClassItem.course.venue || "Campus";
+        nextHtml = `
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="font-extrabold text-slate-900 dark:text-white truncate">${nextClassItem.course.code}</span>
+            <span class="text-slate-400 dark:text-slate-500">•</span>
+            <span class="text-slate-600 dark:text-slate-300 font-semibold truncate">📍 ${venue}</span>
+            <span class="text-[10px] text-blue-600 dark:text-blue-400 font-bold shrink-0 ml-auto">${nextClassItem.timeCol.start} (${minsUntil > 0 ? 'in ' + minsUntil + 'm' : 'now'})</span>
+          </div>
+        `;
+      } else if (todayClasses.length === 0) {
+        nextHtml = `
+          <div class="flex items-center gap-1.5 min-w-0 text-slate-400 dark:text-slate-500 text-[11px]">
+            <span>No classes scheduled for today 🎉</span>
+          </div>
+        `;
+      } else {
+        nextHtml = `
+          <div class="flex items-center gap-1.5 min-w-0 text-slate-500 dark:text-slate-400 text-[11px]">
+            <span>Done for today! All ${todayClasses.length} classes completed 🎉</span>
+          </div>
+        `;
+      }
+
+      let remainingBadge = "";
+      if (todayClasses.length === 0) {
+        remainingBadge = "Free day";
+      } else if (remainingCount === 0) {
+        remainingBadge = "0 left today";
+      } else {
+        remainingBadge = `${remainingCount} of ${todayClasses.length} left`;
+      }
+
+      widget.innerHTML = `
+        <div class="w-full p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-1.5 text-xs">
+          <!-- Top Row: Student selector & Day details -->
+          <div class="flex items-center justify-between gap-2 text-[11px]">
+            <button onclick="openUserIdentityModal()" title="Click to change student"
+              class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-400 font-bold hover:bg-blue-100 dark:hover:bg-blue-900/60 transition active:scale-95 truncate max-w-[170px]">
+              <span class="w-1.5 h-1.5 rounded-full ${isCurrentlyInClass ? 'bg-emerald-500 animate-pulse' : 'bg-blue-600'}"></span>
+              <span class="truncate">${studentFirstName}'s Schedule</span>
+              <i class="fa-solid fa-chevron-down text-[8px] opacity-60"></i>
+            </button>
+            <div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium shrink-0 text-[10px]">
+              <span>${dayCode} ${timeFormatted}</span>
+              <span class="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 font-bold text-slate-600 dark:text-slate-300">
+                ${remainingBadge}
+              </span>
+            </div>
+          </div>
+
+          <!-- Live Class Strip: Current & Next or Done Message -->
+          ${remainingCount === 0 && todayClasses.length > 0 ? `
+            <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-900/60 text-[11px] text-emerald-800 dark:text-emerald-200 min-w-0">
+              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-emerald-600 text-white shrink-0">
+                DONE
+              </span>
+              <span class="truncate font-semibold text-slate-800 dark:text-slate-100">
+                Done for today! All ${todayClasses.length} classes completed 🎉
+              </span>
+            </div>
+          ` : todayClasses.length === 0 ? `
+            <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-600 dark:text-slate-300 min-w-0">
+              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 shrink-0">
+                FREE
+              </span>
+              <span class="truncate font-semibold">
+                No classes scheduled for today 🎉
+              </span>
+            </div>
+          ` : `
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-0.5">
+              <!-- Current Class Box -->
+              <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl ${isCurrentlyInClass ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-900/60' : 'bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/80'} min-w-0">
+                <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider shrink-0 ${isCurrentlyInClass ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+                  ${isCurrentlyInClass ? 'NOW' : 'CURRENT'}
+                </span>
+                <div class="min-w-0 flex-1 truncate">
+                  ${currentHtml}
+                </div>
+              </div>
+
+              <!-- Next Class Box -->
+              <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/80 min-w-0">
+                <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider shrink-0 bg-blue-600 text-white">
+                  NEXT
+                </span>
+                <div class="min-w-0 flex-1 truncate">
+                  ${nextHtml}
+                </div>
+              </div>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    /**
+     * ========================================================================
+     * 6. NAVIGATION & TABS
+     * ========================================================================
+     */
+    function switchTab(tabId) {
+      if (typeof trackSectionUsage === "function") {
+        trackSectionUsage(tabId);
+      }
+      if (tabId === "calender") tabId = "calendar";
+      if (tabId === "individual") {
+        tabId = "master";
+        if (activeFriendIds.size !== 1) {
+          selectSquadFilter(selectedIndividualFriendId || FRIENDS_DATA[0].id);
+        }
+      }
+      activeTab = tabId;
+      const tabs = ["master", "calendar", "teacher", "parcel", "paylater", "mess"];
+
+      tabs.forEach(t => {
+        const panel = document.getElementById(`tabPanel-${t}`);
+        const btn = document.getElementById(`tabBtn-${t}`);
+        if (!panel || !btn) return;
+        if (t === tabId) {
+          panel.classList.remove("hidden");
+          btn.className = "tab-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm shrink-0";
+        } else {
+          panel.classList.add("hidden");
+          btn.className = "tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0";
+        }
+      });
+
+      // Update URL hash route for deep linking
+      if (typeof window !== "undefined" && window.location) {
+        try {
+          const hashMapping = {
+            parcel: "#delivery",
+            teacher: "#teacher-review",
+            master: "#squad",
+            calendar: "#calendar",
+            paylater: "#pay-later",
+            mess: "#mess"
+          };
+          if (hashMapping[tabId] && window.location.hash !== hashMapping[tabId]) {
+            if (window.history && window.history.replaceState) {
+              window.history.replaceState(null, "", hashMapping[tabId]);
+            }
+          }
+        } catch (e) { }
+      }
+
+      if (tabId === "master") {
+        renderMasterDayPills();
+        renderMobileSlotCards();
+        renderIndividualView();
+      } else if (tabId === "calendar") {
+        renderCalendar();
+      } else if (tabId === "teacher") {
+        // Teacher reviews are lazy-loaded ONLY when Teacher Finder is opened
+        initFirebaseReviews();
+        renderTeacherFinder();
+      } else if (tabId === "parcel") {
+        initFirebaseParcelRequests();
+        renderParcelHelper();
+      } else if (tabId === "paylater") {
+        hasUserManuallySelectedPayLaterFilter = false;
+        initFirebasePayLaterRequests();
+        renderPayLaterUI();
+      } else if (tabId === "mess") {
+        fetchMessMenu(getUserMess() || selectedMessId);
+      }
+    }
+
+    /**
+     * ========================================================================
+     * 7. TAB 1: MOBILE TIMETABLE FEED & DAY SELECTOR
+     * ========================================================================
+     */
+    function renderMasterDayPills() {
+      const container = document.getElementById("masterDayPills");
+      container.innerHTML = DAYS_ORDER.map(day => {
+        const isSelected = day === selectedMasterDay;
+        return `
+          <button
+            onclick="selectMasterDay('${day}')"
+            class="flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition text-center ${isSelected
+            ? 'bg-brandBlue text-white shadow-sm'
+            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+          }"
+          >
+            ${day}
+          </button>
+        `;
+      }).join("");
+
+      const dayLabel = document.getElementById("currentDayHeaderLabel");
+      if (dayLabel) {
+        dayLabel.textContent = DAY_FULL_NAMES[selectedMasterDay];
+      }
+      renderInlineSquadToggles();
+    }
+
+    function selectMasterDay(day) {
+      selectedMasterDay = day;
+      selectedSlotIndex = null;
+      renderMasterDayPills();
+      renderMobileSlotCards();
+    }
+
+    function renderInlineSquadToggles() {
+      const container = document.getElementById("inlineSquadToggles");
+      if (!container) return;
+      const wrapper = document.getElementById("inlineSquadTogglesContainer");
+      if (wrapper) wrapper.classList.remove("hidden");
+
+      const isAll = activeFriendIds.size === FRIENDS_DATA.length;
+
+      const allBtnHtml = `
+        <button
+          onclick="selectSquadFilter('all')"
+          class="shrink-0 whitespace-nowrap px-3 py-1 rounded-full text-[11px] font-bold border transition ${isAll
+          ? 'bg-brandBlue text-white border-brandBlue shadow-xs'
+          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+        }"
+        >
+          All
+        </button>
+      `;
+
+      // Sort in alphabetical order (A to Z)
+      const sortedFriends = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
+
+      const friendsHtml = sortedFriends.map(f => {
+        const isSoleActive = !isAll && activeFriendIds.size === 1 && activeFriendIds.has(f.id);
+        return `
+          <button
+            onclick="selectSquadFilter('${f.id}')"
+            class="shrink-0 whitespace-nowrap px-3 py-1 rounded-full text-[11px] font-bold border transition ${isSoleActive
+            ? 'bg-brandBlue text-white border-brandBlue shadow-xs'
+            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+          }"
+          >
+            ${f.name.split(" ")[0]}
+          </button>
+        `;
+      }).join("");
+
+      container.innerHTML = allBtnHtml + friendsHtml;
+    }
+
+    function getCurrentLiveSlotIndex(forDay = selectedMasterDay) {
+      const { jsDay, currentMins } = getISTTime();
+      if (jsDay === 0) return -1; // Sunday
+      const todayDayCode = DAYS_ORDER[jsDay - 1];
+      if (forDay !== todayDayCode) return -1;
+
+      // Before classes start in the morning, highlight upcoming first slot
+      if (currentMins < TIME_COLUMNS[0].startMin) {
+        return 0;
+      }
+
+      // Check which slot covers currentMins (including transition period up to next slot)
+      for (let i = 0; i < TIME_COLUMNS.length; i++) {
+        const col = TIME_COLUMNS[i];
+        const nextStart = (i < TIME_COLUMNS.length - 1) ? TIME_COLUMNS[i + 1].startMin : col.endMin;
+        if (currentMins >= col.startMin && currentMins <= nextStart) {
+          return i;
+        }
+      }
+
+      return -1;
+    }
+
+    function renderMobileSlotCards() {
+      const container = document.getElementById("mobileSlotCardFeed");
+      const activeFriends = getActiveFriendsList();
+
+      if (activeFriends.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-xs">
+            No friends selected in squad. Tap "All" to view schedule.
+          </div>
+        `;
+        return;
+      }
+
+      const isSoleStudent = activeFriends.length === 1;
+      const soleStudent = isSoleStudent ? activeFriends[0] : null;
+      const currentLiveSlotIdx = getCurrentLiveSlotIndex(selectedMasterDay);
+
+      const soleStudentHeaderHtml = isSoleStudent ? `
+        <div class="flex items-center justify-between px-1 pb-1">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+              ${soleStudent.name}
+            </span>
+            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-brandBlue border border-blue-200/80 dark:border-blue-900/60 shrink-0">
+              ${soleStudent.courses.length} Courses • ${soleStudent.courses.reduce((sum, c) => sum + Number(c.credit || 0), 0).toFixed(1)} Cr
+            </span>
+          </div>
+          <button
+            type="button"
+            onclick="scrollToStudentCourses()"
+            class="inline-flex items-center gap-1 text-[11px] font-bold text-brandBlue dark:text-blue-400 hover:underline shrink-0 cursor-pointer"
+          >
+            <span>Registered Courses</span>
+            <i class="fa-solid fa-arrow-down text-[9px]"></i>
+          </button>
+        </div>
+      ` : '';
+
+      // Render 7 slots for the chosen day
+      const slotCardsHtml = TIME_COLUMNS.map((col, idx) => {
+        const occ = getSlotOccupancy(selectedMasterDay, idx);
+        const total = occ.freeFriends.length + occ.busyFriends.length;
+        const allFree = occ.freeFriends.length === total;
+        const allBusy = occ.freeFriends.length === 0;
+
+        let badgeStyle = "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800";
+        let statusText = `${occ.freeFriends.length}/${total} Free`;
+
+        if (isSoleStudent) {
+          if (occ.busyFriends.length > 0) {
+            badgeStyle = "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800";
+            statusText = "In Class";
+          } else {
+            badgeStyle = "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800";
+            statusText = "Free";
+          }
+        } else if (allFree) {
+          badgeStyle = "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800";
+          statusText = total === 1 ? "Free" : "All Free";
+        } else if (allBusy) {
+          badgeStyle = "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800";
+          statusText = total === 1 ? "In Class" : "All In Class";
+        }
+
+        const isCurrentSlotLive = (currentLiveSlotIdx === idx);
+        const isHighlighted = (selectedSlotIndex !== null)
+          ? (selectedSlotIndex === idx)
+          : isCurrentSlotLive;
+
+        // When a single student is selected, compute classmates and same-slot squad members
+        let sameClassFriends = [];
+        let sameSlotBusyFriends = [];
+        let sameSlotFreeFriends = [];
+        let soleCourse = null;
+
+        if (isSoleStudent) {
+          const slotCode = DAY_MATRIX[selectedMasterDay][idx];
+          const soleMap = getFriendSlotMap(soleStudent);
+          soleCourse = soleMap[slotCode];
+
+          const otherFriends = FRIENDS_DATA.filter(f => f.id !== soleStudent.id);
+          otherFriends.forEach(other => {
+            const otherMap = getFriendSlotMap(other);
+            const otherCourse = otherMap[slotCode];
+            if (otherCourse) {
+              if (soleCourse && (
+                (otherCourse.code && soleCourse.code && otherCourse.code.toUpperCase() === soleCourse.code.toUpperCase()) ||
+                (otherCourse.faculty && soleCourse.faculty && otherCourse.faculty.trim().toLowerCase() === soleCourse.faculty.trim().toLowerCase())
+              )) {
+                sameClassFriends.push({ friend: other, course: otherCourse });
+              } else {
+                sameSlotBusyFriends.push({ friend: other, course: otherCourse });
+              }
+            } else {
+              sameSlotFreeFriends.push(other);
+            }
+          });
+
+          sameClassFriends.sort((a, b) => a.friend.name.localeCompare(b.friend.name));
+          sameSlotBusyFriends.sort((a, b) => a.friend.name.localeCompare(b.friend.name));
+          sameSlotFreeFriends.sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        // Identify classmates sharing the exact same teacher in this slot (for All mode)
+        const teacherCounts = {};
+        occ.busyFriends.forEach(({ course }) => {
+          const fKey = (course.faculty || "").trim().toLowerCase();
+          if (fKey) {
+            teacherCounts[fKey] = (teacherCounts[fKey] || 0) + 1;
+          }
+        });
+
+        // Minimal, elegant theme palette for shared classmate groups (muted colored left stripe)
+        const CLASSMATE_BORDER_THEMES = [
+          "border-l-[3.5px] border-l-blue-500 dark:border-l-blue-400",
+          "border-l-[3.5px] border-l-emerald-500 dark:border-l-emerald-400",
+          "border-l-[3.5px] border-l-purple-500 dark:border-l-purple-400",
+          "border-l-[3.5px] border-l-amber-500 dark:border-l-amber-400",
+          "border-l-[3.5px] border-l-rose-500 dark:border-l-rose-400"
+        ];
+
+        const sharedTeachers = Object.keys(teacherCounts).filter(k => teacherCounts[k] > 1);
+        const teacherThemeMap = {};
+        sharedTeachers.forEach((k, tIdx) => {
+          teacherThemeMap[k] = CLASSMATE_BORDER_THEMES[tIdx % CLASSMATE_BORDER_THEMES.length];
+        });
+
+        return `
+          <div
+            onclick="selectMobileSlot(${idx})"
+            class="bg-white dark:bg-slate-900 border rounded-2xl p-3.5 shadow-2xs transition active:scale-[0.99] cursor-pointer ${isHighlighted
+            ? 'border-brandBlue ring-2 ring-blue-100 dark:ring-blue-950'
+            : 'border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+          }"
+          >
+            <!-- Card Header: Slot Name + Time + Status Badge -->
+            <div class="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-black text-sm px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                  ${occ.slotCode}
+                </span>
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 font-mono inline-flex items-center gap-1.5">
+                  <span>${col.start} – ${col.end}</span>
+                  ${isCurrentSlotLive ? `
+                    <span class="relative flex h-2 w-2" title="Live Class">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                  ` : ''}
+                </span>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badgeStyle}">
+                ${statusText}
+              </span>
+            </div>
+
+            <!-- Card Body: Busy Classes & Direct Free Students Display -->
+            <div class="space-y-2">
+              ${isSoleStudent ? `
+                <!-- INDIVIDUAL STUDENT SINGLE VIEW: Shows Your Class + Who is in same slot -->
+                ${soleCourse ? `
+                  <div class="space-y-1.5">
+                    <div class="flex items-start justify-between text-xs py-2 px-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100/80 dark:border-slate-700/60">
+                      <div class="min-w-0 pr-2 space-y-0.5">
+                        <div class="font-bold text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
+                          <span>${soleStudent.name.split(" ")[0]}</span>
+                          <span class="text-brandBlue font-mono font-semibold">${soleCourse.code}</span>
+                        </div>
+                        <div class="text-[11px] text-slate-600 dark:text-slate-400 truncate">
+                          ${soleCourse.title}
+                        </div>
+                        <div class="text-[10.5px] text-slate-500 dark:text-slate-400 truncate flex items-center gap-1">
+                          <i class="fa-solid fa-user-tie text-[9px] text-slate-400 dark:text-slate-500"></i>
+                          <span class="font-medium text-slate-600 dark:text-slate-300">${soleCourse.faculty.split(" - ")[0]}</span>
+                        </div>
+                      </div>
+                      <span class="font-mono font-bold text-[11px] px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border dark:border-amber-900/60 shrink-0 mt-0.5">
+                        ${soleCourse.venue}
+                      </span>
+                    </div>
+                  </div>
+                ` : `
+                  <div class="flex items-center gap-2 py-1 px-1 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                    <span>${soleStudent.name.split(" ")[0]} is Free in this slot</span>
+                  </div>
+                `}
+
+                <!-- SQUAD MEMBERS IN SAME SLOT -->
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+                  <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                    <i class="fa-solid fa-users text-[9px]"></i>
+                    <span>Squad Members in this Slot:</span>
+                  </div>
+
+                  ${sameClassFriends.length > 0 ? `
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="text-[11px] font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                        <i class="fa-solid fa-user-group text-[10px] text-blue-500"></i> In your class (${sameClassFriends.length}):
+                      </span>
+                      <div class="flex items-center gap-1 flex-wrap">
+                        ${sameClassFriends.map(({ friend }) => `
+                          <span class="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[11px] font-bold">
+                            ${friend.name.split(" ")[0]}
+                          </span>
+                        `).join("")}
+                      </div>
+                    </div>
+                  ` : ''}
+
+                  ${sameSlotBusyFriends.length > 0 ? `
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="text-[11px] font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                        <i class="fa-solid fa-clock text-[10px] text-slate-400"></i> In same slot (${sameSlotBusyFriends.length}):
+                      </span>
+                      <div class="flex items-center gap-1 flex-wrap">
+                        ${sameSlotBusyFriends.map(({ friend, course }) => `
+                          <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[11px] font-medium" title="${course.code} • ${course.venue} (${course.faculty.split(' - ')[0]})">
+                            ${friend.name.split(" ")[0]} <span class="font-mono text-[9px] text-slate-400 dark:text-slate-500 font-normal">(${course.code})</span>
+                          </span>
+                        `).join("")}
+                      </div>
+                    </div>
+                  ` : ''}
+
+                  ${sameSlotFreeFriends.length > 0 ? `
+                    <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+                      <span class="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-check text-[10px] text-emerald-500"></i> Free (${sameSlotFreeFriends.length}):
+                      </span>
+                      <div class="flex items-center gap-1 flex-wrap">
+                        ${sameSlotFreeFriends.map(f => `
+                          <span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 text-[11px] font-medium">
+                            ${f.name.split(" ")[0]}
+                          </span>
+                        `).join("")}
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+              ` : `
+                <!-- ALL MODE: Normal feed showing all friends in class -->
+                ${occ.busyFriends.length > 0 ? `
+                  <div class="space-y-1.5">
+                    ${occ.busyFriends.map(({ friend, course }) => {
+            const fKey = (course.faculty || "").trim().toLowerCase();
+            const borderTheme = teacherThemeMap[fKey];
+            const cardBorder = borderTheme
+              ? `${borderTheme} border-y border-r border-slate-100/80 dark:border-slate-700/60`
+              : `border border-slate-100/80 dark:border-slate-700/60`;
+
+            return `
+                      <div class="flex items-start justify-between text-xs py-2 px-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 ${cardBorder}">
+                        <div class="min-w-0 pr-2 space-y-0.5">
+                          <div class="font-bold text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
+                            <span>${friend.name.split(" ")[0]}</span>
+                            <span class="text-brandBlue font-mono font-semibold">${course.code}</span>
+                          </div>
+                          <div class="text-[11px] text-slate-600 dark:text-slate-400 truncate">
+                            ${course.title}
+                          </div>
+                          <div class="text-[10.5px] text-slate-500 dark:text-slate-400 truncate flex items-center gap-1">
+                            <i class="fa-solid fa-user-tie text-[9px] text-slate-400 dark:text-slate-500"></i>
+                            <span class="font-medium text-slate-600 dark:text-slate-300">${course.faculty.split(" - ")[0]}</span>
+                          </div>
+                        </div>
+                        <span class="font-mono font-bold text-[11px] px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border dark:border-amber-900/60 shrink-0 mt-0.5">
+                          ${course.venue}
+                        </span>
+                      </div>
+                    `;
+          }).join("")}
+                  </div>
+                ` : ''}
+
+                <!-- Directly show who are free in this slot -->
+                ${occ.freeFriends.length > 0 ? `
+                  <div class="pt-1.5 ${occ.busyFriends.length > 0 ? 'border-t border-slate-100 dark:border-slate-800' : ''}">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1 shrink-0">
+                        <i class="fa-solid fa-circle-check text-emerald-500 text-[11px]"></i> Free (${occ.freeFriends.length}):
+                      </span>
+                      <div class="flex items-center gap-1 flex-wrap">
+                        ${occ.freeFriends.map(f => `
+                          <span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 text-[11px] font-semibold">
+                            ${f.name.split(" ")[0]}
+                          </span>
+                        `).join("")}
+                      </div>
+                    </div>
+                  </div>
+                ` : `
+                  <div class="text-[11px] text-slate-400 dark:text-slate-500 pt-0.5 text-center">
+                    All active students in class
+                  </div>
+                `}
+              `}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      container.innerHTML = soleStudentHeaderHtml + slotCardsHtml;
+    }
+
+    function selectMobileSlot(colIndex) {
+      if (selectedSlotIndex === colIndex) {
+        selectedSlotIndex = null;
+      } else {
+        selectedSlotIndex = colIndex;
+      }
+      renderMobileSlotCards();
+    }
+
+    // Alias for backwards compatibility
+    function inspectMobileSlot(colIndex) {
+      selectMobileSlot(colIndex);
+    }
+
+    /**
+     * ========================================================================
+     * 8. INDIVIDUAL ACADEMIC DETAILS & REGISTERED COURSES (INTEGRATED)
+     * ========================================================================
+     */
+    let isIndividualCoursesExpanded = true;
+
+    function toggleIndividualCoursesExpand() {
+      isIndividualCoursesExpanded = !isIndividualCoursesExpanded;
+      renderIndividualView();
+    }
+
+    function scrollToStudentCourses() {
+      isIndividualCoursesExpanded = true;
+      renderIndividualView();
+      const el = document.getElementById("individualDetailsContainer");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    function renderIndividualView() {
+      const isSoleStudent = activeFriendIds.size === 1;
+      const detailsContainer = document.getElementById("individualDetailsContainer");
+
+      let friendId = selectedIndividualFriendId;
+      if (isSoleStudent) {
+        friendId = Array.from(activeFriendIds)[0];
+        selectedIndividualFriendId = friendId;
+      }
+      const friend = FRIENDS_DATA.find(f => f.id === friendId) || FRIENDS_DATA[0];
+      const slotMap = getFriendSlotMap(friend);
+
+      if (detailsContainer) {
+        if (isSoleStudent) {
+          detailsContainer.classList.remove("hidden");
+        } else {
+          detailsContainer.classList.add("hidden");
+        }
+      }
+
+      // Render Friend Selector Buttons if selectorContainer exists (backwards compatibility & testing)
+      const selectorContainer = document.getElementById("individualFriendSelector");
+      if (selectorContainer) {
+        const sortedFriends = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
+        selectorContainer.innerHTML = sortedFriends.map(f => {
+          const isSelected = f.id === friend.id;
+          return `
+            <button
+              onclick="selectIndividualFriend('${f.id}')"
+              class="shrink-0 whitespace-nowrap px-3.5 py-1 rounded-full text-xs font-bold transition border ${isSelected
+              ? 'bg-brandBlue text-white border-brandBlue shadow-2xs'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }"
+            >
+              ${f.name.split(" ")[0]}
+            </button>
+          `;
+        }).join("");
+      }
+
+      // Stats 2x2 Grid
+      const totalCourses = friend.courses.length;
+      const totalCredits = friend.courses.reduce((sum, c) => sum + Number(c.credit || 0), 0);
+      const registeredSlotCount = Object.keys(slotMap).length;
+      const totalWeekSlots = 42;
+      const freeSlotCount = totalWeekSlots - registeredSlotCount;
+
+      const statsRow = document.getElementById("individualStatsRow");
+      if (statsRow) {
+        statsRow.innerHTML = `
+          <div class="bg-cardBlue dark:bg-blue-950/30 border border-cardBlueBorder dark:border-blue-900/40 p-3 rounded-2xl text-center">
+            <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Courses &amp; Credits</div>
+            <div class="text-lg font-black font-mono text-slate-900 dark:text-slate-100 mt-0.5">${totalCourses} • ${totalCredits.toFixed(1)} Cr</div>
+          </div>
+          <div class="bg-cardPink dark:bg-rose-950/30 border border-cardPinkBorder dark:border-rose-900/40 p-3 rounded-2xl text-center">
+            <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Weekly Busy</div>
+            <div class="text-lg font-black font-mono text-slate-900 dark:text-slate-100 mt-0.5">${registeredSlotCount} / 42 Slots</div>
+          </div>
+        `;
+      }
+
+      const countBadge = document.getElementById("individualCourseCountBadge");
+      if (countBadge) {
+        countBadge.textContent = `${totalCourses} Courses`;
+      }
+
+      const headerLabel = document.getElementById("individualCoursesHeaderLabel");
+      if (headerLabel) {
+        headerLabel.textContent = `${friend.name.split(" ")[0]}'s Registered Courses`;
+      }
+
+      const toggleLabel = document.getElementById("individualCoursesToggleLabel");
+      if (toggleLabel) {
+        toggleLabel.textContent = isIndividualCoursesExpanded ? "Hide" : "Show";
+      }
+
+      const toggleIcon = document.getElementById("individualCoursesToggleIcon");
+      if (toggleIcon) {
+        toggleIcon.className = `fa-solid fa-chevron-down text-[10px] transition-transform duration-200 ${isIndividualCoursesExpanded ? 'rotate-180 text-brandBlue' : ''}`;
+      }
+
+      // Render Registered Courses List - Clean mobile card items
+      const cardsFeed = document.getElementById("individualCourseCardsFeed");
+      if (cardsFeed) {
+        if (!isIndividualCoursesExpanded) {
+          cardsFeed.innerHTML = "";
+          cardsFeed.classList.add("hidden");
+        } else {
+          cardsFeed.classList.remove("hidden");
+          cardsFeed.innerHTML = friend.courses.map((c, i) => {
+            const sameClassmates = FRIENDS_DATA.filter(other => {
+              if (other.id === friend.id) return false;
+              return other.courses.some(oc => {
+                if (c.classNo && oc.classNo) {
+                  return c.classNo.trim().toUpperCase() === oc.classNo.trim().toUpperCase();
+                }
+                const sameCode = (c.code || "").trim().toUpperCase() === (oc.code || "").trim().toUpperCase();
+                const sameFaculty = (c.faculty || "").trim().toLowerCase() === (oc.faculty || "").trim().toLowerCase();
+                return sameCode && sameFaculty;
+              });
+            }).sort((a, b) => a.name.localeCompare(b.name));
+
+            return `
+            <div class="p-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition rounded-xl space-y-1.5">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-mono font-bold text-xs px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-brandBlue">
+                      ${c.code}
+                    </span>
+                    <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      ${c.shortType}
+                    </span>
+                    <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      ${c.credit} Cr
+                    </span>
+                  </div>
+                  <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 mt-1">
+                    ${c.title}
+                  </h4>
+                </div>
+                <div class="text-right shrink-0">
+                  <span class="font-mono font-extrabold text-xs px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border dark:border-amber-900/60">
+                    ${c.venue}
+                  </span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
+                <span class="truncate"><i class="fa-solid fa-user-tie text-slate-400 dark:text-slate-500 mr-1"></i>${c.faculty}</span>
+                <span class="font-mono font-bold text-brandBlue shrink-0 ml-2">Slots: ${c.slots.join("+")}</span>
+              </div>
+
+              ${sameClassmates.length > 0 ? `
+                <div class="flex items-center gap-1.5 flex-wrap pt-1.5 border-t border-slate-100 dark:border-slate-800">
+                  <span class="text-[11px] font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                    <i class="fa-solid fa-user-group text-[10px] text-blue-500"></i> In same class (${sameClassmates.length}):
+                  </span>
+                  <div class="flex items-center gap-1 flex-wrap">
+                    ${sameClassmates.map(cm => `
+                      <button
+                        type="button"
+                        onclick="selectSquadFilter('${cm.id}')"
+                        class="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[11px] font-bold transition cursor-pointer"
+                        title="View ${cm.name}'s schedule"
+                      >
+                        ${cm.name.split(" ")[0]}
+                      </button>
+                    `).join("")}
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          `;
+          }).join("");
+        }
+      }
+    }
+
+    function selectIndividualFriend(friendId) {
+      selectedIndividualFriendId = friendId;
+      selectSquadFilter(friendId);
+    }
+
+    /**
+     * ========================================================================
+     * 10. SQUAD TOGGLE HELPERS
+     * ========================================================================
+     */
+    function selectSquadFilter(key) {
+      if (key === "all") {
+        activeFriendIds = new Set(FRIENDS_DATA.map(f => f.id));
+      } else {
+        // If clicking the only currently active individual, toggle back to 'all'
+        if (activeFriendIds.size === 1 && activeFriendIds.has(key)) {
+          activeFriendIds = new Set(FRIENDS_DATA.map(f => f.id));
+        } else {
+          activeFriendIds = new Set([key]);
+          selectedIndividualFriendId = key;
+        }
+      }
+      refreshAllViews();
+    }
+
+    function toggleFriendActive(friendId) {
+      selectSquadFilter(friendId);
+    }
+
+    function setAllFriendsActive(val) {
+      selectSquadFilter("all");
+    }
+
+    function refreshAllViews() {
+      updateTopSummaryMetrics();
+      renderLiveStatusBanner();
+      renderInlineSquadToggles();
+      if (activeTab === "master") {
+        renderMasterDayPills();
+        renderMobileSlotCards();
+        renderIndividualView();
+      } else if (activeTab === "calendar") {
+        renderCalendar();
+      } else if (activeTab === "individual") {
+        renderIndividualView();
+      } else if (activeTab === "teacher") {
+        renderTeacherFinder();
+      } else if (activeTab === "parcel") {
+        renderParcelHelper();
+      }
+    }
+
+    /**
+     * ========================================================================
+     * 9.5. TAB 2: ACADEMIC CALENDAR & EVENTS
+     * ========================================================================
+     */
+    const ACADEMIC_CALENDAR_EVENTS = [
+      {
+        id: "ev-1",
+        title: "Remote Learning",
+        displayDate: "21 Nov 2026 · Saturday",
+        startDate: "2026-11-21",
+        endDate: "2026-11-21",
+        dayOfWeek: "Saturday",
+        type: "remote_learning",
+        typeLabel: "Remote Day",
+        note: "Follow Friday timetable"
+      },
+      {
+        id: "ev-2",
+        title: "Guru Nanak Jayanti",
+        displayDate: "24 Nov 2026 · Tuesday",
+        startDate: "2026-11-24",
+        endDate: "2026-11-24",
+        dayOfWeek: "Tuesday",
+        type: "sectional_holiday",
+        typeLabel: "Sectional",
+        note: ""
+      },
+      {
+        id: "ev-3",
+        title: "Remote Learning",
+        displayDate: "12 Dec 2026 · Saturday",
+        startDate: "2026-12-12",
+        endDate: "2026-12-12",
+        dayOfWeek: "Saturday",
+        type: "remote_learning",
+        typeLabel: "Remote Day",
+        note: "Follow Friday timetable"
+      },
+      {
+        id: "ev-4",
+        title: "CAT-1 Exams",
+        displayDate: "15 – 23 Dec 2026",
+        startDate: "2026-12-15",
+        endDate: "2026-12-23",
+        dayOfWeek: "Tue – Wed",
+        type: "exam",
+        typeLabel: "Exams",
+        note: ""
+      },
+      {
+        id: "ev-5",
+        title: "Christmas",
+        displayDate: "25 Dec 2026 · Friday",
+        startDate: "2026-12-25",
+        endDate: "2026-12-25",
+        dayOfWeek: "Friday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        note: ""
+      },
+      {
+        id: "ev-6",
+        title: "New Year",
+        displayDate: "01 Jan 2027 · Friday",
+        startDate: "2027-01-01",
+        endDate: "2027-01-01",
+        dayOfWeek: "Friday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        note: ""
+      },
+      {
+        id: "ev-7",
+        title: "CAT-1 Paper Showing & Mark Entry",
+        displayDate: "05 Jan 2027 · Tuesday",
+        startDate: "2027-01-05",
+        endDate: "2027-01-05",
+        dayOfWeek: "Tuesday",
+        type: "academic",
+        typeLabel: "Academic",
+        note: "Last date on VTOP"
+      },
+      {
+        id: "ev-8",
+        title: "Pongal Break",
+        displayDate: "11 – 15 Jan 2027",
+        startDate: "2027-01-11",
+        endDate: "2027-01-15",
+        dayOfWeek: "Mon – Fri",
+        type: "holiday",
+        typeLabel: "Holiday",
+        note: ""
+      },
+      {
+        id: "ev-9",
+        title: "Republic Day",
+        displayDate: "26 Jan 2027 · Tuesday",
+        startDate: "2027-01-26",
+        endDate: "2027-01-26",
+        dayOfWeek: "Tuesday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        note: ""
+      },
+      {
+        id: "ev-10",
+        title: "CAT-2 Exams",
+        displayDate: "05 – 13 Feb 2027",
+        startDate: "2027-02-05",
+        endDate: "2027-02-13",
+        dayOfWeek: "Fri – Sat",
+        type: "exam",
+        typeLabel: "Exams",
+        note: ""
+      },
+      {
+        id: "ev-11",
+        title: "Advitya '27 (Techno-Cultural Fest)",
+        displayDate: "18 – 20 Feb 2027",
+        startDate: "2027-02-18",
+        endDate: "2027-02-20",
+        dayOfWeek: "Thu – Sat",
+        type: "fest",
+        typeLabel: "Fest",
+        note: "Tentative"
+      },
+      {
+        id: "ev-12",
+        title: "CAT-2 Paper Showing & Mark Entry",
+        displayDate: "26 Feb 2027 · Friday",
+        startDate: "2027-02-26",
+        endDate: "2027-02-26",
+        dayOfWeek: "Friday",
+        type: "academic",
+        typeLabel: "Academic",
+        note: "Last date on VTOP"
+      },
+      {
+        id: "ev-13",
+        title: "Last Date for Course Withdraw",
+        displayDate: "02 Mar 2027 · Tuesday",
+        startDate: "2027-03-02",
+        endDate: "2027-03-02",
+        dayOfWeek: "Tuesday",
+        type: "academic",
+        typeLabel: "Academic",
+        note: ""
+      },
+      {
+        id: "ev-14",
+        title: "Remote Learning",
+        displayDate: "05 Mar 2027 · Friday",
+        startDate: "2027-03-05",
+        endDate: "2027-03-05",
+        dayOfWeek: "Friday",
+        type: "remote_learning",
+        typeLabel: "Remote Day",
+        note: "Follow Friday timetable"
+      },
+      {
+        id: "ev-15",
+        title: "Maha Shivratri",
+        displayDate: "06 Mar 2027 · Saturday",
+        startDate: "2027-03-06",
+        endDate: "2027-03-06",
+        dayOfWeek: "Saturday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        note: ""
+      },
+      {
+        id: "ev-16",
+        title: "Last Instructional Day",
+        displayDate: "09 Mar 2027 · Tuesday",
+        startDate: "2027-03-09",
+        endDate: "2027-03-09",
+        dayOfWeek: "Tuesday",
+        type: "academic",
+        typeLabel: "Academic",
+        note: "Final semester class"
+      },
+      {
+        id: "ev-17",
+        title: "Eid ul-Fitr (Ramzan)",
+        displayDate: "10 Mar 2027 · Wednesday",
+        startDate: "2027-03-10",
+        endDate: "2027-03-10",
+        dayOfWeek: "Wednesday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        note: "* Subject to moon sighting"
+      },
+      {
+        id: "ev-18",
+        title: "CAM Foil Card Generation",
+        displayDate: "11 Mar 2027 · Thursday",
+        startDate: "2027-03-11",
+        endDate: "2027-03-11",
+        dayOfWeek: "Thursday",
+        type: "academic",
+        typeLabel: "Academic",
+        note: ""
+      },
+      {
+        id: "ev-19",
+        title: "Term End Examinations (TEE)",
+        displayDate: "11 – 31 Mar 2027",
+        startDate: "2027-03-11",
+        endDate: "2027-03-31",
+        dayOfWeek: "Thu – Wed",
+        type: "exam",
+        typeLabel: "Exams",
+        note: ""
+      },
+      {
+        id: "ev-20",
+        title: "Holi",
+        displayDate: "22 Mar 2027 · Monday",
+        startDate: "2027-03-22",
+        endDate: "2027-03-22",
+        dayOfWeek: "Monday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        note: ""
+      },
+      {
+        id: "ev-21",
+        title: "Good Friday",
+        displayDate: "26 Mar 2027 · Friday",
+        startDate: "2027-03-26",
+        endDate: "2027-03-26",
+        dayOfWeek: "Friday",
+        type: "sectional_holiday",
+        typeLabel: "Sectional",
+        note: ""
+      },
+      {
+        id: "ev-22",
+        title: "Semester Break",
+        displayDate: "01 Apr – 30 Jun 2027",
+        startDate: "2027-04-01",
+        endDate: "2027-06-30",
+        dayOfWeek: "Thu – Wed",
+        type: "holiday",
+        typeLabel: "Break",
+        note: "For students"
+      },
+      {
+        id: "ev-23",
+        title: "Ugadi / Gudi Padwa",
+        displayDate: "07 Apr 2027 · Wednesday",
+        startDate: "2027-04-07",
+        endDate: "2027-04-07",
+        dayOfWeek: "Wednesday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        note: ""
+      },
+      {
+        id: "ev-24",
+        title: "Ambedkar Jayanti",
+        displayDate: "14 Apr 2027 · Wednesday",
+        startDate: "2027-04-14",
+        endDate: "2027-04-14",
+        dayOfWeek: "Wednesday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        note: ""
+      },
+      {
+        id: "ev-25",
+        title: "Rama Navami",
+        displayDate: "15 Apr 2027 · Thursday",
+        startDate: "2027-04-15",
+        endDate: "2027-04-15",
+        dayOfWeek: "Thursday",
+        type: "holiday",
+        typeLabel: "Holiday",
+        note: ""
+      },
+      {
+        id: "ev-26",
+        title: "Mahavir Jayanti",
+        displayDate: "19 Apr 2027 · Monday",
+        startDate: "2027-04-19",
+        endDate: "2027-04-19",
+        dayOfWeek: "Monday",
+        type: "sectional_holiday",
+        typeLabel: "Sectional",
+        note: ""
+      },
+      {
+        id: "ev-27",
+        title: "Faculty Vacation",
+        displayDate: "19 Apr – 30 May 2027",
+        startDate: "2027-04-19",
+        endDate: "2027-05-30",
+        dayOfWeek: "Mon – Sun",
+        type: "academic",
+        typeLabel: "Vacation",
+        note: "Any 3 weeks"
+      },
+      {
+        id: "ev-28",
+        title: "Makeup Examinations",
+        displayDate: "14 – 30 Jun 2027",
+        startDate: "2027-06-14",
+        endDate: "2027-06-30",
+        dayOfWeek: "Mon – Wed",
+        type: "exam",
+        typeLabel: "Exams",
+        note: ""
+      }
+    ];
+
+    let calendarFilter = "all";
+    let calendarSearchQuery = "";
+    let calendarShowPast = false; // "autohide old dates data"
+
+    function getTodayDateStr() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function getMonthNameYear(monthKey) {
+      const [year, month] = monthKey.split("-");
+      const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      return `${months[parseInt(month, 10) - 1]} ${year}`;
+    }
+
+    function getEventDateBox(ev) {
+      const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+      const [sY, sM, sD] = ev.startDate.split("-").map(Number);
+      const [eY, eM, eD] = ev.endDate.split("-").map(Number);
+      let monthAbbr = monthNames[sM - 1];
+      let dayText = String(sD);
+      if (ev.startDate !== ev.endDate) {
+        if (sM === eM) {
+          dayText = `${sD}-${eD}`;
+        } else {
+          monthAbbr = `${monthNames[sM - 1]}-${monthNames[eM - 1]}`;
+          dayText = `${sD}-${eD}`;
+        }
+      }
+      return { monthAbbr, dayText };
+    }
+
+    function getCalendarTypeBadge(type, label) {
+      switch(type) {
+        case "exam":
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60"><i class="fa-solid fa-graduation-cap text-[9px]"></i> ${label}</span>`;
+        case "holiday":
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60"><i class="fa-solid fa-umbrella-beach text-[9px]"></i> ${label}</span>`;
+        case "sectional_holiday":
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60"><i class="fa-solid fa-star-half-stroke text-[9px]"></i> ${label}</span>`;
+        case "remote_learning":
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-900/60"><i class="fa-solid fa-laptop-code text-[9px]"></i> ${label}</span>`;
+        case "fest":
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-950/60 dark:text-fuchsia-300 border border-fuchsia-200 dark:border-fuchsia-900/60"><i class="fa-solid fa-masks-theater text-[9px]"></i> ${label}</span>`;
+        default: // academic
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/60"><i class="fa-solid fa-bookmark text-[9px]"></i> ${label}</span>`;
+      }
+    }
+
+    function getCalendarCountdownBadge(ev) {
+      if (ev.isOngoing) {
+        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/70 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Today</span>`;
+      }
+      if (ev.daysLeft === 1) {
+        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/70 dark:text-amber-200 border border-amber-300 dark:border-amber-700"><i class="fa-solid fa-clock text-[9px]"></i> Tomorrow</span>`;
+      }
+      if (ev.daysLeft !== null && ev.daysLeft > 1) {
+        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700"><i class="fa-solid fa-hourglass-half text-[9px]"></i> In ${ev.daysLeft}d</span>`;
+      }
+      if (ev.isPast) {
+        return `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium text-slate-400 dark:text-slate-500">Past</span>`;
+      }
+      return "";
+    }
+
+    function setCalendarFilter(filterId) {
+      calendarFilter = filterId;
+      renderCalendar();
+    }
+
+    function handleCalendarSearch(query) {
+      calendarSearchQuery = query;
+      renderCalendar();
+    }
+
+    function clearCalendarSearch() {
+      calendarSearchQuery = "";
+      renderCalendar();
+    }
+
+    function toggleCalendarShowPast() {
+      calendarShowPast = !calendarShowPast;
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const container = document.getElementById("calendarContainer");
+      if (!container) return;
+
+      const todayStr = getTodayDateStr();
+
+      let events = ACADEMIC_CALENDAR_EVENTS.map(ev => {
+        const isPast = ev.endDate < todayStr;
+        const isOngoing = ev.startDate <= todayStr && todayStr <= ev.endDate;
+        const isUpcoming = ev.startDate > todayStr;
+        let daysLeft = null;
+        if (isUpcoming) {
+          const tDate = new Date(todayStr + "T00:00:00");
+          const sDate = new Date(ev.startDate + "T00:00:00");
+          daysLeft = Math.round((sDate - tDate) / (1000 * 60 * 60 * 24));
+        }
+        return { ...ev, isPast, isOngoing, isUpcoming, daysLeft };
+      });
+
+      const totalEventsCount = events.length;
+      const pastEventsCount = events.filter(e => e.isPast).length;
+      const upcomingEventsCount = events.filter(e => !e.isPast).length;
+
+      // Autohide old dates unless calendarShowPast is true
+      if (!calendarShowPast) {
+        events = events.filter(e => !e.isPast);
+      }
+
+      // Filter by category
+      if (calendarFilter !== "all") {
+        if (calendarFilter === "exam") {
+          events = events.filter(e => e.type === "exam");
+        } else if (calendarFilter === "holiday") {
+          events = events.filter(e => e.type === "holiday");
+        } else if (calendarFilter === "sectional_holiday") {
+          events = events.filter(e => e.type === "sectional_holiday");
+        } else if (calendarFilter === "remote_learning") {
+          events = events.filter(e => e.type === "remote_learning");
+        } else if (calendarFilter === "academic") {
+          events = events.filter(e => e.type === "academic" || e.type === "fest");
+        }
+      }
+
+      // Filter by search query
+      if (calendarSearchQuery.trim()) {
+        const q = calendarSearchQuery.trim().toLowerCase();
+        events = events.filter(e => 
+          e.title.toLowerCase().includes(q) ||
+          e.displayDate.toLowerCase().includes(q) ||
+          e.typeLabel.toLowerCase().includes(q) ||
+          (e.note && e.note.toLowerCase().includes(q))
+        );
+      }
+
+      events.sort((a, b) => a.startDate.localeCompare(b.startDate));
+
+      const filterOptions = [
+        { id: "all", label: "All", icon: "fa-list-check" },
+        { id: "exam", label: "Exams", icon: "fa-graduation-cap" },
+        { id: "holiday", label: "Holidays", icon: "fa-umbrella-beach" },
+        { id: "sectional_holiday", label: "Sectional", icon: "fa-star-half-stroke" },
+        { id: "remote_learning", label: "Remote", icon: "fa-laptop-code" },
+        { id: "academic", label: "Academic", icon: "fa-bookmark" }
+      ];
+
+      // Group by month
+      const groupedMonths = {};
+      events.forEach(e => {
+        const m = e.startDate.slice(0, 7);
+        if (!groupedMonths[m]) groupedMonths[m] = [];
+        groupedMonths[m].push(e);
+      });
+
+      let html = `
+        <!-- Minimal Header & Filter Bar -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <i class="fa-solid fa-calendar-days text-brandBlue"></i>
+              <span>Academic Calendar</span>
+            </h2>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-mono font-bold text-brandBlue bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 px-2 py-0.5 rounded-full">
+                ${upcomingEventsCount} Upcoming
+              </span>
+              ${pastEventsCount > 0 ? `
+              <button onclick="toggleCalendarShowPast()" class="text-[10px] font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full transition flex items-center gap-1">
+                <i class="fa-solid ${calendarShowPast ? 'fa-eye-slash' : 'fa-eye'} text-[9px]"></i>
+                <span>${calendarShowPast ? 'Autohide Past' : `Show Past (${pastEventsCount})`}</span>
+              </button>` : ''}
+            </div>
+          </div>
+
+          <!-- Compact Search Bar -->
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+              <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+            </div>
+            <input type="text" id="calendarSearchInput" placeholder="Search events, holidays, CAT, TEE..."
+              value="${calendarSearchQuery.replace(/"/g, '&quot;')}"
+              oninput="handleCalendarSearch(this.value)"
+              class="w-full pl-7 pr-7 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-brandBlue focus:bg-white dark:focus:bg-slate-800 transition"
+              autocomplete="off" />
+            ${calendarSearchQuery ? `
+            <button onclick="clearCalendarSearch()" class="absolute inset-y-0 right-0 pr-2 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+              <i class="fa-solid fa-circle-xmark text-xs"></i>
+            </button>` : ''}
+          </div>
+
+          <!-- Clean Filter Chips -->
+          <div class="flex items-center gap-1 overflow-x-auto no-scrollbar pt-0.5">
+            ${filterOptions.map(f => `
+              <button onclick="setCalendarFilter('${f.id}')"
+                class="px-2.5 py-1 rounded-lg text-xs font-semibold transition shrink-0 flex items-center gap-1 ${calendarFilter === f.id
+                  ? 'bg-brandBlue text-white shadow-xs font-bold'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }">
+                <i class="fa-solid ${f.icon} text-[9px]"></i>
+                <span>${f.label}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      // Grouped Month Cards (Zero duplicate banners, clean inline "Next Up" indicator)
+      const monthKeys = Object.keys(groupedMonths);
+      if (monthKeys.length === 0) {
+        html += `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center space-y-2">
+            <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+              <i class="fa-regular fa-calendar-xmark text-lg"></i>
+            </div>
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">No events found</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+              ${calendarSearchQuery ? 'Try clearing your search query or selecting another filter.' : 'All past events are automatically hidden. Tap "Show Past" above to view them.'}
+            </p>
+            ${calendarSearchQuery ? `
+            <button onclick="clearCalendarSearch()" class="mt-1 text-xs font-bold text-brandBlue hover:underline">
+              Clear Search
+            </button>` : ''}
+          </div>
+        `;
+      } else {
+        html += `<div class="space-y-4">`;
+        monthKeys.forEach(mKey => {
+          const mEvents = groupedMonths[mKey];
+          html += `
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between px-1 pt-1 border-b border-slate-100 dark:border-slate-800/80 pb-1">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  ${getMonthNameYear(mKey)}
+                </span>
+                <span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                  ${mEvents.length}
+                </span>
+              </div>
+              <div class="space-y-1.5">
+                ${mEvents.map(ev => {
+                  const dateBox = getEventDateBox(ev);
+                  return `
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:px-3.5 sm:py-3 transition flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+                      <!-- Left: Date Box & Info -->
+                      <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                        <div class="shrink-0 w-11 text-center py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                          <div class="text-[8px] font-black uppercase text-slate-400 dark:text-slate-400 tracking-wider leading-none">${dateBox.monthAbbr}</div>
+                          <div class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-slate-100 leading-tight mt-0.5">${dateBox.dayText}</div>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug break-words">${ev.title}</h4>
+                          <div class="text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-1.5 flex-wrap mt-0.5 font-medium">
+                            <span>${ev.dayOfWeek}</span>
+                            ${ev.note ? `<span class="text-slate-400 dark:text-slate-500">•</span><span class="text-blue-600 dark:text-blue-300 font-semibold">${ev.note}</span>` : ''}
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Right: Category Badge & Countdown -->
+                      <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center ml-14 sm:ml-0 flex-wrap">
+                        ${getCalendarTypeBadge(ev.type, ev.typeLabel)}
+                        ${getCalendarCountdownBadge(ev)}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    /**
+     * ========================================================================
+     * 10. TAB 3: TEACHER FINDER
+     * ========================================================================
+     */
+    let teacherSearchQuery = "";
+    let selectedTeacherIndex = null;
+    let expandedTeacherReviews = new Set();
+    let expandedTeacherStudents = new Set();
+
+    function getTeacherStorageKey(rawFaculty) {
+      return (rawFaculty || "").toLowerCase().replace(/[^a-z0-9]/g, "_");
+    }
+
+    // Exclude non-professor training/coding platforms (FACE TRAINER, IAMNEO) from reviews & Teachers directory
+    function isExcludedReviewFaculty(nameOrRaw) {
+      if (!nameOrRaw) return false;
+      const s = String(nameOrRaw).trim().toLowerCase();
+      return /^(iamneo|face\s*trainer)/i.test(s) || s.includes("iamneo") || s.includes("face_trainer") || s.includes("facetrainer") || s.includes("face trainer");
+    }
+
+    function findFacultyRecord(teacherName, school) {
+      if (!teacherName || typeof ALL_FACULTY_DATA === "undefined" || !Array.isArray(ALL_FACULTY_DATA)) return null;
+      const getTokens = (str) => {
+        return (str || "")
+          .toLowerCase()
+          .replace(/\b(dr|prof|mr|mrs|ms)\b\.?/gi, "")
+          .replace(/[^a-z0-9\s]/gi, " ")
+          .trim()
+          .split(/\s+/)
+          .filter(t => t.length > 0);
+      };
+
+      const tTokens = getTokens(teacherName);
+      if (tTokens.length === 0) return null;
+
+      const sigT = tTokens.filter(t => t.length > 1);
+      const tJoined = tTokens.join(" ");
+
+      let best = null;
+      let bestScore = 0;
+
+      for (let i = 0; i < ALL_FACULTY_DATA.length; i++) {
+        const f = ALL_FACULTY_DATA[i];
+        const fTokens = getTokens(f.name);
+        if (fTokens.length === 0) continue;
+        const sigF = fTokens.filter(t => t.length > 1);
+        const fJoined = fTokens.join(" ");
+
+        if (tJoined === fJoined) {
+          return f;
+        }
+
+        if (sigT.length > 0 && sigF.length > 0) {
+          if (sigT.every(t => sigF.includes(t)) || sigF.every(t => sigT.includes(t))) {
+            let score = 90;
+            if (school && f.school && school.toUpperCase() === f.school.toUpperCase()) score += 10;
+            if (score > bestScore) {
+              bestScore = score;
+              best = f;
+            }
+          }
+        }
+      }
+
+      return bestScore >= 80 ? best : null;
+    }
+
+    function getTeacherDirectory() {
+      const teacherMap = new Map();
+      const claimedFaculty = new Set();
+
+      // 1. Ingest faculty registered in squad timetables (excluding training platforms like IAMNEO/FACE TRAINER)
+      FRIENDS_DATA.forEach(friend => {
+        friend.courses.forEach(course => {
+          const rawFaculty = (course.faculty || "").trim();
+          if (!rawFaculty || isExcludedReviewFaculty(rawFaculty)) return;
+
+          if (!teacherMap.has(rawFaculty)) {
+            const parts = rawFaculty.split(" - ");
+            const teacherName = parts[0]?.trim() || rawFaculty;
+            const school = parts[1]?.trim() || "";
+
+            const matchedRecord = findFacultyRecord(teacherName, school);
+            let roomNumber = "";
+            let phoneNumber = "";
+            let email = "";
+            if (matchedRecord) {
+              roomNumber = matchedRecord.room || "";
+              phoneNumber = matchedRecord.phone || "";
+              email = matchedRecord.email || "";
+              claimedFaculty.add(matchedRecord);
+            }
+
+            teacherMap.set(rawFaculty, {
+              rawFaculty,
+              teacherName,
+              school: school || (matchedRecord ? matchedRecord.school : ""),
+              roomNumber,
+              phoneNumber,
+              email,
+              studentRecords: {},
+              isExtraFaculty: false,
+              subjects: []
+            });
+          }
+
+          const entry = teacherMap.get(rawFaculty);
+          if (!entry.studentRecords[friend.id]) {
+            entry.studentRecords[friend.id] = {
+              friend,
+              courses: []
+            };
+          }
+          entry.studentRecords[friend.id].courses.push(course);
+        });
+      });
+
+      // 2. Ingest hardcoded other faculty from EXTRA_FACULTY_DATA
+      if (typeof EXTRA_FACULTY_DATA !== "undefined" && Array.isArray(EXTRA_FACULTY_DATA)) {
+        EXTRA_FACULTY_DATA.forEach(extra => {
+          if (!extra || !extra.name) return;
+          if (isExcludedReviewFaculty(extra.name) || isExcludedReviewFaculty(extra.rawFaculty)) return;
+          const teacherName = extra.name.trim();
+          const school = (extra.school || "").trim();
+          const rawFaculty = extra.rawFaculty ? extra.rawFaculty.trim() : (school ? `${teacherName} - ${school}` : teacherName);
+
+          const matchedRecord = findFacultyRecord(teacherName, school);
+          let roomNumber = extra.roomNumber || (matchedRecord ? matchedRecord.room : "") || "";
+          let phoneNumber = extra.phoneNumber || (matchedRecord ? matchedRecord.phone : "") || "";
+          let email = extra.email || (matchedRecord ? matchedRecord.email : "") || "";
+          if (matchedRecord) claimedFaculty.add(matchedRecord);
+
+          if (!teacherMap.has(rawFaculty)) {
+            teacherMap.set(rawFaculty, {
+              rawFaculty,
+              teacherName,
+              school: school || (matchedRecord ? matchedRecord.school : ""),
+              roomNumber,
+              phoneNumber,
+              email,
+              studentRecords: {},
+              isExtraFaculty: true,
+              subjects: Array.isArray(extra.subjects) ? extra.subjects : (extra.subjects ? [extra.subjects] : [])
+            });
+          } else {
+            const existing = teacherMap.get(rawFaculty);
+            if (roomNumber && !existing.roomNumber) existing.roomNumber = roomNumber;
+            if (phoneNumber && !existing.phoneNumber) existing.phoneNumber = phoneNumber;
+            if (email && !existing.email) existing.email = email;
+            if (extra.subjects) {
+              const subs = Array.isArray(extra.subjects) ? extra.subjects : [extra.subjects];
+              subs.forEach(s => {
+                if (!existing.subjects.includes(s)) existing.subjects.push(s);
+              });
+            }
+          }
+        });
+      }
+
+      // 3. Ingest all other faculty from complete directory ALL_FACULTY_DATA
+      if (typeof ALL_FACULTY_DATA !== "undefined" && Array.isArray(ALL_FACULTY_DATA)) {
+        ALL_FACULTY_DATA.forEach(f => {
+          if (!f || !f.name || claimedFaculty.has(f)) return;
+          if (isExcludedReviewFaculty(f.name)) return;
+          const teacherName = f.name.trim();
+          const school = (f.school || "").trim();
+          const rawFaculty = school ? `${teacherName} - ${school}` : teacherName;
+
+          if (!teacherMap.has(rawFaculty)) {
+            teacherMap.set(rawFaculty, {
+              rawFaculty,
+              teacherName,
+              school,
+              roomNumber: f.room || "",
+              phoneNumber: f.phone || "",
+              email: f.email || "",
+              studentRecords: {},
+              isExtraFaculty: true,
+              subjects: []
+            });
+          } else {
+            const existing = teacherMap.get(rawFaculty);
+            if (f.room && !existing.roomNumber) existing.roomNumber = f.room;
+            if (f.phone && !existing.phoneNumber) existing.phoneNumber = f.phone;
+            if (f.email && !existing.email) existing.email = f.email;
+          }
+        });
+      }
+
+      return Array.from(teacherMap.values()).sort((a, b) => a.teacherName.localeCompare(b.teacherName));
+    }
+
+    function handleTeacherSearchInput(val) {
+      teacherSearchQuery = (val || "").trim();
+      const clearBtn = document.getElementById("clearTeacherSearchBtn");
+      if (clearBtn) {
+        if (teacherSearchQuery) {
+          clearBtn.classList.remove("hidden");
+        } else {
+          clearBtn.classList.add("hidden");
+        }
+      }
+      renderTeacherFinder();
+    }
+
+    function clearTeacherSearch() {
+      const input = document.getElementById("teacherSearchInput");
+      if (input) input.value = "";
+      teacherSearchQuery = "";
+      const clearBtn = document.getElementById("clearTeacherSearchBtn");
+      if (clearBtn) clearBtn.classList.add("hidden");
+      renderTeacherFinder();
+    }
+
+    function quickFillTeacherSearch(term) {
+      const input = document.getElementById("teacherSearchInput");
+      if (input) {
+        input.value = term;
+        if (input.focus) input.focus();
+      }
+      handleTeacherSearchInput(term);
+    }
+
+    function levenshteinDistance(a, b) {
+      if (a === b) return 0;
+      if (!a.length) return b.length;
+      if (!b.length) return a.length;
+      if (a.length > b.length) { const tmp = a; a = b; b = tmp; }
+      const aLen = a.length;
+      const bLen = b.length;
+      let prev = [];
+      let curr = [];
+      for (let j = 0; j <= aLen; j++) prev[j] = j;
+      for (let i = 1; i <= bLen; i++) {
+        curr[0] = i;
+        const bChar = b[i - 1];
+        for (let j = 1; j <= aLen; j++) {
+          const cost = a[j - 1] === bChar ? 0 : 1;
+          curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+        }
+        for (let j = 0; j <= aLen; j++) prev[j] = curr[j];
+      }
+      return prev[aLen];
+    }
+
+    function cleanTeacherTokens(str) {
+      if (!str) return [];
+      return str.toLowerCase()
+        .replace(/\b(dr|prof|mr|mrs|ms)\b\.?/gi, " ")
+        .replace(/[^a-z0-9]/g, " ")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+    }
+
+    function compactAlphaNum(str) {
+      if (!str) return "";
+      return str.toLowerCase()
+        .replace(/\b(dr|prof|mr|mrs|ms)\b\.?/gi, "")
+        .replace(/[^a-z0-9]/g, "");
+    }
+
+    function scoreTeacherToken(qTok, tTok) {
+      if (qTok === tTok) return 100;
+      if (tTok.startsWith(qTok)) {
+        return 90 + Math.round((qTok.length / tTok.length) * 10);
+      }
+      if (qTok.length <= 2) {
+        return 0;
+      }
+      if (tTok.includes(qTok)) {
+        return 85;
+      }
+      const maxDist = qTok.length >= 7 ? 2 : (qTok.length >= 4 ? 1 : 0);
+      if (maxDist > 0) {
+        const dist = levenshteinDistance(qTok, tTok);
+        if (dist <= maxDist) {
+          return 75 - (dist * 15);
+        }
+        if (tTok.length > qTok.length) {
+          for (let i = 0; i <= tTok.length - qTok.length; i++) {
+            const sub = tTok.substr(i, qTok.length);
+            const subDist = levenshteinDistance(qTok, sub);
+            if (subDist <= 1) {
+              return 70;
+            }
+          }
+        }
+      }
+      return 0;
+    }
+
+    function computeTeacherMatchScore(teacher, query) {
+      const q = (query || "").trim().toLowerCase();
+      if (!q) return { isMatch: true, score: 100 };
+
+      const name = teacher.teacherName || "";
+      const raw = teacher.rawFaculty || "";
+      const room = teacher.roomNumber || "";
+      const phone = teacher.phoneNumber || "";
+      const email = teacher.email || "";
+      const school = teacher.school || "";
+
+      // 1. Direct Substring Match (Highest priority)
+      if (name.toLowerCase() === q) return { isMatch: true, score: 200 };
+      if (name.toLowerCase().startsWith(q)) return { isMatch: true, score: 180 };
+      if (name.toLowerCase().includes(q)) return { isMatch: true, score: 150 };
+      if (raw.toLowerCase().includes(q)) return { isMatch: true, score: 140 };
+
+      // 2. Compact Alphanumeric Match (e.g. "gprabhu" vs "g.prabhu" vs "g prabhu")
+      const qCompact = compactAlphaNum(q);
+      const nameCompact = compactAlphaNum(name);
+      const rawCompact = compactAlphaNum(raw);
+      if (qCompact.length >= 2) {
+        if (nameCompact === qCompact) return { isMatch: true, score: 160 };
+        if (nameCompact.includes(qCompact) || rawCompact.includes(qCompact)) {
+          return { isMatch: true, score: 130 };
+        }
+      }
+
+      // 3. Multi-token Order-Independent & Fuzzy Match
+      const qTokens = cleanTeacherTokens(q);
+      const tTokens = cleanTeacherTokens(name + " " + raw);
+
+      if (qTokens.length > 0 && tTokens.length > 0) {
+        let allMatched = true;
+        let totalTokenScore = 0;
+        const usedTargetIndices = new Set();
+
+        for (const qTok of qTokens) {
+          let bestTokScore = 0;
+          let bestTargetIdx = -1;
+
+          for (let i = 0; i < tTokens.length; i++) {
+            if (usedTargetIndices.has(i)) continue;
+            const s = scoreTeacherToken(qTok, tTokens[i]);
+            if (s > bestTokScore) {
+              bestTokScore = s;
+              bestTargetIdx = i;
+            }
+          }
+
+          if (bestTokScore > 0) {
+            totalTokenScore += bestTokScore;
+            usedTargetIndices.add(bestTargetIdx);
+          } else {
+            allMatched = false;
+            break;
+          }
+        }
+
+        if (allMatched) {
+          const avgScore = Math.round(totalTokenScore / qTokens.length);
+          return { isMatch: true, score: avgScore };
+        }
+      }
+
+      // 4. Room / Cabin Match
+      const roomLower = room.toLowerCase();
+      const roomCompact = roomLower.replace(/[^a-z0-9]/g, "");
+      if (roomLower && (roomLower.includes(q) || (qCompact.length >= 2 && roomCompact.includes(qCompact)))) {
+        return { isMatch: true, score: 110 };
+      }
+
+      // 5. Phone Match
+      const phoneDigits = phone.replace(/\D/g, "");
+      const qDigits = q.replace(/\D/g, "");
+      if (qDigits.length >= 3 && phoneDigits.includes(qDigits)) {
+        return { isMatch: true, score: 110 };
+      }
+
+      // 6. Email Match
+      const emailLower = email.toLowerCase();
+      if (emailLower && emailLower.includes(q)) {
+        return { isMatch: true, score: 110 };
+      }
+
+      // 7. Courses / Subjects / School Match
+      if (school.toLowerCase().includes(q)) {
+        return { isMatch: true, score: 70 };
+      }
+      if ((teacher.subjects || []).some(s => s.toLowerCase().includes(q))) {
+        return { isMatch: true, score: 80 };
+      }
+      const matchesCourse = Object.values(teacher.studentRecords || {}).some(sr =>
+        sr.courses.some(c => {
+          const codeCompact = compactAlphaNum(c.code);
+          return c.code.toLowerCase().includes(q) || 
+                 c.title.toLowerCase().includes(q) ||
+                 (qCompact.length >= 4 && codeCompact.includes(qCompact));
+        })
+      );
+      if (matchesCourse) {
+        return { isMatch: true, score: 85 };
+      }
+
+      return { isMatch: false, score: 0 };
+    }
+
+    function renderTeacherFinder() {
+      const allTeachers = getTeacherDirectory();
+      const resultsContainer = document.getElementById("teacherSearchResults");
+      const countBadge = document.getElementById("teacherCountBadge");
+
+      if (!resultsContainer) return;
+
+      const q = teacherSearchQuery.toLowerCase().trim();
+
+      // Filter teachers matching query with intelligent fuzzy search & relevance scoring
+      let matchingTeachers = allTeachers;
+      if (q) {
+        matchingTeachers = allTeachers
+          .map(t => {
+            const matchInfo = computeTeacherMatchScore(t, teacherSearchQuery);
+            return { teacher: t, ...matchInfo };
+          })
+          .filter(item => item.isMatch)
+          .sort((a, b) => b.score - a.score || a.teacher.teacherName.localeCompare(b.teacher.teacherName))
+          .map(item => item.teacher);
+      }
+
+      if (countBadge) {
+        const countText = teacherSearchQuery
+          ? `${matchingTeachers.length} of ${allTeachers.length} Teachers`
+          : `${allTeachers.length} Teachers`;
+
+        let dotHtml = "";
+        if (isReviewsLoading) {
+          // Blinking Amber dot for syncing state
+          dotHtml = `
+            <span class="relative flex h-2 w-2 ml-1.5 inline-flex" title="Syncing from Firebase...">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            </span>
+          `;
+        } else if (reviewsSyncError) {
+          // Blinking Red dot for error/offline state
+          dotHtml = `
+            <span class="relative flex h-2 w-2 ml-1.5 inline-flex" title="Firebase Offline / Rules Error">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+            </span>
+          `;
+        } else {
+          // Blinking Green dot for live Firebase sync
+          dotHtml = `
+            <span class="relative flex h-2 w-2 ml-1.5 inline-flex" title="Live Firebase Connected">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+          `;
+        }
+
+        countBadge.innerHTML = `<span class="inline-flex items-center">${countText}${dotHtml}</span>`;
+      }
+
+      // Render Search Results
+      if (matchingTeachers.length === 0) {
+        resultsContainer.innerHTML = `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-center space-y-2.5 shadow-sm">
+            <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 mx-auto flex items-center justify-center text-sm">
+              <i class="fa-solid fa-user-slash"></i>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-slate-800 dark:text-slate-100">No Teacher Found</h3>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                No faculty matched <strong class="text-slate-700 dark:text-slate-300 font-mono">"${teacherSearchQuery}"</strong>.
+              </p>
+            </div>
+            <button
+              onclick="clearTeacherSearch()"
+              class="px-3 py-1 rounded-full text-xs font-semibold bg-brandBlue text-white hover:bg-brandBlueHover transition shadow-xs"
+            >
+              Show All Teachers
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      resultsContainer.innerHTML = matchingTeachers.map(t => {
+        const studentRecords = Object.values(t.studentRecords).sort((a, b) => a.friend.name.localeCompare(b.friend.name));
+        const isExtraOnly = t.isExtraFaculty && studentRecords.length === 0;
+
+        let matchBadgeHtml = "";
+        if (isExtraOnly) {
+          matchBadgeHtml = `
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0">
+              <i class="fa-solid fa-chalkboard-user mr-1 text-slate-500"></i>Faculty Member
+            </span>
+          `;
+        }
+
+        // Review & Rating Analytics for this teacher
+        const safeTeacherKey = getTeacherStorageKey(t.rawFaculty);
+        const reviews = TEACHER_REVIEWS[safeTeacherKey] || [];
+        const reviewsCount = reviews.length;
+
+        let avgRating = 0;
+        let topClassAvg = null;
+        let behaviorGoodPercent = 100;
+        let lateAllowedPercent = 100;
+        const avgCounts = { low: 0, medium: 0, high: 0 };
+        let totalClassAvgVotes = 0;
+        let goodCount = 0;
+        let allowedCount = 0;
+
+        if (reviewsCount > 0) {
+          const totalRating = reviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0);
+          avgRating = totalRating / reviewsCount;
+
+          reviews.forEach(r => {
+            if (r.classAvg && avgCounts[r.classAvg] !== undefined) {
+              avgCounts[r.classAvg]++;
+              totalClassAvgVotes++;
+            }
+            if (r.behavior === "good") goodCount++;
+            if (r.lateEntry === "allowed") allowedCount++;
+          });
+
+          if (totalClassAvgVotes > 0) {
+            if (avgCounts.high >= avgCounts.medium && avgCounts.high >= avgCounts.low) {
+              topClassAvg = "High";
+            } else if (avgCounts.low > avgCounts.medium && avgCounts.low > avgCounts.high) {
+              topClassAvg = "Low";
+            } else {
+              topClassAvg = "Medium";
+            }
+          }
+
+          behaviorGoodPercent = Math.round((goodCount / reviewsCount) * 100);
+          lateAllowedPercent = Math.round((allowedCount / reviewsCount) * 100);
+        }
+
+        const isExpanded = expandedTeacherReviews.has(safeTeacherKey);
+        const isStudentsExpanded = expandedTeacherStudents.has(safeTeacherKey);
+
+        return `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+            <!-- Teacher Header -->
+            <div class="flex items-start justify-between gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <h3 class="text-sm font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                    ${t.teacherName}
+                  </h3>
+                  ${t.school ? `
+                    <span class="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      ${t.school}
+                    </span>
+                  ` : ''}
+                </div>
+                ${(t.roomNumber || t.phoneNumber || t.email) ? `
+                  <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
+                    ${t.roomNumber ? `
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 text-[10px] font-bold">
+                        <i class="fa-solid fa-door-closed text-[9px] text-amber-600 dark:text-amber-400"></i> Cabin: ${t.roomNumber}
+                      </span>
+                    ` : ''}
+                    ${t.phoneNumber ? `
+                      <a href="tel:${t.phoneNumber.split('/')[0].trim().replace(/\s+/g, '')}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60 text-[10px] font-bold hover:underline transition">
+                        <i class="fa-solid fa-phone text-[9px] text-emerald-600 dark:text-emerald-400"></i> ${t.phoneNumber}
+                      </a>
+                    ` : ''}
+                    ${t.email ? `
+                      <a href="mailto:${t.email}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-900/60 text-[10px] font-bold hover:underline transition" title="Email ${t.teacherName}">
+                        <i class="fa-solid fa-envelope text-[9px] text-blue-600 dark:text-blue-400"></i> ${t.email}
+                      </a>
+                    ` : ''}
+                  </div>
+                ` : ''}
+              </div>
+              ${isExtraOnly ? matchBadgeHtml : ''}
+            </div>
+
+            ${isExtraOnly ? `
+              <!-- Extra Faculty Info Card -->
+              <div class="bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/50 rounded-xl p-2.5 text-xs space-y-1.5">
+                ${t.subjects && t.subjects.length > 0 ? `
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Courses:</span>
+                    ${t.subjects.map(s => `
+                      <span class="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-mono text-[10px] font-semibold text-brandBlue dark:text-blue-400">
+                        ${s}
+                      </span>
+                    `).join("")}
+                  </div>
+                ` : ''}
+                <div class="text-[11px] text-slate-400 dark:text-slate-500">
+                  Not currently registered with any squad member. You can still rate & review this faculty below!
+                </div>
+              </div>
+            ` : `
+              <!-- Collapsible Students Enrolled Dropdown -->
+              <div class="space-y-2">
+                <button
+                  type="button"
+                  onclick="toggleTeacherStudents('${safeTeacherKey}')"
+                  class="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/60 transition cursor-pointer text-left group"
+                >
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-user-graduate text-slate-400 dark:text-slate-500 text-xs"></i>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition">
+                      Students Enrolled
+                    </span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isStudentsExpanded ? 'bg-brandBlue text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'} font-mono transition">
+                      ${studentRecords.length}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 group-hover:text-brandBlue dark:group-hover:text-blue-400 transition">
+                    <span class="text-[11px]">${isStudentsExpanded ? 'Hide' : 'Show'}</span>
+                    <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200 ${isStudentsExpanded ? 'rotate-180 text-brandBlue dark:text-blue-400' : ''}"></i>
+                  </div>
+                </button>
+
+                ${isStudentsExpanded ? `
+                  <div class="space-y-2 pt-1 animate-fadeIn">
+                    ${studentRecords.map(sr => `
+                      <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl p-3 space-y-2">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-gradient-to-tr ${sr.friend.avatarBg} text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
+                              ${sr.friend.name.charAt(0)}
+                            </div>
+                            <div class="text-xs font-bold text-slate-900 dark:text-slate-100">${sr.friend.name}</div>
+                          </div>
+                          <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-mono">
+                            ${sr.courses.length} ${sr.courses.length === 1 ? 'course' : 'courses'}
+                          </span>
+                        </div>
+
+                        <!-- Course pills -->
+                        <div class="space-y-1.5 pt-1">
+                          ${sr.courses.map(c => `
+                            <div class="bg-white dark:bg-slate-900/90 border border-slate-200/70 dark:border-slate-700/80 rounded-lg p-2.5 text-xs shadow-2xs">
+                              <div class="flex items-start justify-between gap-1">
+                                <div>
+                                  <span class="font-mono font-bold text-brandBlue text-[11px] mr-1">${c.code}</span>
+                                  <span class="font-bold text-slate-900 dark:text-slate-100">${c.title}</span>
+                                </div>
+                                <span class="font-mono font-bold text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border dark:border-amber-900/60 shrink-0">
+                                  ${c.venue}
+                                </span>
+                              </div>
+                              <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-mono">
+                                <span>Slots: <strong class="text-slate-800 dark:text-slate-200">${c.slots.join(", ")}</strong></span>
+                                <span>${c.shortType} • ${c.credit} Cr</span>
+                              </div>
+                            </div>
+                          `).join("")}
+                        </div>
+                      </div>
+                    `).join("")}
+                  </div>
+                ` : ''}
+              </div>
+            `}
+
+            <!-- Faculty Reviews & Ratings Section -->
+            <div class="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+              <!-- Summary Strip -->
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  ${reviewsCount > 0 ? `
+                    <div class="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 px-2 py-0.5 rounded-full text-xs font-bold text-amber-700 dark:text-amber-300">
+                      <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
+                      <span>${avgRating.toFixed(1)}</span>
+                      <span class="text-[10px] text-amber-600/80 dark:text-amber-400/80 font-normal">(${reviewsCount})</span>
+                    </div>
+                    <!-- 1. Class Avg Badge (Optional / only when reviews included it) -->
+                    ${topClassAvg ? `
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50" title="Class Average">
+                        <i class="fa-solid fa-chart-simple text-[9px] mr-1"></i>Avg: ${topClassAvg}
+                      </span>
+                    ` : ''}
+                    <!-- 2. Behavior Badge -->
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${behaviorGoodPercent >= 50 ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900/50'} border" title="Faculty Behavior">
+                      ${behaviorGoodPercent >= 50 ? '<i class="fa-solid fa-face-smile mr-1 text-[9px]"></i>Good' : '<i class="fa-solid fa-face-frown mr-1 text-[9px]"></i>Bad'}
+                    </span>
+                    <!-- 3. Late Entry Badge -->
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${lateAllowedPercent >= 50 ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-900/50' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/50'} border" title="Late Class Entry">
+                      <i class="fa-solid fa-door-open text-[9px] mr-1"></i>Late: ${lateAllowedPercent >= 50 ? 'Allowed' : 'Not Allowed'}
+                    </span>
+                  ` : `
+                    <div class="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                      <i class="fa-regular fa-star text-slate-300 dark:text-slate-600"></i>
+                      <span>No reviews yet</span>
+                    </div>
+                  `}
+                </div>
+
+                <div class="flex items-center gap-1.5 ml-auto">
+                  ${reviewsCount > 0 ? `
+                    <button onclick="toggleTeacherReviews('${safeTeacherKey}')"
+                      class="px-2.5 py-1 rounded-full text-[11px] font-bold transition border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1">
+                      <i class="fa-regular fa-comments text-[10px]"></i>
+                      <span>${isExpanded ? 'Hide' : 'Reviews'} (${reviewsCount})</span>
+                      <i class="fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'} text-[9px]"></i>
+                    </button>
+                  ` : ''}
+                  <button onclick="openReviewModal('${safeTeacherKey}')"
+                    class="px-2.5 py-1 rounded-full text-[11px] font-bold transition bg-brandBlue hover:bg-brandBlueHover text-white shadow-xs flex items-center gap-1 active:scale-95">
+                    <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                    <span>Review</span>
+                  </button>
+                </div>
+              </div>
+
+              ${isExpanded && reviewsCount > 0 ? `
+                <!-- Expanded Reviews Tray -->
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-3 border border-slate-100 dark:border-slate-800 space-y-2.5">
+                  <!-- Stats Breakdown Row -->
+                  <div class="grid grid-cols-3 gap-1.5 text-center bg-white dark:bg-slate-900/80 p-2 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-[10px]">
+                    <div>
+                      <div class="text-slate-400 dark:text-slate-500">1. Class Avg</div>
+                      <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                        <span class="text-rose-500">${avgCounts.low}L</span> /
+                        <span class="text-blue-500">${avgCounts.medium}M</span> /
+                        <span class="text-emerald-500">${avgCounts.high}H</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-slate-400 dark:text-slate-500">2. Behavior</div>
+                      <div class="font-bold ${behaviorGoodPercent >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'} mt-0.5">
+                        ${behaviorGoodPercent}% Good
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-slate-400 dark:text-slate-500">3. Late Entry</div>
+                      <div class="font-bold ${lateAllowedPercent >= 50 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'} mt-0.5">
+                        ${lateAllowedPercent}% Allowed
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Reviews Feed -->
+                  <div class="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
+                    ${reviews.map(r => `
+                      <div class="bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-700/80 rounded-xl p-2.5 text-xs shadow-2xs space-y-1.5">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-1.5">
+                            <span class="font-bold text-slate-900 dark:text-slate-100 text-[11px]">${r.reviewerName || 'Student Review'}</span>
+                            <span class="text-[10px] text-slate-400 dark:text-slate-500">• ${formatReviewTime(r.timestamp)}</span>
+                          </div>
+                          <!-- Star Rating -->
+                          <div class="flex items-center text-amber-400 text-[10px]">
+                            ${Array.from({ length: 5 }, (_, i) => `<i class="${i < (r.rating || 5) ? 'fa-solid' : 'fa-regular'} fa-star"></i>`).join("")}
+                          </div>
+                        </div>
+
+                        <!-- Criteria Badges -->
+                        <div class="flex items-center gap-1 flex-wrap text-[10px]">
+                          ${r.classAvg ? `
+                            <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">
+                              Avg: <strong class="capitalize">${r.classAvg}</strong>
+                            </span>
+                          ` : ''}
+                          <span class="px-1.5 py-0.5 rounded ${r.behavior === 'good' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300'} font-medium">
+                            Behavior: <strong class="capitalize">${r.behavior || 'good'}</strong>
+                          </span>
+                          <span class="px-1.5 py-0.5 rounded ${r.lateEntry === 'allowed' ? 'bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300' : 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300'} font-medium">
+                            Late: <strong class="capitalize">${r.lateEntry === 'allowed' ? 'Allowed' : 'Not Allowed'}</strong>
+                          </span>
+                        </div>
+
+                        ${r.comment ? `
+                          <p class="text-[11px] text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 p-2 rounded-lg font-medium">
+                            "${r.comment}"
+                          </p>
+                        ` : ''}
+                      </div>
+                    `).join("")}
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    /**
+     * ========================================================================
+     * 11. TEACHER REVIEWS & FIREBASE MANAGEMENT (LIVE FIREBASE SYNC, NO LOCAL CACHE)
+     * ========================================================================
+     */
+    let TEACHER_REVIEWS = {};
+    let isFirebaseReviewsListenerActive = false;
+    let isReviewsLoading = false;
+    let reviewsSyncError = null;
+
+    // Purge any legacy localStorage reviews cache to ensure 100% live Firebase sync
+    try {
+      localStorage.removeItem("vitb_teacher_reviews");
+    } catch (e) { }
+
+    let currentReview = {
+      teacherKey: "",
+      teacherName: "",
+      rawFaculty: "",
+      school: "",
+      rating: 0,
+      classAvg: null,
+      behavior: null,
+      lateEntry: null
+    };
+
+    // Firestore 1 MiB document size limit protection & auto-sharding
+    const FIRESTORE_DOC_MAX_BYTES = 1048576; // 1 MiB hard limit
+    const FIRESTORE_DOC_THRESHOLD_BYTES = 838860; // 80% limit threshold (819.2 KiB)
+
+    let currentWriteChunkId = "all_reviews";
+    let currentWriteChunkIndex = 0;
+    let currentWriteChunkBytes = 0;
+
+    function getFirestoreDocEstimatedBytes(data) {
+      try {
+        const str = JSON.stringify(data);
+        if (typeof Blob !== "undefined") {
+          return new Blob([str]).size;
+        }
+        if (typeof TextEncoder !== "undefined") {
+          return new TextEncoder().encode(str).length;
+        }
+        return str.length;
+      } catch (e) {
+        return 0;
+      }
+    }
+
+    function initFirebaseReviews() {
+      if (isFirebaseReviewsListenerActive) return;
+
+      const firestore = getDb();
+      if (!firestore) {
+        console.warn("Firestore not available yet. Will retry when Teacher Finder is opened.");
+        return;
+      }
+
+      isFirebaseReviewsListenerActive = true;
+      isReviewsLoading = true;
+      reviewsSyncError = null;
+
+      try {
+        // High-efficiency sharded architecture: listens to 'teacher_reviews' collection
+        // Starts with single 'all_reviews' document, auto-rolls over to 'all_reviews_1', etc. when reaching 80% of 1 MiB limit
+        firestore.collection("teacher_reviews").onSnapshot((snapshot) => {
+          isReviewsLoading = false;
+          reviewsSyncError = null;
+          const newMap = {};
+          const seenReviewIds = new Set();
+          let highestChunkIndex = 0;
+          let highestChunkDocId = "all_reviews";
+          let highestChunkBytes = 0;
+
+          if (snapshot) {
+            snapshot.forEach((docSnap) => {
+              if (docSnap.exists === false) return;
+              const data = (typeof docSnap.data === "function" ? docSnap.data() : docSnap.data) || {};
+              const docId = docSnap.id || "";
+
+              // Ignore delivery/parcel records if any
+              if (data.docType && String(data.docType).startsWith("parcel_")) return;
+
+              // Check if this document is a chunk document (all_reviews or all_reviews_N or has reviews array)
+              if (docId === "all_reviews" || docId.startsWith("all_reviews_") || Array.isArray(data.reviews)) {
+                let chunkIdx = 0;
+                if (docId === "all_reviews") {
+                  chunkIdx = 0;
+                } else if (docId.startsWith("all_reviews_")) {
+                  const parsed = parseInt(docId.replace("all_reviews_", ""), 10);
+                  chunkIdx = isNaN(parsed) ? (Number(data.chunkIndex) || 1) : parsed;
+                } else {
+                  chunkIdx = Number(data.chunkIndex) || 0;
+                }
+
+                const docBytes = getFirestoreDocEstimatedBytes(data);
+
+                if (chunkIdx >= highestChunkIndex) {
+                  highestChunkIndex = chunkIdx;
+                  highestChunkDocId = docId;
+                  highestChunkBytes = docBytes;
+                }
+
+                const reviewsList = Array.isArray(data.reviews) ? data.reviews : [];
+                reviewsList.forEach((r) => {
+                  if (!r) return;
+                  const revId = r.id || ("rev_" + (r.timestamp || Date.now()));
+                  if (seenReviewIds.has(revId)) return;
+                  seenReviewIds.add(revId);
+
+                  const key = r.teacherId || getTeacherStorageKey(r.rawFaculty || r.teacherName || "");
+                  if (!key || isExcludedReviewFaculty(key) || isExcludedReviewFaculty(r.rawFaculty) || isExcludedReviewFaculty(r.teacherName)) return;
+                  if (!newMap[key]) newMap[key] = [];
+                  newMap[key].push({
+                    id: revId,
+                    ...r,
+                    rating: Number(r.rating) || 5,
+                    classAvg: r.classAvg || null,
+                    behavior: r.behavior || "good",
+                    lateEntry: r.lateEntry || "allowed",
+                    timestamp: r.timestamp || Date.now()
+                  });
+                });
+              }
+              // Backwards compatibility: load any older individual review documents (e.g. rev_xxx)
+              else if (data.rating && (data.teacherId || data.rawFaculty || data.teacherName)) {
+                const revId = docId || ("rev_" + (data.timestamp || Date.now()));
+                if (!seenReviewIds.has(revId)) {
+                  seenReviewIds.add(revId);
+                  const key = data.teacherId || getTeacherStorageKey(data.rawFaculty || data.teacherName || "");
+                  if (key && !isExcludedReviewFaculty(key) && !isExcludedReviewFaculty(data.rawFaculty) && !isExcludedReviewFaculty(data.teacherName)) {
+                    if (!newMap[key]) newMap[key] = [];
+                    newMap[key].push({
+                      id: revId,
+                      ...data,
+                      rating: Number(data.rating) || 5,
+                      classAvg: data.classAvg || null,
+                      behavior: data.behavior || "good",
+                      lateEntry: data.lateEntry || "allowed",
+                      timestamp: data.timestamp || Date.now()
+                    });
+                  }
+                }
+              }
+            });
+          }
+
+          // Track the latest active chunk for new writes
+          currentWriteChunkId = highestChunkDocId;
+          currentWriteChunkIndex = highestChunkIndex;
+          currentWriteChunkBytes = highestChunkBytes;
+
+          // Sort reviews newest first
+          Object.keys(newMap).forEach(k => {
+            newMap[k].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+          });
+
+          // Reviews are sourced 100% from live Firebase only - zero local cache
+          TEACHER_REVIEWS = newMap;
+
+          if (activeTab === "teacher") {
+            renderTeacherFinder();
+          }
+        }, (error) => {
+          isReviewsLoading = false;
+          reviewsSyncError = error;
+          console.error("Firestore reviews sync error:", error);
+          if (activeTab === "teacher") {
+            renderTeacherFinder();
+          }
+        });
+      } catch (err) {
+        isReviewsLoading = false;
+        isFirebaseReviewsListenerActive = false; // Allow retry on error
+        reviewsSyncError = err;
+        console.error("Firestore real-time listener error:", err);
+      }
+    }
+
+    function openReviewModal(safeTeacherKey) {
+      const allTeachers = getTeacherDirectory();
+      const teacher = allTeachers.find(t => getTeacherStorageKey(t.rawFaculty) === safeTeacherKey);
+      if (!teacher || isExcludedReviewFaculty(teacher.rawFaculty) || isExcludedReviewFaculty(teacher.teacherName)) return;
+
+      currentReview = {
+        teacherKey: safeTeacherKey,
+        teacherName: teacher.teacherName,
+        rawFaculty: teacher.rawFaculty,
+        school: teacher.school || "",
+        rating: 0,
+        classAvg: null,
+        behavior: null,
+        lateEntry: null
+      };
+
+      const keyInput = document.getElementById("reviewTeacherKey");
+      if (keyInput) keyInput.value = safeTeacherKey;
+
+      const nameEl = document.getElementById("reviewModalTeacherName");
+      if (nameEl) nameEl.textContent = teacher.teacherName;
+
+      const schoolEl = document.getElementById("reviewModalSchool");
+      if (schoolEl) {
+        if (teacher.school) {
+          schoolEl.textContent = teacher.school;
+          schoolEl.classList.remove("hidden");
+        } else {
+          schoolEl.classList.add("hidden");
+        }
+      }
+
+      const detailsEl = document.getElementById("reviewModalDetails");
+      if (detailsEl) {
+        let detailsHtml = "";
+        if (teacher.roomNumber) {
+          detailsHtml += `
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 font-bold">
+              <i class="fa-solid fa-door-closed text-[9px]"></i> Cabin: ${teacher.roomNumber}
+            </span>
+          `;
+        }
+        if (teacher.phoneNumber) {
+          detailsHtml += `
+            <a href="tel:${teacher.phoneNumber.split('/')[0].trim().replace(/\s+/g, '')}" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60 font-bold hover:underline">
+              <i class="fa-solid fa-phone text-[9px]"></i> ${teacher.phoneNumber}
+            </a>
+          `;
+        }
+        if (teacher.email) {
+          detailsHtml += `
+            <a href="mailto:${teacher.email}" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-900/60 font-bold hover:underline">
+              <i class="fa-solid fa-envelope text-[9px]"></i> ${teacher.email}
+            </a>
+          `;
+        }
+        detailsEl.innerHTML = detailsHtml;
+      }
+
+      // Reset form controls - NO option selected by default
+      setReviewRating(0);
+      setReviewClassAvg(null);
+      setReviewBehavior(null);
+      setReviewLateEntry(null);
+
+      const commentInput = document.getElementById("reviewCommentInput");
+      if (commentInput) commentInput.value = "";
+
+      const modal = document.getElementById("reviewModal");
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function closeReviewModal() {
+      const modal = document.getElementById("reviewModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function setReviewRating(val) {
+      currentReview.rating = Number(val) || 0;
+      const stars = document.querySelectorAll(".star-btn");
+      stars.forEach((btn, idx) => {
+        const starVal = idx + 1;
+        const icon = btn.querySelector ? btn.querySelector("i") : null;
+        if (currentReview.rating > 0 && starVal <= currentReview.rating) {
+          btn.className = "star-btn text-2xl text-amber-400 hover:scale-110 transition active:scale-95";
+          if (icon) icon.className = "fa-solid fa-star";
+        } else {
+          btn.className = "star-btn text-2xl text-slate-300 dark:text-slate-600 hover:scale-110 transition active:scale-95";
+          if (icon) icon.className = "fa-regular fa-star";
+        }
+      });
+
+      const labels = {
+        0: "Tap a star to rate",
+        1: "1 Star — Poor",
+        2: "2 Stars — Fair",
+        3: "3 Stars — Good",
+        4: "4 Stars — Very Good",
+        5: "5 Stars — Excellent"
+      };
+      const labelEl = document.getElementById("reviewRatingLabel");
+      if (labelEl) {
+        labelEl.textContent = labels[currentReview.rating] || "Tap a star to rate";
+        if (currentReview.rating > 0) {
+          labelEl.className = "text-[11px] font-bold text-amber-600 dark:text-amber-400";
+        } else {
+          labelEl.className = "text-[11px] font-bold text-slate-400 dark:text-slate-500";
+        }
+      }
+    }
+
+    function setReviewClassAvg(val) {
+      // Toggle off / deselect if tapped again because Class Average is optional
+      if (currentReview.classAvg === val) {
+        currentReview.classAvg = null;
+      } else {
+        currentReview.classAvg = val;
+      }
+
+      ["low", "medium", "high"].forEach(opt => {
+        const btn = document.getElementById(`classAvgBtn-${opt}`);
+        if (!btn) return;
+        const icon = btn.querySelector ? btn.querySelector("svg, i") : null;
+        if (currentReview.classAvg === opt) {
+          const activeColors = {
+            low: "bg-rose-600 border-rose-600 text-white shadow-xs",
+            medium: "bg-blue-600 border-blue-600 text-white shadow-xs",
+            high: "bg-emerald-600 border-emerald-600 text-white shadow-xs"
+          };
+          btn.className = `class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 ${activeColors[opt]}`;
+          if (icon) {
+            const cls = "w-3.5 h-3.5 text-white transition-colors";
+            icon.className = cls;
+            if (icon.setAttribute) icon.setAttribute("class", cls);
+          }
+        } else {
+          btn.className = "class-avg-btn py-2 px-1.5 rounded-xl border text-center transition font-bold text-[11px] flex flex-col items-center gap-0.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (icon) {
+            const colorClass = opt === "low" ? "text-rose-500" : (opt === "high" ? "text-emerald-500" : "text-blue-500");
+            const cls = `w-3.5 h-3.5 ${colorClass} transition-colors`;
+            icon.className = cls;
+            if (icon.setAttribute) icon.setAttribute("class", cls);
+          }
+        }
+      });
+    }
+
+    function setReviewBehavior(val) {
+      currentReview.behavior = val;
+      const goodBtn = document.getElementById("behaviorBtn-good");
+      const badBtn = document.getElementById("behaviorBtn-bad");
+      const goodIcon = goodBtn ? goodBtn.querySelector("i") : null;
+      const badIcon = badBtn ? badBtn.querySelector("i") : null;
+
+      if (goodBtn && badBtn) {
+        if (val === "good") {
+          goodBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-emerald-600 border-emerald-600 text-white shadow-xs";
+          if (goodIcon) goodIcon.className = "fa-solid fa-face-smile text-white text-xs";
+
+          badBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (badIcon) badIcon.className = "fa-solid fa-face-frown text-rose-500 text-xs";
+        } else if (val === "bad") {
+          goodBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (goodIcon) goodIcon.className = "fa-solid fa-face-smile text-emerald-500 text-xs";
+
+          badBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-rose-600 border-rose-600 text-white shadow-xs";
+          if (badIcon) badIcon.className = "fa-solid fa-face-frown text-white text-xs";
+        } else {
+          // Unselected / Reset
+          goodBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (goodIcon) goodIcon.className = "fa-solid fa-face-smile text-emerald-500 text-xs";
+
+          badBtn.className = "behavior-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (badIcon) badIcon.className = "fa-solid fa-face-frown text-rose-500 text-xs";
+        }
+      }
+    }
+
+    function setReviewLateEntry(val) {
+      currentReview.lateEntry = val;
+      const allowedBtn = document.getElementById("lateEntryBtn-allowed");
+      const notBtn = document.getElementById("lateEntryBtn-not");
+      const allowedIcon = allowedBtn ? allowedBtn.querySelector("i") : null;
+      const notIcon = notBtn ? notBtn.querySelector("i") : null;
+
+      if (allowedBtn && notBtn) {
+        if (val === "allowed") {
+          allowedBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-sky-600 border-sky-600 text-white shadow-xs";
+          if (allowedIcon) allowedIcon.className = "fa-solid fa-door-open text-white text-xs";
+
+          notBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (notIcon) notIcon.className = "fa-solid fa-ban text-amber-500 text-xs";
+        } else if (val === "not") {
+          allowedBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (allowedIcon) allowedIcon.className = "fa-solid fa-door-open text-sky-500 text-xs";
+
+          notBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-amber-600 border-amber-600 text-white shadow-xs";
+          if (notIcon) notIcon.className = "fa-solid fa-ban text-white text-xs";
+        } else {
+          // Unselected / Reset
+          allowedBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (allowedIcon) allowedIcon.className = "fa-solid fa-door-open text-sky-500 text-xs";
+
+          notBtn.className = "late-entry-btn py-2 px-3 rounded-xl border text-center transition font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+          if (notIcon) notIcon.className = "fa-solid fa-ban text-amber-500 text-xs";
+        }
+      }
+    }
+
+    async function submitFacultyReview() {
+      if (!currentReview.teacherKey || isExcludedReviewFaculty(currentReview.teacherKey) || isExcludedReviewFaculty(currentReview.rawFaculty) || isExcludedReviewFaculty(currentReview.teacherName)) {
+        alert("Reviews cannot be submitted for this entry.");
+        return;
+      }
+
+      if (!currentReview.rating || currentReview.rating < 1) {
+        alert("Please select an overall rating (1 to 5 stars).");
+        return;
+      }
+
+      if (!currentReview.behavior) {
+        alert("Please select faculty behavior (Good or Bad).");
+        return;
+      }
+
+      if (!currentReview.lateEntry) {
+        alert("Please select whether late class entry is allowed or not.");
+        return;
+      }
+
+      const submitBtn = document.getElementById("submitReviewBtn");
+      const submitText = document.getElementById("submitReviewBtnText");
+      const comment = (document.getElementById("reviewCommentInput")?.value || "").trim();
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (submitText) submitText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving to Firebase...';
+
+      const reviewDoc = {
+        teacherId: currentReview.teacherKey,
+        teacherName: currentReview.teacherName,
+        rawFaculty: currentReview.rawFaculty,
+        rating: Number(currentReview.rating),
+        classAvg: currentReview.classAvg || null,
+        behavior: currentReview.behavior,
+        lateEntry: currentReview.lateEntry,
+        comment: comment,
+        timestamp: Date.now()
+      };
+
+      // 3. Post to Firebase in consolidated chunk (with 80% threshold auto-sharding)
+      const firestore = getDb();
+      if (!firestore) {
+        alert("Firestore is not available. Please check your internet connection.");
+        if (submitBtn) submitBtn.disabled = false;
+        if (submitText) submitText.textContent = "Submit Review";
+        return;
+      }
+
+      const reviewItem = {
+        id: "rev_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+        ...reviewDoc
+      };
+
+      try {
+        const threshold = (typeof window !== "undefined" && window.__FIRESTORE_REVIEW_THRESHOLD_BYTES) ? window.__FIRESTORE_REVIEW_THRESHOLD_BYTES : FIRESTORE_DOC_THRESHOLD_BYTES;
+        const itemBytes = getFirestoreDocEstimatedBytes(reviewItem);
+        let targetDocId = currentWriteChunkId || "all_reviews";
+        let targetIndex = currentWriteChunkIndex || 0;
+        let isRollingOver = false;
+
+        // Check if adding this review exceeds the 80% document size limit (~838,860 bytes)
+        if (currentWriteChunkBytes > 0 && (currentWriteChunkBytes + itemBytes >= threshold)) {
+          targetIndex = targetIndex + 1;
+          targetDocId = "all_reviews_" + targetIndex;
+          isRollingOver = true;
+          console.info(`Review chunk '${currentWriteChunkId}' reached 80% size limit (${currentWriteChunkBytes} bytes). Rolling over to new document '${targetDocId}'.`);
+        }
+
+        const targetDoc = firestore.collection("teacher_reviews").doc(targetDocId);
+
+        if (isRollingOver) {
+          // Initialize fresh new chunk document
+          await targetDoc.set({
+            chunkIndex: targetIndex,
+            reviews: [reviewItem],
+            createdAt: Date.now(),
+            lastUpdated: Date.now()
+          });
+          currentWriteChunkId = targetDocId;
+          currentWriteChunkIndex = targetIndex;
+          currentWriteChunkBytes = getFirestoreDocEstimatedBytes({
+            chunkIndex: targetIndex,
+            reviews: [reviewItem]
+          });
+        } else {
+          // Append to active chunk
+          if (typeof firebase !== "undefined" && firebase.firestore && firebase.firestore.FieldValue && firebase.firestore.FieldValue.arrayUnion) {
+            await targetDoc.set({
+              chunkIndex: targetIndex,
+              reviews: firebase.firestore.FieldValue.arrayUnion(reviewItem),
+              lastUpdated: Date.now()
+            }, { merge: true });
+          } else {
+            // Direct fallback for mock or offline
+            await targetDoc.set({
+              chunkIndex: targetIndex,
+              reviews: [reviewItem],
+              lastUpdated: Date.now()
+            }, { merge: true });
+          }
+          currentWriteChunkBytes += itemBytes;
+        }
+
+        // Automatically expand reviews for this teacher
+        expandedTeacherReviews.add(currentReview.teacherKey);
+
+        closeReviewModal();
+        showReviewToast(`Review for ${currentReview.teacherName} saved to Firebase!`);
+      } catch (fbErr) {
+        console.error("Firestore save error:", fbErr);
+        let errorMsg = fbErr.message || fbErr;
+        if (fbErr.code === "permission-denied" || (typeof errorMsg === "string" && errorMsg.includes("permission"))) {
+          errorMsg = "Permission denied. Please update your Firestore Security Rules in Firebase Console to allow write.";
+        }
+        alert("Could not save review: " + errorMsg);
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (submitText) submitText.textContent = "Submit Review";
+      }
+    }
+
+    function showReviewToast(msg) {
+      const toast = document.getElementById("reviewToast");
+      const msgEl = document.getElementById("reviewToastMsg");
+      if (toast && msgEl) {
+        msgEl.textContent = msg;
+        toast.classList.remove("hidden");
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 3500);
+      }
+    }
+
+    function toggleTeacherStudents(safeKey) {
+      if (expandedTeacherStudents.has(safeKey)) {
+        expandedTeacherStudents.delete(safeKey);
+      } else {
+        expandedTeacherStudents.add(safeKey);
+      }
+      renderTeacherFinder();
+    }
+
+    function toggleTeacherReviews(safeKey) {
+      if (expandedTeacherReviews.has(safeKey)) {
+        expandedTeacherReviews.delete(safeKey);
+      } else {
+        expandedTeacherReviews.add(safeKey);
+      }
+      renderTeacherFinder();
+    }
+
+    function formatReviewTime(timestamp) {
+      if (!timestamp) return "Recently";
+      const diff = Date.now() - Number(timestamp);
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return "Just now";
+      if (mins < 60) return `${mins}m ago`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 30) return `${days}d ago`;
+      return new Date(timestamp).toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+    }
+
+    /**
+     * ========================================================================
+     * 10.5. TAB 4: CAMPUS PARCEL HELPER & SQUAD ROUTE DETECTOR
+     * ========================================================================
+     */
+    let selectedParcelDay = DAYS_ORDER[new Date().getDay() - 1] || "MON";
+    let selectedParcelSlotIndex = null; // null follows current live slot
+    let selectedParcelFilter = "all"; // "all", "leaving_ab02", "free_now", "free_next"
+    let PARCEL_REQUESTS = [];
+    let isFirebaseParcelListenerActive = false;
+    let knownParcelDocIds = new Set();
+    let completedParcelDocIds = new Set();
+    let hasLoadedInitialParcels = false;
+
+    // Load initial cached parcel requests and completed IDs from localStorage
+    try {
+      const cachedCompleted = localStorage.getItem("vitb_completed_parcel_ids");
+      if (cachedCompleted) {
+        JSON.parse(cachedCompleted).forEach(id => completedParcelDocIds.add(id));
+      }
+      const cached = localStorage.getItem("vitb_parcel_requests");
+      if (cached) {
+        PARCEL_REQUESTS = JSON.parse(cached).filter(r => !completedParcelDocIds.has(r.id));
+        PARCEL_REQUESTS.forEach(r => { if (r.id) knownParcelDocIds.add(r.id); });
+      }
+    } catch (e) { }
+
+    function isParcelNotificationEnabled() {
+      if (typeof window === "undefined" || !("Notification" in window)) return false;
+      if (Notification.permission !== "granted") return false;
+      const pref = localStorage.getItem("vitb_parcel_notifications_enabled");
+      return pref !== "false";
+    }
+
+    function isClassNotificationEnabled() {
+      if (typeof window === "undefined" || !("Notification" in window)) return false;
+      if (Notification.permission !== "granted") return false;
+      const pref = localStorage.getItem("vitb_class_notifications_enabled");
+      return pref !== "false";
+    }
+
+    function playParcelAlertChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        // Note 1: 587.33 Hz (D5)
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = "sine";
+        osc1.frequency.setValueAtTime(587.33, now);
+        gain1.gain.setValueAtTime(0.15, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.22);
+
+        // Note 2: 880.00 Hz (A5)
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(880.0, now + 0.12);
+        gain2.gain.setValueAtTime(0.18, now + 0.12);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.12);
+        osc2.stop(now + 0.45);
+      } catch (e) {
+        // AudioContext might be restricted until user gesture; safe to ignore
+      }
+    }
+
+    /**
+     * Dispatch native notification through Service Worker (Universal PWA delivery)
+     */
+    function dispatchAppNotification(title, options = {}) {
+      if (typeof window === "undefined" || !("Notification" in window)) return;
+      if (Notification.permission !== "granted") return;
+
+      const defaultOptions = {
+        icon: "./icons/icon-192.png",
+        badge: "./icons/favicon.png",
+        vibrate: [200, 100, 200],
+        renotify: true,
+        data: { url: "./?tab=parcel", tab: "parcel" }
+      };
+      const finalOptions = { ...defaultOptions, ...options };
+
+      playParcelAlertChime();
+
+      let swDelivered = false;
+
+      // 1. Post to active Service Worker controller
+      if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+        try {
+          navigator.serviceWorker.controller.postMessage({
+            action: "show_notification",
+            title: title,
+            options: finalOptions
+          });
+          swDelivered = true;
+        } catch (e) { }
+      }
+
+      // 2. ServiceWorkerRegistration.showNotification (Guaranteed standard PWA method)
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.ready.then((reg) => {
+          if (reg && reg.showNotification) {
+            reg.showNotification(title, finalOptions).catch(() => {
+              if (!swDelivered) {
+                try { new Notification(title, finalOptions); } catch (e) { }
+              }
+            });
+          }
+        }).catch(() => {
+          if (!swDelivered) {
+            try { new Notification(title, finalOptions); } catch (e) { }
+          }
+        });
+      } else {
+        try { new Notification(title, finalOptions); } catch (e) { }
+      }
+    }
+
+    async function requestAppNotifications(source = "manual") {
+      if (typeof window === "undefined" || !("Notification" in window)) {
+        alert("Web Notifications are not supported by this browser.");
+        return false;
+      }
+
+      if (Notification.permission === "denied") {
+        alert("Notifications are currently blocked in your browser settings. Please allow notifications for this site to receive class & squad alerts.");
+        return false;
+      }
+
+      try {
+        const perm = await Notification.requestPermission();
+        if (perm === "granted") {
+          localStorage.setItem("vitb_parcel_notifications_enabled", "true");
+          localStorage.setItem("vitb_class_notifications_enabled", "true");
+          localStorage.removeItem("vitb_notif_banner_dismissed");
+          
+          dismissNotificationBanner();
+          showReviewToast("🔔 Live notifications enabled!");
+
+          // Fire instant verification notification
+          dispatchAppNotification("🔔 Campus Saathi Alerts Activated!", {
+            body: "You're all set! You will receive live class reminders and squad parcel alerts.",
+            tag: "welcome_alert",
+            data: { url: "./?tab=master", tab: "master" }
+          });
+
+          // Start real-time engines
+          initFirebaseParcelRequests();
+          checkUpcomingClassReminders();
+
+          if (activeTab === "parcel") renderParcelHelper();
+          return true;
+        } else {
+          showReviewToast("Notification permission was not granted.");
+          return false;
+        }
+      } catch (err) {
+        console.warn("Notification request error:", err);
+        return false;
+      }
+    }
+
+    async function toggleParcelNotifications() {
+      if (typeof window === "undefined" || !("Notification" in window)) {
+        alert("Web Notifications are not supported by this browser.");
+        return;
+      }
+
+      const isCurrentlyEnabled = isParcelNotificationEnabled();
+
+      if (isCurrentlyEnabled) {
+        localStorage.setItem("vitb_parcel_notifications_enabled", "false");
+        showReviewToast("🔕 Parcel request alerts muted.");
+        renderParcelHelper();
+        return;
+      }
+
+      if (Notification.permission !== "granted") {
+        await requestAppNotifications("parcel_toggle");
+      } else {
+        localStorage.setItem("vitb_parcel_notifications_enabled", "true");
+        showReviewToast("🔔 Parcel request alerts enabled!");
+        initFirebaseParcelRequests();
+        renderParcelHelper();
+      }
+    }
+
+    function sendTestNotification() {
+      if (typeof window === "undefined" || !("Notification" in window)) {
+        alert("Web Notifications are not supported on this browser.");
+        return;
+      }
+      if (Notification.permission !== "granted") {
+        requestAppNotifications("test_button");
+        return;
+      }
+      dispatchAppNotification("🔔 Test Notification • Campus Saathi", {
+        body: "Notifications are working perfectly on your device! Chime, vibration, and background sync are active.",
+        tag: "test_" + Date.now(),
+        data: { url: "./?tab=parcel", tab: "parcel" }
+      });
+      showReviewToast("🔔 Test notification sent!");
+    }
+
+    function sendParcelNotification(req) {
+      if (typeof window === "undefined" || !("Notification" in window)) return;
+      if (!isParcelNotificationEnabled() && !req.isTest) return;
+      if (Notification.permission !== "granted") return;
+
+      // Don't notify the author about their own parcel request
+      const myRequester = localStorage.getItem("vitb_last_requester_name") || "";
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || myRequester;
+      if (myName && req.requester && req.requester.toLowerCase() === myName.toLowerCase() && !req.isTest) {
+        return;
+      }
+
+      const notifKey = "parcel_" + (req.id || Date.now());
+      let notifiedParcelIds = [];
+      try {
+        notifiedParcelIds = JSON.parse(localStorage.getItem("vitb_notified_parcel_ids") || "[]");
+      } catch (e) { }
+
+      if (!req.isTest && req.id && notifiedParcelIds.includes(req.id)) {
+        return;
+      }
+      if (req.id && !req.isTest) {
+        notifiedParcelIds.push(req.id);
+        if (notifiedParcelIds.length > 100) notifiedParcelIds = notifiedParcelIds.slice(-100);
+        try {
+          localStorage.setItem("vitb_notified_parcel_ids", JSON.stringify(notifiedParcelIds));
+        } catch (e) { }
+      }
+
+      const title = req.isTest
+        ? "🔔 Parcel Alerts Activated!"
+        : `📦 New Parcel Request: ${req.requester}`;
+      const body = req.isTest
+        ? (req.note || "You will receive instant alerts when someone asks for a parcel pickup.")
+        : `${req.courier || "Parcel"} delivery waiting between AB & AB02.${req.otp ? " OTP attached." : ""}${req.note ? ' • Note: ' + req.note : ''}`;
+
+      dispatchAppNotification(title, {
+        body: body,
+        tag: notifKey,
+        data: { url: "./?tab=parcel", tab: "parcel" }
+      });
+    }
+
+    /**
+     * Check for upcoming classes within 15 minutes and notify the student
+     */
+    function checkUpcomingClassReminders() {
+      if (typeof window === "undefined" || !("Notification" in window)) return;
+      if (!isClassNotificationEnabled()) return;
+      if (Notification.permission !== "granted") return;
+
+      const identity = getUserIdentity();
+      if (!identity || !identity.id) return;
+      const student = FRIENDS_DATA.find(f => f.id === identity.id);
+      if (!student) return;
+
+      const { jsDay, currentMins } = getISTTime();
+      if (jsDay === 0) return; // Sunday
+
+      const todayDateStr = new Date().toISOString().slice(0, 10);
+      const dayCode = DAYS_ORDER[jsDay - 1];
+      const daySlots = DAY_MATRIX[dayCode];
+      if (!daySlots) return;
+
+      const slotMap = getFriendSlotMap(student);
+
+      TIME_COLUMNS.forEach((col) => {
+        const timeUntilClass = col.startMin - currentMins;
+        if (timeUntilClass >= 0 && timeUntilClass <= 15) {
+          const slotCode = daySlots[col.index];
+          const course = slotMap[slotCode];
+          if (course) {
+            const notifKey = `class_${todayDateStr}_${col.index}_${student.id}`;
+            let notifiedSlots = [];
+            try {
+              notifiedSlots = JSON.parse(localStorage.getItem("vitb_notified_class_slots") || "[]");
+            } catch (e) { }
+
+            if (!notifiedSlots.includes(notifKey)) {
+              notifiedSlots.push(notifKey);
+              if (notifiedSlots.length > 50) notifiedSlots = notifiedSlots.slice(-50);
+              try {
+                localStorage.setItem("vitb_notified_class_slots", JSON.stringify(notifiedSlots));
+              } catch (e) { }
+
+              const venue = course.venue || "Campus";
+              const title = `⏰ Upcoming Class in ${timeUntilClass > 0 ? timeUntilClass + 'm' : 'now'}: ${course.code}`;
+              const body = `${course.title}\n📍 Venue: ${venue} • Slot ${slotCode} (${col.start} - ${col.end})`;
+
+              dispatchAppNotification(title, {
+                body: body,
+                tag: notifKey,
+                data: { url: "./?tab=master", tab: "master" }
+              });
+            }
+          }
+        }
+      });
+    }
+
+    function checkNotificationState() {
+      if (typeof window === "undefined" || !("Notification" in window)) return;
+
+      if (Notification.permission === "granted") {
+        if (localStorage.getItem("vitb_parcel_notifications_enabled") !== "false") {
+          localStorage.setItem("vitb_parcel_notifications_enabled", "true");
+        }
+        if (localStorage.getItem("vitb_class_notifications_enabled") !== "false") {
+          localStorage.setItem("vitb_class_notifications_enabled", "true");
+        }
+        initFirebaseParcelRequests();
+        checkUpcomingClassReminders();
+        dismissNotificationBanner();
+      } else if (Notification.permission === "default") {
+        const dismissed = localStorage.getItem("vitb_notif_banner_dismissed");
+        if (!dismissed) {
+          showNotificationPermissionBanner();
+        }
+      } else {
+        dismissNotificationBanner();
+      }
+    }
+
+    function showNotificationPermissionBanner() {
+      const banner = document.getElementById("notificationPermissionBanner");
+      if (banner) banner.classList.remove("hidden");
+    }
+
+    function dismissNotificationBanner() {
+      const banner = document.getElementById("notificationPermissionBanner");
+      if (banner) banner.classList.add("hidden");
+      try {
+        localStorage.setItem("vitb_notif_banner_dismissed", "true");
+      } catch (e) { }
+    }
+
+    function ensureNotificationListenersActive() {
+      if (typeof window === "undefined") return;
+      initFirebasePayLaterRequests();
+      if (isParcelNotificationEnabled() || isClassNotificationEnabled()) {
+        initFirebaseParcelRequests();
+        checkUpcomingClassReminders();
+        if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+          try {
+            navigator.serviceWorker.controller.postMessage({ action: "ping" });
+          } catch (e) { }
+        }
+      }
+    }
+
+    function getVenueBlock(venue) {
+      if (!venue) return "Unknown";
+      const v = venue.trim().toUpperCase();
+      if (v.startsWith("AB02-") || v.startsWith("AB02")) return "AB02";
+      if (v.startsWith("AB-") || v.startsWith("AB1-")) return "AB";
+      if (v.startsWith("CR-")) return "CR";
+      if (v.startsWith("AR-")) return "AR";
+      return "Other";
+    }
+
+    function getParcelHelpers(day, colIndex) {
+      const curCol = TIME_COLUMNS[colIndex] || TIME_COLUMNS[0];
+      const nextColIndex = (colIndex + 1 < TIME_COLUMNS.length) ? (colIndex + 1) : null;
+      const nextCol = nextColIndex !== null ? TIME_COLUMNS[nextColIndex] : null;
+
+      const curSlotCode = DAY_MATRIX[day][colIndex];
+      const nextSlotCode = nextColIndex !== null ? DAY_MATRIX[day][nextColIndex] : null;
+
+      return FRIENDS_DATA.map(friend => {
+        const slotMap = getFriendSlotMap(friend);
+        const curCourse = slotMap[curSlotCode] || null;
+        const nextCourse = nextSlotCode ? (slotMap[nextSlotCode] || null) : null;
+
+        const curVenue = curCourse ? curCourse.venue : null;
+        const nextVenue = nextCourse ? nextCourse.venue : null;
+
+        const curBlock = getVenueBlock(curVenue);
+        const nextBlock = getVenueBlock(nextVenue);
+
+        let priority = 0;
+        let category = "busy";
+        let badgeLabel = "In Class";
+        let badgeStyle = "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700";
+        let borderClass = "border border-slate-100/80 dark:border-slate-700/60";
+        let routeNote = "";
+
+        if (curCourse && curBlock === "AB02" && !nextCourse) {
+          // In AB02 now, next slot is FREE -> walks past parcel counter
+          priority = 100;
+          category = "leaving_ab02";
+          badgeLabel = "🌟 Prime Match • Leaving AB02";
+          badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800";
+          borderClass = "border border-emerald-300/80 dark:border-emerald-800/80";
+          routeNote = `In ${curVenue} (${curCourse.code}) • Next slot free`;
+        } else if (curCourse && curBlock === "AB02" && nextBlock === "AB") {
+          // Walking from AB02 to AB -> crosses parcel area
+          priority = 95;
+          category = "leaving_ab02";
+          badgeLabel = "🚶 Moving AB02 → AB";
+          badgeStyle = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800";
+          borderClass = "border border-blue-300/80 dark:border-blue-800/80";
+          routeNote = `Moving from ${curVenue} to ${nextVenue} in AB`;
+        } else if (curCourse && curBlock === "AB" && nextBlock === "AB02") {
+          // Walking from AB to AB02 -> crosses parcel area
+          priority = 90;
+          category = "leaving_ab02";
+          badgeLabel = "🚶 Moving AB → AB02";
+          badgeStyle = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800";
+          borderClass = "border border-blue-300/80 dark:border-blue-800/80";
+          routeNote = `Moving from ${curVenue} to ${nextVenue} in AB02`;
+        } else if (!curCourse && !nextCourse) {
+          // Free now and next slot
+          priority = 85;
+          category = "free_now";
+          badgeLabel = "⚡ Free Now & Next";
+          badgeStyle = "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800";
+          borderClass = "border border-teal-300/80 dark:border-teal-800/80";
+          routeNote = `Completely free now & next slot`;
+        } else if (!curCourse && nextCourse) {
+          // Free now, class next
+          priority = 75;
+          category = "free_now";
+          badgeLabel = "🟢 Free Right Now";
+          badgeStyle = "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800";
+          borderClass = "border border-teal-300/80 dark:border-teal-800/80";
+          routeNote = `Free now • Next class ${nextCol ? nextCol.start : ''} in ${nextVenue}`;
+        } else if (curCourse && !nextCourse) {
+          // In class now, free next
+          priority = 65;
+          category = "free_next";
+          badgeLabel = "⏳ Free Next Slot";
+          badgeStyle = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800";
+          borderClass = "border border-amber-300/80 dark:border-amber-800/80";
+          routeNote = `In class now in ${curVenue} • Free next slot (${nextCol ? nextCol.start : curCol.end})`;
+        } else {
+          // In class back-to-back
+          priority = 10;
+          category = "busy";
+          badgeLabel = "In Class";
+          badgeStyle = "bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800/60 dark:text-slate-400 dark:border-slate-700";
+          borderClass = "border border-slate-200/60 dark:border-slate-800/60";
+          routeNote = `In ${curVenue} (${curCourse.code}) → ${nextVenue} (${nextCourse.code})`;
+        }
+
+        return {
+          friend,
+          curCourse,
+          nextCourse,
+          curVenue,
+          nextVenue,
+          curBlock,
+          nextBlock,
+          priority,
+          category,
+          badgeLabel,
+          badgeStyle,
+          borderClass,
+          routeNote
+        };
+      }).sort((a, b) => b.priority - a.priority || a.friend.name.localeCompare(b.friend.name));
+    }
+
+    let parcelCollectionName = "deliveries";
+    let isParcelLoading = false;
+    let parcelSyncError = null;
+    let parcelUsingFallback = false;
+
+    function initFirebaseParcelRequests() {
+      if (isFirebaseParcelListenerActive) return;
+      const firestore = getDb();
+      if (!firestore) return;
+
+      isFirebaseParcelListenerActive = true;
+      startParcelFirestoreListener(firestore, "deliveries");
+    }
+
+    function startParcelFirestoreListener(firestore, targetCol) {
+      parcelCollectionName = targetCol;
+      isParcelLoading = true;
+      parcelSyncError = null;
+
+      let query = firestore.collection(targetCol);
+
+      query.onSnapshot((snapshot) => {
+        isParcelLoading = false;
+        parcelSyncError = null;
+
+        const claimsMap = {};
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.docType === "parcel_request_completed" && data.targetId) {
+            completedParcelDocIds.add(data.targetId);
+            // Delete tombstone from Firestore so collection stays empty/clean
+            if (doc.ref && doc.ref.delete) doc.ref.delete().catch(() => { });
+          } else if (data.status === "completed" || data.status === "received" || data.status === "delivered") {
+            completedParcelDocIds.add(doc.id);
+            // Delete completed doc from Firestore
+            if (doc.ref && doc.ref.delete) doc.ref.delete().catch(() => { });
+          } else if (data.docType === "parcel_request_claimed" && data.targetId && data.claimedBy) {
+            claimsMap[data.targetId] = data.claimedBy;
+          }
+        });
+
+        try {
+          localStorage.setItem("vitb_completed_parcel_ids", JSON.stringify([...completedParcelDocIds]));
+        } catch (e) { }
+
+        const reqs = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.docType !== "parcel_request" || !data.requester) return;
+          if (completedParcelDocIds.has(doc.id) || data.status === "completed" || data.status === "received" || data.status === "delivered") {
+            // Delete completed doc from Firestore so only active parcels remain
+            if (doc.ref && doc.ref.delete) doc.ref.delete().catch(() => { });
+            return;
+          }
+          const item = {
+            id: doc.id,
+            ...data,
+            timestamp: data.timestamp || Date.now()
+          };
+          if (claimsMap[doc.id]) {
+            item.status = "claimed";
+            item.claimedBy = claimsMap[doc.id];
+          }
+          reqs.push(item);
+        });
+
+        // Preserve any pending local requests that have not yet uploaded to Firestore
+        const pendingLocalReqs = PARCEL_REQUESTS.filter(r => r.id && String(r.id).startsWith("local_") && !completedParcelDocIds.has(r.id));
+        PARCEL_REQUESTS = [...pendingLocalReqs, ...reqs].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        try {
+          localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
+        } catch (e) { }
+
+        // Check for new real-time parcel requests to dispatch notifications
+        let notifiedParcelIds = [];
+        try {
+          notifiedParcelIds = JSON.parse(localStorage.getItem("vitb_notified_parcel_ids") || "[]");
+        } catch (e) { }
+
+        const now = Date.now();
+        if (!hasLoadedInitialParcels) {
+          snapshot.forEach(doc => {
+            knownParcelDocIds.add(doc.id);
+            const data = doc.data();
+            if (data.docType === "parcel_request" && data.status === "open" && data.requester) {
+              const ageMs = now - (data.timestamp || 0);
+              // If a fresh request was posted within the last 30 minutes and was not notified yet on this device
+              if (ageMs > 0 && ageMs < 30 * 60 * 1000 && !notifiedParcelIds.includes(doc.id)) {
+                sendParcelNotification({ id: doc.id, ...data });
+              } else if (!notifiedParcelIds.includes(doc.id)) {
+                notifiedParcelIds.push(doc.id);
+              }
+            }
+          });
+          try {
+            localStorage.setItem("vitb_notified_parcel_ids", JSON.stringify(notifiedParcelIds.slice(-100)));
+          } catch (e) { }
+          hasLoadedInitialParcels = true;
+        } else {
+          snapshot.forEach(doc => {
+            if (!knownParcelDocIds.has(doc.id)) {
+              knownParcelDocIds.add(doc.id);
+              const data = doc.data();
+              if (data.docType !== "parcel_request" || !data.requester) return;
+              if (completedParcelDocIds.has(doc.id)) return;
+              if (data.status === "open") {
+                sendParcelNotification({ id: doc.id, ...data });
+              }
+            }
+          });
+        }
+
+        // Automatically upload any unsynced local requests
+        if (pendingLocalReqs.length > 0) {
+          pendingLocalReqs.forEach(async (lr) => {
+            try {
+              const { id, ...cleanData } = lr;
+              await firestore.collection(parcelCollectionName).add({
+                ...cleanData,
+                docType: "parcel_request",
+                createdAt: (typeof firebase !== "undefined" && firebase.firestore && firebase.firestore.FieldValue)
+                  ? firebase.firestore.FieldValue.serverTimestamp()
+                  : new Date()
+              });
+              PARCEL_REQUESTS = PARCEL_REQUESTS.filter(r => r.id !== lr.id);
+              localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
+            } catch (err) { }
+          });
+        }
+
+        if (activeTab === "parcel") {
+          renderParcelHelper();
+        }
+      }, (err) => {
+        isParcelLoading = false;
+        console.warn(`Firestore delivery listener on '${targetCol}' notice:`, err);
+        // If permission-denied on deliveries, seamlessly switch to authorized teacher_reviews collection fallback
+        if (targetCol === "deliveries" && (err.code === "permission-denied" || String(err).includes("permission") || String(err).includes("insufficient"))) {
+          console.info("Switching delivery sync to authorized teacher_reviews collection fallback.");
+          parcelCollectionName = "teacher_reviews";
+          parcelUsingFallback = true;
+          startParcelFirestoreListener(firestore, "teacher_reviews");
+          return;
+        }
+        parcelSyncError = err.message || "Offline";
+        if (activeTab === "parcel") {
+          renderParcelHelper();
+        }
+      });
+    }
+
+    function openParcelRequestModal() {
+      const modal = document.getElementById("parcelRequestModal");
+      if (!modal) return;
+
+      const select = document.getElementById("parcelRequesterSelect");
+      if (select && select.options.length <= 1) {
+        const sorted = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
+        select.innerHTML = '<option value="">Select your name...</option>' + sorted.map(f => `
+          <option value="${f.name}">${f.name}</option>
+        `).join("");
+      }
+
+      const savedName = localStorage.getItem("vitb_last_requester_name");
+      if (savedName && select) {
+        select.value = savedName;
+      }
+
+      modal.classList.remove("hidden");
+    }
+
+    function closeParcelRequestModal() {
+      const modal = document.getElementById("parcelRequestModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    async function submitParcelRequest() {
+      const select = document.getElementById("parcelRequesterSelect");
+      const courierInput = document.getElementById("parcelCourierInput");
+      const otpInput = document.getElementById("parcelOtpInput");
+      const noteInput = document.getElementById("parcelNoteInput");
+      const submitBtn = document.getElementById("submitParcelRequestBtn");
+      const btnText = document.getElementById("submitParcelBtnText");
+
+      const requesterName = select ? select.value : "";
+      const courier = courierInput ? courierInput.value : "Amazon";
+      const otp = otpInput ? otpInput.value.trim() : "";
+      const note = noteInput ? noteInput.value.trim() : "";
+
+      if (!requesterName) {
+        alert("Please select your name.");
+        return;
+      }
+
+      try {
+        localStorage.setItem("vitb_last_requester_name", requesterName);
+      } catch (e) { }
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Posting to Firebase...';
+
+      const newReq = {
+        requester: requesterName,
+        courier: courier || "Delivery",
+        otp: otp || "",
+        note: note || "",
+        status: "open",
+        claimedBy: "",
+        location: "Between AB & AB02 Counter",
+        timestamp: Date.now()
+      };
+
+      const firestore = getDb();
+      if (firestore) {
+        try {
+          const docData = {
+            ...newReq,
+            docType: "parcel_request",
+            createdAt: (typeof firebase !== "undefined" && firebase.firestore && firebase.firestore.FieldValue)
+              ? firebase.firestore.FieldValue.serverTimestamp()
+              : new Date()
+          };
+
+          try {
+            await firestore.collection(parcelCollectionName).add(docData);
+          } catch (firstErr) {
+            if (parcelCollectionName === "deliveries" && (firstErr.code === "permission-denied" || String(firstErr).includes("permission") || String(firstErr).includes("insufficient"))) {
+              console.info("Deliveries write permission denied, falling back to teacher_reviews.");
+              parcelCollectionName = "teacher_reviews";
+              parcelUsingFallback = true;
+              await firestore.collection("teacher_reviews").add(docData);
+              startParcelFirestoreListener(firestore, "teacher_reviews");
+            } else {
+              throw firstErr;
+            }
+          }
+        } catch (e) {
+          console.warn("Firestore save fallback to local:", e);
+          newReq.id = "local_" + Date.now();
+          PARCEL_REQUESTS.unshift(newReq);
+          try {
+            localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
+          } catch (err) { }
+        }
+      } else {
+        newReq.id = "local_" + Date.now();
+        PARCEL_REQUESTS.unshift(newReq);
+        try {
+          localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
+        } catch (err) { }
+      }
+
+      if (submitBtn) submitBtn.disabled = false;
+      if (btnText) btnText.textContent = "Post Request to Squad";
+      closeParcelRequestModal();
+      showReviewToast("Parcel request posted to squad board!");
+      renderParcelHelper();
+    }
+
+    async function claimParcelRequest(reqId) {
+      const sorted = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
+      const friendName = prompt("Enter your name to claim this pickup (e.g. Ajay):", sorted[0].name.split(" ")[0]);
+      if (!friendName || !friendName.trim()) return;
+
+      const target = PARCEL_REQUESTS.find(r => r.id === reqId);
+      if (target) {
+        target.status = "claimed";
+        target.claimedBy = friendName.trim();
+        try {
+          localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
+        } catch (e) { }
+      }
+
+      showReviewToast(`You claimed this parcel! Thanks for helping ${target ? target.requester : "your friend"}!`);
+      renderParcelHelper();
+
+      const firestore = getDb();
+      if (firestore && reqId && !String(reqId).startsWith("local_")) {
+        // Attempt direct update if allowed by rules
+        try {
+          await firestore.collection(parcelCollectionName).doc(reqId).update({
+            status: "claimed",
+            claimedBy: friendName.trim()
+          });
+        } catch (e) {
+          if (parcelCollectionName !== "teacher_reviews") {
+            try {
+              await firestore.collection("teacher_reviews").doc(reqId).update({
+                status: "claimed",
+                claimedBy: friendName.trim()
+              });
+            } catch (err2) { }
+          }
+        }
+
+        // Also add claim record for sync across restrictive rules
+        const claimDoc = {
+          docType: "parcel_request_claimed",
+          targetId: reqId,
+          claimedBy: friendName.trim(),
+          timestamp: Date.now()
+        };
+
+        try {
+          await firestore.collection(parcelCollectionName).add(claimDoc);
+        } catch (errClaim) {
+          if (parcelCollectionName !== "teacher_reviews") {
+            try {
+              await firestore.collection("teacher_reviews").add(claimDoc);
+            } catch (e3) { }
+          }
+        }
+      }
+    }
+
+    async function completeParcelRequest(reqId) {
+      if (!reqId) return;
+
+      // 1. Immediately track as completed locally
+      completedParcelDocIds.add(reqId);
+      try {
+        localStorage.setItem("vitb_completed_parcel_ids", JSON.stringify([...completedParcelDocIds]));
+      } catch (e) { }
+
+      // 2. Immediately remove from memory and update UI
+      PARCEL_REQUESTS = PARCEL_REQUESTS.filter(r => r.id !== reqId && !completedParcelDocIds.has(r.id));
+      try {
+        localStorage.setItem("vitb_parcel_requests", JSON.stringify(PARCEL_REQUESTS));
+      } catch (e) { }
+
+      showReviewToast("Parcel marked as received / delivered!");
+      renderParcelHelper();
+
+      // 3. Delete directly from Firebase so completed parcels never accumulate
+      const firestore = getDb();
+      if (firestore && !String(reqId).startsWith("local_")) {
+        // Delete primary parcel doc from active collection
+        try {
+          await firestore.collection(parcelCollectionName).doc(reqId).delete();
+        } catch (e) {
+          console.warn("Delete parcel error:", e);
+        }
+
+        // Also clean up from teacher_reviews if it was placed there during fallback
+        if (parcelCollectionName !== "teacher_reviews") {
+          try {
+            await firestore.collection("teacher_reviews").doc(reqId).delete();
+          } catch (e) { }
+        }
+
+        // Delete any auxiliary claim/completion records tied to this request
+        try {
+          const claimsSnap = await firestore.collection(parcelCollectionName).where("targetId", "==", reqId).get();
+          if (claimsSnap && claimsSnap.forEach) {
+            claimsSnap.forEach(d => {
+              if (d.ref && d.ref.delete) d.ref.delete().catch(() => { });
+            });
+          }
+        } catch (e) { }
+
+        if (parcelCollectionName !== "teacher_reviews") {
+          try {
+            const fallbackClaims = await firestore.collection("teacher_reviews").where("targetId", "==", reqId).get();
+            if (fallbackClaims && fallbackClaims.forEach) {
+              fallbackClaims.forEach(d => {
+                if (d.ref && d.ref.delete) d.ref.delete().catch(() => { });
+              });
+            }
+          } catch (e) { }
+        }
+      }
+    }
+
+    function askHelperOnWhatsApp(friendName) {
+      const select = document.getElementById("parcelRequesterSelect");
+      const requester = (select && select.value) ? select.value : "your friend";
+
+      const courierInput = document.getElementById("parcelCourierInput");
+      const courier = (courierInput && courierInput.value) ? courierInput.value : "a parcel";
+
+      const otpInput = document.getElementById("parcelOtpInput");
+      const otp = (otpInput && otpInput.value.trim()) ? ` (OTP: ${otpInput.value.trim()})` : "";
+
+      const msg = `Hey ${friendName.split(" ")[0]}! 👋 Could you please pick up my ${courier} delivery${otp} if you're free? Thank you so much! 🙏 - ${requester}`;
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+      window.open(url, "_blank");
+    }
+
+    function copyHelperMessage(friendName) {
+      const select = document.getElementById("parcelRequesterSelect");
+      const requester = (select && select.value) ? select.value : "your friend";
+
+      const courierInput = document.getElementById("parcelCourierInput");
+      const courier = (courierInput && courierInput.value) ? courierInput.value : "a parcel";
+
+      const otpInput = document.getElementById("parcelOtpInput");
+      const otp = (otpInput && otpInput.value.trim()) ? ` (OTP: ${otpInput.value.trim()})` : "";
+
+      const msg = `Hey ${friendName.split(" ")[0]}! 👋 Could you please pick up my ${courier} delivery${otp} if you're free? Thank you so much! 🙏 - ${requester}`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(msg).then(() => {
+          showReviewToast("Pickup message copied to clipboard!");
+        }).catch(() => {
+          showReviewToast("Copied to clipboard!");
+        });
+      } else {
+        showReviewToast("Copied to clipboard!");
+      }
+    }
+
+    function selectParcelDay(day) {
+      selectedParcelDay = day;
+      renderParcelHelper();
+    }
+
+    function selectParcelSlot(slotIdx) {
+      selectedParcelSlotIndex = slotIdx;
+      renderParcelHelper();
+    }
+
+    function resetParcelToLiveSlot() {
+      selectedParcelSlotIndex = null;
+      const today = DAYS_ORDER[new Date().getDay() - 1];
+      if (today) selectedParcelDay = today;
+      renderParcelHelper();
+    }
+
+    function setParcelFilter(filterKey) {
+      selectedParcelFilter = filterKey;
+      renderParcelHelper();
+    }
+
+    function renderParcelHelper() {
+      const container = document.getElementById("tabPanel-parcel");
+      if (!container) return;
+
+      const liveSlotIdx = getCurrentLiveSlotIndex();
+      const isAutoLive = (selectedParcelSlotIndex === null);
+      const activeSlotIdx = isAutoLive ? (liveSlotIdx !== -1 ? liveSlotIdx : 0) : selectedParcelSlotIndex;
+      const activeCol = TIME_COLUMNS[activeSlotIdx] || TIME_COLUMNS[0];
+      const nextColIdx = (activeSlotIdx + 1 < TIME_COLUMNS.length) ? (activeSlotIdx + 1) : null;
+      const nextCol = nextColIdx !== null ? TIME_COLUMNS[nextColIdx] : null;
+
+      const allHelpers = getParcelHelpers(selectedParcelDay, activeSlotIdx);
+
+      const ab02Count = allHelpers.filter(h => h.category === "leaving_ab02").length;
+      const freeNowCount = allHelpers.filter(h => h.category === "free_now").length;
+      const freeNextCount = allHelpers.filter(h => h.category === "free_next").length;
+      const availableCount = allHelpers.filter(h => h.category !== "busy").length;
+
+      let filteredHelpers = allHelpers;
+      if (selectedParcelFilter === "available") {
+        filteredHelpers = allHelpers.filter(h => h.category !== "busy");
+      } else if (selectedParcelFilter === "leaving_ab02") {
+        filteredHelpers = allHelpers.filter(h => h.category === "leaving_ab02");
+      } else if (selectedParcelFilter === "free_now") {
+        filteredHelpers = allHelpers.filter(h => h.category === "free_now");
+      } else if (selectedParcelFilter === "free_next") {
+        filteredHelpers = allHelpers.filter(h => h.category === "free_next");
+      }
+
+      container.innerHTML = `
+        <!-- Sleek Header Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+                <i class="fa-solid fa-box-open"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
+                    Campus Parcel Helper
+                  </h2>
+                  ${isParcelLoading ? `
+                    <span class="relative flex h-2 w-2 shrink-0" title="Syncing parcel requests...">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                  ` : (parcelSyncError && !parcelUsingFallback ? `
+                    <span class="relative flex h-2 w-2 shrink-0" title="Offline / Local Cache">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                    </span>
+                  ` : `
+                    <span class="relative flex h-2 w-2 shrink-0" title="${parcelUsingFallback ? 'Live via Fallback Collection' : 'Live Connected'}">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                  `)}
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+                  ${availableCount > 0
+          ? `<span class="text-emerald-600 dark:text-emerald-400 font-semibold">${availableCount} squad members</span> free to help`
+          : `No squad members free in this slot`}
+                </p>
+              </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <button
+                onclick="toggleParcelNotifications()"
+                id="parcelNotificationToggleBtn"
+                title="${isParcelNotificationEnabled() ? 'Parcel notifications enabled (Click to mute)' : 'Enable parcel request notifications'}"
+                class="px-2.5 py-1.5 rounded-xl font-bold text-xs transition shadow-xs flex items-center gap-1.5 active:scale-95 ${isParcelNotificationEnabled()
+          ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
+          : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
+        }"
+              >
+                <i class="fa-solid ${isParcelNotificationEnabled() ? 'fa-bell text-emerald-600 dark:text-emerald-400' : 'fa-bell-slash text-slate-400'} text-xs"></i>
+                <span class="hidden sm:inline">${isParcelNotificationEnabled() ? 'Alerts On' : 'Alerts'}</span>
+              </button>
+              <button
+                onclick="sendTestNotification()"
+                id="testNotificationBtn"
+                title="Send a test notification to verify your device alerts"
+                class="px-2 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold transition shadow-xs flex items-center gap-1 shrink-0 active:scale-95"
+              >
+                <i class="fa-solid fa-vial text-[11px] text-amber-500"></i>
+                <span class="hidden sm:inline">Test</span>
+              </button>
+              <button
+                onclick="openParcelRequestModal()"
+                class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition shadow-xs flex items-center gap-1.5 shrink-0 active:scale-95"
+              >
+                <i class="fa-solid fa-plus text-[11px]"></i>
+                <span>Request</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unified Day & Slot Control Panel -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3 sm:p-3.5 space-y-3 shadow-xs">
+          <!-- Day Segmented Switcher + Live Badge -->
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1 flex-1 overflow-x-auto no-scrollbar">
+              ${DAYS_ORDER.map(day => {
+          const isSelected = day === selectedParcelDay;
+          return `
+                  <button
+                    onclick="selectParcelDay('${day}')"
+                    class="flex-1 min-w-[40px] py-1.5 rounded-xl text-xs font-bold transition text-center ${isSelected
+              ? 'bg-amber-500 text-white shadow-xs'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }"
+                  >
+                    ${day}
+                  </button>
+                `;
+        }).join("")}
+            </div>
+
+            <!-- Snap Live / Live status -->
+            <div class="shrink-0">
+              ${!isAutoLive ? `
+                <button
+                  onclick="resetParcelToLiveSlot()"
+                  class="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-400 border border-blue-200 dark:border-blue-900/60 hover:bg-blue-100 dark:hover:bg-blue-900/80 transition flex items-center gap-1.5 active:scale-95"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                  <span>Snap Live</span>
+                </button>
+              ` : `
+                <span class="text-[10.5px] font-bold px-2 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800 flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Live</span>
+                </span>
+              `}
+            </div>
+          </div>
+
+          <!-- Active Slot Strip with Timings -->
+          <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80">
+            <div class="flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5 px-0.5">
+              <span>Slot: <strong class="font-mono text-slate-800 dark:text-slate-200">${DAY_MATRIX[selectedParcelDay][activeSlotIdx]}</strong></span>
+              <span class="font-mono text-[10.5px] text-slate-400">${activeCol.start} – ${activeCol.end}</span>
+            </div>
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 custom-h-scrollbar">
+              ${TIME_COLUMNS.map((col, idx) => {
+          const isSelected = (idx === activeSlotIdx);
+          const isLive = (idx === liveSlotIdx);
+          return `
+                  <button
+                    onclick="selectParcelSlot(${idx})"
+                    class="shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition flex items-center gap-1 ${isSelected
+              ? 'bg-amber-500 text-white border-amber-500 font-bold shadow-xs'
+              : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+            }"
+                  >
+                    <span class="font-mono">${DAY_MATRIX[selectedParcelDay][idx]}</span>
+                    <span class="text-[10px] opacity-75 font-normal">(${col.start.split(" ")[0]})</span>
+                    ${isLive && !isSelected ? `<span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 ml-0.5 animate-pulse"></span>` : ''}
+                  </button>
+                `;
+        }).join("")}
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Squad Parcel Requests (Board) -->
+        ${PARCEL_REQUESTS.length > 0 ? `
+          <div class="space-y-2">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                <i class="fa-solid fa-bullhorn text-amber-500 text-xs"></i>
+                <span>Active Squad Requests (${PARCEL_REQUESTS.length})</span>
+              </span>
+            </div>
+            <div class="space-y-2">
+              ${PARCEL_REQUESTS.map(req => `
+                <div class="bg-white dark:bg-slate-900 border ${req.status === 'claimed' ? 'border-emerald-300 dark:border-emerald-800' : 'border-amber-300 dark:border-amber-800'} rounded-2xl p-3 shadow-xs space-y-2">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                        ${req.requester.charAt(0)}
+                      </div>
+                      <div>
+                        <div class="text-xs font-bold text-slate-900 dark:text-slate-100">${req.requester}</div>
+                        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">${formatReviewTime(req.timestamp)} • ${req.courier}</div>
+                      </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${req.status === 'claimed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-900' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900'}">
+                      ${req.status === 'claimed' ? `✅ Claimed by ${req.claimedBy}` : '📦 Needs Pickup'}
+                    </span>
+                  </div>
+
+                  ${req.note || req.otp ? `
+                    <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2 text-xs text-slate-700 dark:text-slate-300 flex flex-wrap items-center gap-2">
+                      ${req.otp ? `<span class="font-mono text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-md border border-amber-200/60 dark:border-amber-900/60">OTP: ${req.otp}</span>` : ''}
+                      ${req.note ? `<span class="text-xs text-slate-600 dark:text-slate-300">${req.note}</span>` : ''}
+                    </div>
+                  ` : ''}
+
+                  <div class="flex items-center justify-end gap-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-800">
+                    ${req.status !== 'claimed' ? `
+                      <button
+                        onclick="claimParcelRequest('${req.id}')"
+                        class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-xs flex items-center gap-1 active:scale-95"
+                      >
+                        <i class="fa-solid fa-handshake text-xs"></i>
+                        <span>I Can Bring It!</span>
+                      </button>
+                    ` : ''}
+                    <button
+                      onclick="completeParcelRequest('${req.id}')"
+                      class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs transition active:scale-95"
+                      title="Mark received or dismiss"
+                    >
+                      <i class="fa-solid fa-check text-[11px] mr-1"></i>Received
+                    </button>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- Filter Pills Strip -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 custom-h-scrollbar">
+          <button
+            onclick="setParcelFilter('all')"
+            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition ${selectedParcelFilter === 'all'
+          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-xs'
+          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+        }"
+          >
+            All (${allHelpers.length})
+          </button>
+          <button
+            onclick="setParcelFilter('available')"
+            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-1.5 ${selectedParcelFilter === 'available'
+          ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
+          : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/80 hover:bg-amber-100 dark:hover:bg-amber-900/40'
+        }"
+          >
+            <span>⚡ Available</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full ${selectedParcelFilter === 'available' ? 'bg-white/20 text-white' : 'bg-amber-200/60 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200'}">${availableCount}</span>
+          </button>
+          <button
+            onclick="setParcelFilter('leaving_ab02')"
+            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-1.5 ${selectedParcelFilter === 'leaving_ab02'
+          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+          : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/80 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
+        }"
+          >
+            <span>🚶 Leaving AB02</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full ${selectedParcelFilter === 'leaving_ab02' ? 'bg-white/20 text-white' : 'bg-emerald-200/60 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200'}">${ab02Count}</span>
+          </button>
+          <button
+            onclick="setParcelFilter('free_now')"
+            class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-1.5 ${selectedParcelFilter === 'free_now'
+          ? 'bg-teal-600 text-white border-teal-600 shadow-xs'
+          : 'bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800/80 hover:bg-teal-100 dark:hover:bg-teal-900/40'
+        }"
+          >
+            <span>🟢 Free Now</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full ${selectedParcelFilter === 'free_now' ? 'bg-white/20 text-white' : 'bg-teal-200/60 dark:bg-teal-900/60 text-teal-800 dark:text-teal-200'}">${freeNowCount}</span>
+          </button>
+        </div>
+
+        <!-- Helpers List -->
+        <div class="space-y-2">
+          ${filteredHelpers.length === 0 ? `
+            <div class="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-xs">
+              No squad members match this filter in Slot ${activeSlotIdx + 1}. Try viewing 'All'.
+            </div>
+          ` : filteredHelpers.map(h => {
+          const isBusy = h.category === "busy";
+
+          if (isBusy) {
+            return `
+                <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60 rounded-xl p-2.5 transition opacity-60 hover:opacity-100 flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-6 h-6 rounded-full bg-gradient-to-tr ${h.friend.avatarBg} text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                      ${h.friend.name.charAt(0)}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">${h.friend.name}</div>
+                      <div class="text-[10px] text-slate-400 font-mono truncate">${h.routeNote}</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700">
+                      In Class
+                    </span>
+                    <button
+                      type="button"
+                      onclick="askHelperOnWhatsApp('${h.friend.name}')"
+                      class="px-2 py-1 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] font-medium transition"
+                      title="Ask on WhatsApp"
+                    >
+                      <i class="fa-brands fa-whatsapp text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+              `;
+          }
+
+          return `
+              <div class="bg-white dark:bg-slate-900 ${h.borderClass} rounded-2xl p-3 sm:p-3.5 shadow-xs space-y-2.5">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr ${h.friend.avatarBg} text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+                      ${h.friend.name.charAt(0)}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">${h.friend.name}</div>
+                      <div class="text-[10.5px] text-slate-500 dark:text-slate-400 font-mono truncate">
+                        ${h.curCourse ? `Now: ${h.curVenue}` : 'Now: Free'} • ${h.nextCourse ? `Next: ${h.nextVenue}` : 'Next: Free'}
+                      </div>
+                    </div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${h.badgeStyle} shrink-0 text-right">
+                    ${h.badgeLabel}
+                  </span>
+                </div>
+
+                <!-- Route Note -->
+                <div class="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5 pl-0.5">
+                  <i class="fa-solid fa-location-arrow text-amber-500 text-[10px] shrink-0"></i>
+                  <span class="truncate">${h.routeNote}</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onclick="copyHelperMessage('${h.friend.name}')"
+                    class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold transition flex items-center gap-1.5 active:scale-95"
+                    title="Copy pickup request text"
+                  >
+                    <i class="fa-solid fa-copy text-[10px]"></i>
+                    <span>Copy</span>
+                  </button>
+                  <button
+                    type="button"
+                    onclick="askHelperOnWhatsApp('${h.friend.name}')"
+                    class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 active:scale-95"
+                  >
+                    <i class="fa-brands fa-whatsapp text-xs"></i>
+                    <span>Ask on WhatsApp</span>
+                  </button>
+                </div>
+              </div>
+            `;
+        }).join("")}
+        </div>
+      `;
+    }
+
+    /**
+     * ========================================================================
+     * 11.5. TAB 5: PAY ME LATER (STUDENT EXPENSE & DEBT TRACKER)
+     * ========================================================================
+     */
+    let PAY_ME_LATER_LIST = [];
+    let isFirebasePayLaterListenerActive = false;
+    let isPayLaterLoading = false;
+    let payLaterSyncError = null;
+    let payLaterActiveFilter = "owed_to_me"; // 'owed_to_me' or 'i_owe'
+    let hasUserManuallySelectedPayLaterFilter = false;
+    let payLaterSearchQuery = "";
+    let activePayNowRecord = null;
+    let activePayNowMode = "full"; // 'full' or 'custom'
+
+    const PAY_ME_LATER_DOC_PATH = { collection: "teacher_reviews", doc: "pay_me_later_records" };
+
+    function initFirebasePayLaterRequests() {
+      if (isFirebasePayLaterListenerActive) return;
+      const firestore = getDb();
+      if (!firestore) return;
+
+      isFirebasePayLaterListenerActive = true;
+      isPayLaterLoading = true;
+      payLaterSyncError = null;
+
+      try {
+        // Single document storage architecture: listens to pay_me_later_records in authorized collection
+        firestore.collection(PAY_ME_LATER_DOC_PATH.collection).doc(PAY_ME_LATER_DOC_PATH.doc)
+          .onSnapshot((doc) => {
+            isPayLaterLoading = false;
+            payLaterSyncError = null;
+            let items = [];
+            if (doc && doc.exists) {
+              const data = doc.data();
+              if (data && Array.isArray(data.records)) {
+                items = data.records.map(r => ({
+                  ...r,
+                  amount: Number(r.amount || 0),
+                  originalAmount: Number(r.originalAmount || r.amount || 0),
+                  createdAt: Number(r.createdAt || Date.now()),
+                  payments: Array.isArray(r.payments) ? r.payments : []
+                }));
+              }
+            }
+
+            // Sort newest first
+            items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            PAY_ME_LATER_LIST = items;
+
+            try {
+              localStorage.setItem("vitb_pay_me_later", JSON.stringify(items));
+            } catch (e) { }
+
+            // Notify borrower if a new debt was added for them
+            checkPayLaterNotifications(items);
+
+            if (activeTab === "paylater") {
+              renderPayLaterUI();
+            }
+          }, (err) => {
+            console.warn("Pay Me Later single doc listener error:", err);
+            isPayLaterLoading = false;
+            payLaterSyncError = err.message || "Failed to sync with Firebase";
+            if (activeTab === "paylater") {
+              renderPayLaterUI();
+            }
+          });
+      } catch (e) {
+        console.warn("Pay Me Later listener init exception:", e);
+        isPayLaterLoading = false;
+      }
+    }
+
+    async function syncPayLaterRecordsToFirebase(recordsList) {
+      PAY_ME_LATER_LIST = recordsList;
+      try {
+        localStorage.setItem("vitb_pay_me_later", JSON.stringify(recordsList));
+      } catch (e) { }
+
+      const firestore = getDb();
+      if (!firestore) return false;
+
+      try {
+        await firestore.collection(PAY_ME_LATER_DOC_PATH.collection).doc(PAY_ME_LATER_DOC_PATH.doc).set({
+          records: recordsList,
+          updatedAt: Date.now()
+        }, { merge: true });
+        return true;
+      } catch (err) {
+        console.error("Error updating Pay Me Later single document in Firebase:", err);
+        showReviewToast("Saved locally (Firebase sync pending: " + (err.message || "offline") + ")");
+        return false;
+      }
+    }
+
+    function checkPayLaterNotifications(items) {
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
+      const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
+      if (!myName && !myId) return;
+
+      let notifiedIds = [];
+      try {
+        notifiedIds = JSON.parse(localStorage.getItem("vitb_notified_paylater_ids") || "[]");
+      } catch (e) {
+        notifiedIds = [];
+      }
+      const notifiedSet = new Set(notifiedIds);
+      let hasNew = false;
+
+      items.forEach(item => {
+        const isBorrower = (myId && item.borrowerId && item.borrowerId.toLowerCase() === myId.toLowerCase()) ||
+                           (myName && item.borrowerName && item.borrowerName.toLowerCase() === myName.toLowerCase());
+
+        if (isBorrower && item.amount > 0 && !notifiedSet.has(item.id)) {
+          notifiedSet.add(item.id);
+          hasNew = true;
+
+          const title = "💸 Pay Me Later Reminder";
+          const notePart = item.note ? ' for "' + item.note + '"' : "";
+          const body = (item.lenderName || "A friend") + " added a reminder: you owe ₹" + item.amount + notePart + ". Tap to view.";
+
+          dispatchAppNotification(title, {
+            body: body,
+            tag: "paylater_" + item.id,
+            data: { url: "./?tab=paylater", tab: "paylater" }
+          });
+
+          showReviewToast("🔔 " + (item.lenderName || "Friend") + " added: You owe ₹" + item.amount + notePart);
+        }
+      });
+
+      if (hasNew) {
+        try {
+          localStorage.setItem("vitb_notified_paylater_ids", JSON.stringify([...notifiedSet].slice(-100)));
+        } catch (e) { }
+      }
+    }
+
+    function openPayLaterModal() {
+      const modal = document.getElementById("payLaterModal");
+      if (!modal) return;
+
+      const identity = getUserIdentity();
+      const myId = identity && identity.id ? identity.id.toLowerCase() : "";
+      const myName = identity && identity.name ? identity.name : "";
+
+      const lenderLabel = document.getElementById("payLaterLenderLabel");
+      if (lenderLabel) {
+        lenderLabel.textContent = myName ? (myName + " (You)") : "You";
+      }
+
+      const borrowerSelect = document.getElementById("payLaterBorrowerSelect");
+      if (borrowerSelect) {
+        const sortedSquad = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
+        borrowerSelect.innerHTML = '<option value="">-- Choose a friend --</option>' +
+          sortedSquad.map(s => {
+            const isSelf = myId && s.id.toLowerCase() === myId;
+            return '<option value="' + s.id + '" data-name="' + s.name + '" ' + (isSelf ? "disabled" : "") + '>' + s.name + (isSelf ? " (You)" : "") + '</option>';
+          }).join("") +
+          '<option value="__custom__">➕ Other / Custom Friend Name...</option>';
+      }
+
+      const amountInput = document.getElementById("payLaterAmountInput");
+      if (amountInput) amountInput.value = "";
+      const noteInput = document.getElementById("payLaterNoteInput");
+      if (noteInput) noteInput.value = "";
+      const customBorrowerInput = document.getElementById("payLaterCustomBorrowerInput");
+      if (customBorrowerInput) {
+        customBorrowerInput.value = "";
+        customBorrowerInput.classList.add("hidden");
+      }
+
+      const upiInput = document.getElementById("payLaterUpiInput");
+      if (upiInput) {
+        upiInput.value = localStorage.getItem("vitb_user_upi_id") || "";
+      }
+
+      modal.classList.remove("hidden");
+    }
+
+    function closePayLaterModal() {
+      const modal = document.getElementById("payLaterModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function handleBorrowerSelectChange() {
+      const select = document.getElementById("payLaterBorrowerSelect");
+      const customInput = document.getElementById("payLaterCustomBorrowerInput");
+      if (!select || !customInput) return;
+      if (select.value === "__custom__") {
+        customInput.classList.remove("hidden");
+        customInput.focus();
+      } else {
+        customInput.classList.add("hidden");
+      }
+    }
+
+    function setQuickPayLaterAmount(val) {
+      const amountInput = document.getElementById("payLaterAmountInput");
+      if (!amountInput) return;
+      const cur = parseFloat(amountInput.value) || 0;
+      amountInput.value = cur + val;
+    }
+
+    function setQuickPayLaterNote(note) {
+      const noteInput = document.getElementById("payLaterNoteInput");
+      if (!noteInput) return;
+      noteInput.value = note;
+    }
+
+    async function submitPayLaterEntry() {
+      const borrowerSelect = document.getElementById("payLaterBorrowerSelect");
+      const customBorrowerInput = document.getElementById("payLaterCustomBorrowerInput");
+      const amountInput = document.getElementById("payLaterAmountInput");
+      const noteInput = document.getElementById("payLaterNoteInput");
+      const upiInput = document.getElementById("payLaterUpiInput");
+      const submitBtn = document.getElementById("submitPayLaterBtn");
+      const btnText = document.getElementById("submitPayLaterBtnText");
+
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "Dhruba";
+      const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "dhruba";
+
+      let borrowerId = "";
+      let borrowerName = "";
+
+      if (borrowerSelect && borrowerSelect.value === "__custom__") {
+        borrowerName = customBorrowerInput ? customBorrowerInput.value.trim() : "";
+        borrowerId = borrowerName.toLowerCase().replace(/\s+/g, "_");
+      } else if (borrowerSelect && borrowerSelect.value) {
+        borrowerId = borrowerSelect.value;
+        const selectedOpt = borrowerSelect.options[borrowerSelect.selectedIndex];
+        borrowerName = selectedOpt ? selectedOpt.getAttribute("data-name") || selectedOpt.text : borrowerId;
+      }
+
+      if (!borrowerName) {
+        alert("Please choose who took money from you.");
+        return;
+      }
+
+      const amount = parseFloat(amountInput ? amountInput.value : 0);
+      if (!amount || amount <= 0) {
+        alert("Please enter a valid amount in ₹.");
+        return;
+      }
+
+      const note = noteInput ? noteInput.value.trim() : "";
+      const upiId = upiInput ? upiInput.value.trim() : "";
+      if (upiId) {
+        try {
+          localStorage.setItem("vitb_user_upi_id", upiId);
+        } catch (e) { }
+      }
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving to Firebase...';
+
+      const entry = {
+        id: "pml_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6),
+        lenderId: myId,
+        lenderName: myName,
+        lenderUpi: upiId || localStorage.getItem("vitb_user_upi_id") || "",
+        borrowerId: borrowerId,
+        borrowerName: borrowerName,
+        amount: amount,
+        originalAmount: amount,
+        note: note || "Money borrowed",
+        createdAt: Date.now(),
+        status: "unpaid",
+        payments: []
+      };
+
+      try {
+        const updatedList = [entry, ...PAY_ME_LATER_LIST];
+        await syncPayLaterRecordsToFirebase(updatedList);
+        closePayLaterModal();
+        showReviewToast("✅ Added! ₹" + amount + " with " + borrowerName + " saved to Firebase.");
+        renderPayLaterUI();
+      } catch (err) {
+        console.warn("Exception saving Pay Me Later entry:", err);
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (btnText) btnText.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Save &amp; Notify Friend';
+      }
+    }
+
+    // Step 1: Debtor (Borrower) marks debt as paid -> updates Firebase status without deleting
+    async function markPayLaterPaidByBorrower(docId) {
+      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
+      if (!record) return;
+
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "Friend";
+
+      if (!confirm("Mark your due of ₹" + record.amount + " to " + record.lenderName + " as paid?\n\nThis will notify " + record.lenderName + " to confirm receipt. The record will be permanently deleted once they confirm.")) {
+        return;
+      }
+
+      record.status = "payment_marked";
+      record.markedPaidByBorrower = true;
+      record.paymentMarkedAt = Date.now();
+      record.paymentMarkedBy = myName;
+
+      await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      showReviewToast("✅ Payment marked! Waiting for " + record.lenderName + " to confirm receipt.");
+      renderPayLaterUI();
+    }
+
+    // Borrower can unmark if clicked by mistake
+    async function unmarkPayLaterPaidByBorrower(docId) {
+      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
+      if (!record) return;
+
+      if (!confirm("Cancel the payment mark for this due of ₹" + record.amount + "?")) {
+        return;
+      }
+
+      record.status = (record.originalAmount && record.originalAmount > record.amount) ? "partially_paid" : "pending";
+      record.markedPaidByBorrower = false;
+      delete record.paymentMarkedAt;
+      delete record.paymentMarkedBy;
+
+      await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      showReviewToast("Payment mark cancelled.");
+      renderPayLaterUI();
+    }
+
+    // Step 2: Creditor (Lender) confirms payment receipt -> permanently deletes from Firebase
+    async function confirmLenderPaymentReceived(docId) {
+      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
+      if (!record) return;
+
+      const borrowerName = record.borrowerName || "Friend";
+      const amount = record.amount || 0;
+
+      if (!confirm("Confirm that you received payment of ₹" + amount + " from " + borrowerName + "?\n\nThis will permanently settle this due and delete the record from Firebase.")) {
+        return;
+      }
+
+      const updatedList = PAY_ME_LATER_LIST.filter(item => item.id !== docId);
+      await syncPayLaterRecordsToFirebase(updatedList);
+      showReviewToast("🎉 Payment confirmed! Due of ₹" + amount + " settled and deleted from Firebase.");
+      renderPayLaterUI();
+    }
+
+    // Lender can mark payment as not received if borrower falsely marked it
+    async function rejectLenderPaymentReceived(docId) {
+      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
+      if (!record) return;
+
+      const borrowerName = record.borrowerName || "Friend";
+
+      if (!confirm("Mark that you did NOT receive ₹" + record.amount + " from " + borrowerName + "?\n\nThis will reset the status to unpaid so they can try again.")) {
+        return;
+      }
+
+      record.status = (record.originalAmount && record.originalAmount > record.amount) ? "partially_paid" : "pending";
+      record.markedPaidByBorrower = false;
+      record.paymentRejectedAt = Date.now();
+      delete record.paymentMarkedAt;
+      delete record.paymentMarkedBy;
+
+      await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      showReviewToast("⚠️ Marked as not received. Due remains active.");
+      renderPayLaterUI();
+    }
+
+    // Backwards-compatible router for legacy callers
+    async function markPayLaterAsPaid(docId, friendName, amount) {
+      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
+      if (!record) return;
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
+      const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
+      const isLender = (myName && record.lenderName && record.lenderName.toLowerCase() === myName.toLowerCase()) ||
+                       (myId && record.lenderId && record.lenderId.toLowerCase() === myId.toLowerCase());
+      if (isLender) {
+        return confirmLenderPaymentReceived(docId);
+      } else {
+        return markPayLaterPaidByBorrower(docId);
+      }
+    }
+
+    function sendPayLaterReminderWhatsApp(docIdOrName, amount, note, upiId) {
+      const item = PAY_ME_LATER_LIST.find(x => x.id === docIdOrName);
+      const friendName = item ? item.borrowerName : docIdOrName;
+      const dueAmount = item ? item.amount : amount;
+      const dueNote = item ? item.note : note;
+      const lenderUpi = item ? item.lenderUpi : upiId;
+
+      let text = "Hey " + (friendName || "friend") + "! Friendly reminder to clear ₹" + dueAmount + (dueNote ? (" for " + dueNote) : "") + " on Pay Me Later (Campus Saathi).";
+      if (lenderUpi) {
+        text += " You can pay directly via UPI: " + lenderUpi;
+      }
+      text += " Thank you! 😊";
+      const url = "https://wa.me/?text=" + encodeURIComponent(text);
+      window.open(url, "_blank");
+    }
+
+    function promptSetMyUpiId() {
+      const current = localStorage.getItem("vitb_user_upi_id") || "";
+      const input = prompt("Enter your UPI ID to receive direct Pay Now payments (e.g. mobile@upi, username@okaxis):", current);
+      if (input !== null) {
+        const cleaned = input.trim();
+        localStorage.setItem("vitb_user_upi_id", cleaned);
+        if (cleaned) {
+          showReviewToast("UPI ID saved: " + cleaned);
+          // Also update active records where I am the lender
+          const identity = getUserIdentity();
+          const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
+          const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
+          let modified = false;
+          PAY_ME_LATER_LIST.forEach(item => {
+            if ((myId && item.lenderId === myId) || (myName && item.lenderName === myName)) {
+              if (!item.lenderUpi || item.lenderUpi !== cleaned) {
+                item.lenderUpi = cleaned;
+                modified = true;
+              }
+            }
+          });
+          if (modified) {
+            syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+          }
+        } else {
+          showReviewToast("UPI ID cleared.");
+        }
+        renderPayLaterUI();
+      }
+    }
+
+    function openPayNowModal(docId) {
+      const record = PAY_ME_LATER_LIST.find(x => x.id === docId);
+      if (!record) return;
+
+      // If lender hasn't added UPI ID, prompt borrower to enter it
+      if (!record.lenderUpi) {
+        const entered = prompt(record.lenderName + " hasn't added their UPI ID yet.\n\nEnter " + record.lenderName + "'s UPI ID if you know it (e.g. 9876543210@paytm, name@okaxis):");
+        if (!entered || !entered.trim()) {
+          alert("UPI ID is required to launch Pay Now. You can still pay manually or ask " + record.lenderName + " for their UPI ID.");
+          return;
+        }
+        record.lenderUpi = entered.trim();
+        syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      }
+
+      activePayNowRecord = record;
+      activePayNowMode = "full";
+
+      const modal = document.getElementById("payNowModal");
+      if (!modal) return;
+
+      const payeeName = document.getElementById("payNowPayeeName");
+      if (payeeName) payeeName.textContent = record.lenderName;
+
+      const payeeUpi = document.getElementById("payNowPayeeUpi");
+      if (payeeUpi) payeeUpi.textContent = record.lenderUpi;
+
+      const totalBadge = document.getElementById("payNowTotalDueBadge");
+      if (totalBadge) totalBadge.textContent = "Remaining Due: ₹" + record.amount;
+
+      const fullAmountDisplay = document.getElementById("payNowFullAmountDisplay");
+      if (fullAmountDisplay) fullAmountDisplay.textContent = "₹" + record.amount;
+
+      const customInput = document.getElementById("payNowCustomAmountInput");
+      if (customInput) customInput.value = "";
+
+      setPayNowMode("full");
+      modal.classList.remove("hidden");
+    }
+
+    function closePayNowModal() {
+      const modal = document.getElementById("payNowModal");
+      if (modal) modal.classList.add("hidden");
+      activePayNowRecord = null;
+    }
+
+    function copyPayNowUpiId() {
+      if (!activePayNowRecord || !activePayNowRecord.lenderUpi) return;
+      navigator.clipboard.writeText(activePayNowRecord.lenderUpi).then(() => {
+        showReviewToast("📋 UPI ID copied: " + activePayNowRecord.lenderUpi);
+      }).catch(() => {
+        showReviewToast("UPI ID: " + activePayNowRecord.lenderUpi);
+      });
+    }
+
+    function setPayNowMode(mode) {
+      activePayNowMode = mode;
+      const fullBtn = document.getElementById("payNowFullOptionBtn");
+      const customBtn = document.getElementById("payNowCustomOptionBtn");
+      const fullIcon = document.getElementById("payNowFullCheckIcon");
+      const customIcon = document.getElementById("payNowCustomCheckIcon");
+      const customContainer = document.getElementById("payNowCustomInputContainer");
+      const customInput = document.getElementById("payNowCustomAmountInput");
+
+      if (mode === "full") {
+        if (fullBtn) {
+          fullBtn.className = "p-2.5 rounded-xl border text-left transition relative flex flex-col justify-between border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30";
+        }
+        if (customBtn) {
+          customBtn.className = "p-2.5 rounded-xl border text-left transition relative flex flex-col justify-between border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800";
+        }
+        if (fullIcon) fullIcon.className = "fa-solid fa-circle-check text-emerald-600 text-xs";
+        if (customIcon) customIcon.className = "fa-regular fa-circle text-slate-300 text-xs";
+        if (customContainer) customContainer.classList.add("hidden");
+      } else {
+        if (fullBtn) {
+          fullBtn.className = "p-2.5 rounded-xl border text-left transition relative flex flex-col justify-between border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800";
+        }
+        if (customBtn) {
+          customBtn.className = "p-2.5 rounded-xl border text-left transition relative flex flex-col justify-between border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30";
+        }
+        if (fullIcon) fullIcon.className = "fa-regular fa-circle text-slate-300 text-xs";
+        if (customIcon) customIcon.className = "fa-solid fa-circle-check text-emerald-600 text-xs";
+        if (customContainer) customContainer.classList.remove("hidden");
+        if (customInput && !customInput.value && activePayNowRecord) {
+          customInput.value = Math.min(50, activePayNowRecord.amount);
+        }
+      }
+      updatePayNowLinkAndPreview();
+    }
+
+    function handlePayNowCustomAmountChange() {
+      updatePayNowLinkAndPreview();
+    }
+
+    function getPayNowSelectedAmount() {
+      if (!activePayNowRecord) return 0;
+      if (activePayNowMode === "full") {
+        return activePayNowRecord.amount;
+      }
+      const customInput = document.getElementById("payNowCustomAmountInput");
+      const val = parseFloat(customInput ? customInput.value : 0);
+      return isNaN(val) ? 0 : val;
+    }
+
+    function renderPayNowQrCode(upiQrUri) {
+      const container = document.getElementById("payNowQrCodeContainer");
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (typeof QRCode !== "undefined") {
+        try {
+          new QRCode(container, {
+            text: upiQrUri,
+            width: 160,
+            height: 160,
+            colorDark: "#0f172a",
+            colorLight: "#ffffff",
+            correctLevel: (typeof QRCode.CorrectLevel !== "undefined" && QRCode.CorrectLevel.M) ? QRCode.CorrectLevel.M : 0
+          });
+          return;
+        } catch (e) {
+          console.warn("Client QR generation failed, falling back to API image:", e);
+        }
+      }
+
+      // Fallback to QR Server API if QRCode library is not loaded
+      const img = document.createElement("img");
+      img.src = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=" + encodeURIComponent(upiQrUri) + "&margin=4";
+      img.alt = "UPI QR Code";
+      img.className = "w-[160px] h-[160px] rounded-lg shadow-2xs mx-auto";
+      img.loading = "lazy";
+      container.appendChild(img);
+    }
+
+    function updatePayNowLinkAndPreview() {
+      if (!activePayNowRecord) return;
+      const amount = getPayNowSelectedAmount();
+      const preview = document.getElementById("payNowRemainingPreview");
+      const launchLink = document.getElementById("payNowLaunchLink");
+      const launchBtnText = document.getElementById("payNowLaunchBtnText");
+      const qrAmountBadge = document.getElementById("payNowQrAmountBadge");
+      const linkAmountHint = document.getElementById("payNowLinkAmountHint");
+
+      const remainingAfter = Math.max(0, activePayNowRecord.amount - amount);
+      const displayAmountStr = "₹" + amount.toFixed(amount % 1 === 0 ? 0 : 2);
+
+      if (qrAmountBadge) {
+        qrAmountBadge.textContent = displayAmountStr;
+      }
+      if (linkAmountHint) {
+        linkAmountHint.textContent = displayAmountStr;
+      }
+
+      if (preview) {
+        if (activePayNowMode === "custom") {
+          if (amount > activePayNowRecord.amount) {
+            preview.innerHTML = '<span class="text-rose-500 font-bold">Amount exceeds remaining due of ₹' + activePayNowRecord.amount + '</span>';
+          } else if (amount <= 0) {
+            preview.innerHTML = '<span class="text-rose-500 font-bold">Please enter an amount greater than ₹0</span>';
+          } else {
+            preview.innerHTML = 'Remaining balance after this payment: <strong class="text-emerald-600 dark:text-emerald-400">₹' + remainingAfter.toFixed(2) + '</strong>';
+          }
+        } else {
+          preview.innerHTML = "";
+        }
+      }
+
+      // 1. Direct UPI Deep Link: STRICTLY WITHOUT AMOUNT (for non-merchant P2P accounts)
+      const upiDeepLink = "upi://pay?pa=" + encodeURIComponent(activePayNowRecord.lenderUpi || "") +
+        "&pn=" + encodeURIComponent(activePayNowRecord.lenderName || "Friend") +
+        "&cu=INR&tn=" + encodeURIComponent("PayMeLater: " + (activePayNowRecord.note || "Dues"));
+
+      if (launchLink) {
+        launchLink.href = upiDeepLink;
+      }
+      if (launchBtnText) {
+        launchBtnText.textContent = "Open in UPI App";
+      }
+
+      // 2. QR Code URI: WITH AMOUNT PRESET!
+      const upiQrUri = "upi://pay?pa=" + encodeURIComponent(activePayNowRecord.lenderUpi || "") +
+        "&pn=" + encodeURIComponent(activePayNowRecord.lenderName || "Friend") +
+        "&am=" + (amount > 0 ? amount.toFixed(2) : "0.00") +
+        "&cu=INR&tn=" + encodeURIComponent("PayMeLater: " + (activePayNowRecord.note || "Dues"));
+
+      renderPayNowQrCode(upiQrUri);
+    }
+
+    function handleLaunchUpiApp() {
+      const amount = getPayNowSelectedAmount();
+      if (amount <= 0) {
+        alert("Please specify a valid payment amount.");
+        return;
+      }
+      if (amount > activePayNowRecord.amount) {
+        alert("Amount cannot exceed the total due of ₹" + activePayNowRecord.amount);
+        return;
+      }
+    }
+
+    async function confirmPayNowCompleted() {
+      if (!activePayNowRecord) return;
+      const amount = getPayNowSelectedAmount();
+      if (amount <= 0) {
+        alert("Please enter a valid amount.");
+        return;
+      }
+      if (amount > activePayNowRecord.amount) {
+        alert("Amount cannot exceed ₹" + activePayNowRecord.amount);
+        return;
+      }
+
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "Friend";
+
+      const remaining = activePayNowRecord.amount - amount;
+      activePayNowRecord.amount = remaining;
+      activePayNowRecord.payments = activePayNowRecord.payments || [];
+      activePayNowRecord.payments.push({
+        amount: amount,
+        paidAt: Date.now(),
+        payerName: myName,
+        type: (remaining <= 0) ? "full" : "custom"
+      });
+
+      if (remaining <= 0) {
+        activePayNowRecord.status = "payment_marked";
+        activePayNowRecord.markedPaidByBorrower = true;
+        activePayNowRecord.paymentMarkedAt = Date.now();
+        activePayNowRecord.paymentMarkedBy = myName;
+        await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+        showReviewToast("🎉 Payment of ₹" + amount + " marked! Waiting for " + activePayNowRecord.lenderName + " to confirm receipt before settling.");
+      } else {
+        activePayNowRecord.amount = remaining;
+        activePayNowRecord.status = "partially_paid";
+        await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+        showReviewToast("✅ Partial payment of ₹" + amount + " recorded! Remaining due: ₹" + remaining);
+      }
+
+      closePayNowModal();
+      renderPayLaterUI();
+    }
+
+    function setPayLaterFilter(filter) {
+      hasUserManuallySelectedPayLaterFilter = true;
+      payLaterActiveFilter = (filter === "i_owe") ? "i_owe" : "owed_to_me";
+      renderPayLaterUI();
+    }
+
+    function handlePayLaterSearch(query) {
+      payLaterSearchQuery = (query || "").trim().toLowerCase();
+      renderPayLaterUI();
+    }
+
+    function formatRelativePayLaterTime(timestamp) {
+      if (!timestamp) return "";
+      const now = Date.now();
+      const diffMs = now - Number(timestamp);
+      const diffSecs = Math.floor(diffMs / 1000);
+      const diffMins = Math.floor(diffSecs / 60);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
+      if (diffSecs < 60) return "Just now";
+      if (diffMins < 60) return diffMins + "m ago";
+      if (diffHours < 24) return diffHours + "h ago";
+      if (diffDays === 1) return "Yesterday";
+      if (diffDays < 7) return diffDays + "d ago";
+      const d = new Date(timestamp);
+      return d.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+    }
+
+    function getStudentAvatarClass(name) {
+      if (!name) return "bg-gradient-to-tr from-emerald-500 to-teal-600";
+      const friend = (typeof FRIENDS_DATA !== "undefined" && Array.isArray(FRIENDS_DATA))
+        ? FRIENDS_DATA.find(f => (f.name && f.name.toLowerCase() === name.toLowerCase()) || (f.id && f.id.toLowerCase() === name.toLowerCase()))
+        : null;
+      if (friend && friend.avatarBg) {
+        return "bg-gradient-to-tr " + friend.avatarBg;
+      }
+      const palette = [
+        "bg-gradient-to-tr from-blue-500 to-indigo-600",
+        "bg-gradient-to-tr from-emerald-500 to-teal-600",
+        "bg-gradient-to-tr from-purple-500 to-indigo-600",
+        "bg-gradient-to-tr from-rose-500 to-pink-600",
+        "bg-gradient-to-tr from-amber-500 to-orange-600",
+        "bg-gradient-to-tr from-teal-500 to-cyan-600",
+        "bg-gradient-to-tr from-indigo-500 to-purple-600",
+        "bg-gradient-to-tr from-sky-500 to-blue-600"
+      ];
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return palette[Math.abs(hash) % palette.length];
+    }
+
+    function renderPayLaterUI() {
+      const container = document.getElementById("tabPanel-paylater");
+      if (!container) return;
+
+      try {
+        const identity = getUserIdentity();
+        const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
+        const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
+        const myUpi = localStorage.getItem("vitb_user_upi_id") || "";
+
+        // Load cached local records if PAY_ME_LATER_LIST is empty
+        if (PAY_ME_LATER_LIST.length === 0) {
+          try {
+            const cached = localStorage.getItem("vitb_pay_me_later");
+            if (cached) PAY_ME_LATER_LIST = JSON.parse(cached);
+          } catch (e) { }
+        }
+
+        // Compute statistics for current student
+        let totalOwedToMe = 0;
+        let countOwedToMe = 0;
+        let totalIOwe = 0;
+        let countIOwe = 0;
+
+        PAY_ME_LATER_LIST.forEach(item => {
+          const isLender = (myName && item.lenderName && item.lenderName.toLowerCase() === myName.toLowerCase()) ||
+                           (myId && item.lenderId && item.lenderId.toLowerCase() === myId.toLowerCase());
+          const isBorrower = (myName && item.borrowerName && item.borrowerName.toLowerCase() === myName.toLowerCase()) ||
+                             (myId && item.borrowerId && item.borrowerId.toLowerCase() === myId.toLowerCase());
+
+          if (isLender) {
+            totalOwedToMe += Number(item.amount || 0);
+            countOwedToMe++;
+          }
+          if (isBorrower) {
+            totalIOwe += Number(item.amount || 0);
+            countIOwe++;
+          }
+        });
+
+        const netBalance = totalOwedToMe - totalIOwe;
+
+        // Auto-select tab with active dues when opening section or if current tab is empty
+        if (!hasUserManuallySelectedPayLaterFilter) {
+          if (countOwedToMe === 0 && countIOwe > 0) {
+            payLaterActiveFilter = "i_owe";
+          } else if (countOwedToMe > 0 && countIOwe === 0) {
+            payLaterActiveFilter = "owed_to_me";
+          } else {
+            payLaterActiveFilter = "owed_to_me";
+          }
+        } else {
+          // If the manually selected tab is now empty, switch to the other if it has active dues
+          if (payLaterActiveFilter === "owed_to_me" && countOwedToMe === 0 && countIOwe > 0) {
+            payLaterActiveFilter = "i_owe";
+          } else if (payLaterActiveFilter === "i_owe" && countIOwe === 0 && countOwedToMe > 0) {
+            payLaterActiveFilter = "owed_to_me";
+          } else if (payLaterActiveFilter !== "i_owe") {
+            payLaterActiveFilter = "owed_to_me";
+          }
+        }
+
+        // Filter dues list - STRICT PRIVACY: ONLY visible to the one who gave (lender) and the one who took (borrower)
+        let displayList = PAY_ME_LATER_LIST.filter(item => {
+          if (!myName && !myId) return false;
+          const isLender = (myName && item.lenderName && item.lenderName.toLowerCase() === myName.toLowerCase()) ||
+                           (myId && item.lenderId && item.lenderId.toLowerCase() === myId.toLowerCase());
+          const isBorrower = (myName && item.borrowerName && item.borrowerName.toLowerCase() === myName.toLowerCase()) ||
+                             (myId && item.borrowerId && item.borrowerId.toLowerCase() === myId.toLowerCase());
+
+          // Completely hide from anyone who is not part of this transaction
+          if (!isLender && !isBorrower) return false;
+
+          if (payLaterActiveFilter === "i_owe") return isBorrower;
+          return isLender;
+        });
+
+        if (payLaterSearchQuery) {
+          displayList = displayList.filter(item => {
+            const l = (item.lenderName || "").toLowerCase();
+            const b = (item.borrowerName || "").toLowerCase();
+            const n = (item.note || "").toLowerCase();
+            return l.includes(payLaterSearchQuery) || b.includes(payLaterSearchQuery) || n.includes(payLaterSearchQuery);
+          });
+        }
+
+        container.innerHTML = `
+          <!-- Sleek Header Card -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs">
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+                  <i class="fa-solid fa-hand-holding-dollar"></i>
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
+                      Pay Me Later
+                    </h2>
+                    ${isPayLaterLoading
+                      ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 animate-pulse"><i class="fa-solid fa-rotate text-[8px] fa-spin"></i> Syncing</span>'
+                      : '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live</span>'
+                    }
+                  </div>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    Campus expense & debt tracker
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="promptSetMyUpiId()"
+                  title="Set or update your default UPI ID"
+                  class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs active:scale-95">
+                  <i class="fa-solid fa-qrcode text-amber-500 text-xs"></i>
+                  <span class="max-w-[85px] sm:max-w-none truncate">${myUpi ? myUpi : 'Set UPI'}</span>
+                </button>
+
+                <button onclick="openPayLaterModal()"
+                  class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 active:scale-95">
+                  <i class="fa-solid fa-plus text-[10px]"></i>
+                  <span>Add Due</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Identity Banner (Identifies who is who) -->
+          ${!myName ? `
+            <div class="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-between gap-3 shadow-2xs">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <i class="fa-solid fa-circle-user text-amber-600 dark:text-amber-400 text-base shrink-0"></i>
+                <div class="text-[11px] text-amber-900 dark:text-amber-200">
+                  <span class="font-bold">Select who you are:</span> Connect your name to see your dues and get notified.
+                </div>
+              </div>
+              <button onclick="openUserIdentityModal()" class="px-2.5 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold shrink-0 transition">
+                Select Name
+              </button>
+            </div>
+          ` : `
+            <div class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-[11px]">
+              <div class="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>Logged in as <strong class="text-slate-900 dark:text-white">${myName}</strong></span>
+              </div>
+              <button onclick="openUserIdentityModal()" class="text-[10px] font-bold text-brandBlue dark:text-blue-400 hover:underline">
+                Switch
+              </button>
+            </div>
+          `}
+
+          <!-- Balance Metric Summary Cards -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <!-- Card 1: You are Owed -->
+            <div onclick="setPayLaterFilter('owed_to_me')"
+              class="cursor-pointer active:scale-[0.98] transition bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 border border-emerald-200/80 dark:border-emerald-800/60 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold tracking-wider uppercase text-emerald-800 dark:text-emerald-300">
+                  You Are Owed
+                </span>
+                <span class="w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px]">
+                  <i class="fa-solid fa-arrow-down"></i>
+                </span>
+              </div>
+              <div class="mt-1.5">
+                <div class="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-300">
+                  ₹${totalOwedToMe.toLocaleString("en-IN")}
+                </div>
+                <div class="text-[10px] font-semibold text-emerald-600/80 dark:text-emerald-400/80">
+                  ${countOwedToMe} friend${countOwedToMe === 1 ? "" : "s"} owe you
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: You Owe -->
+            <div onclick="setPayLaterFilter('i_owe')"
+              class="cursor-pointer active:scale-[0.98] transition bg-gradient-to-br from-rose-50 to-amber-50 dark:from-rose-950/30 dark:to-amber-950/20 border border-rose-200/80 dark:border-rose-800/60 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold tracking-wider uppercase text-rose-800 dark:text-rose-300">
+                  You Owe
+                </span>
+                <span class="w-6 h-6 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center text-[10px]">
+                  <i class="fa-solid fa-arrow-up"></i>
+                </span>
+              </div>
+              <div class="mt-1.5">
+                <div class="text-xl sm:text-2xl font-black text-rose-700 dark:text-rose-300">
+                  ₹${totalIOwe.toLocaleString("en-IN")}
+                </div>
+                <div class="text-[10px] font-semibold text-rose-600/80 dark:text-rose-400/80">
+                  To ${countIOwe} friend${countIOwe === 1 ? "" : "s"}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Net Balance Pill -->
+          <div class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 text-[11px] font-bold flex items-center justify-between">
+            <span class="text-slate-500 dark:text-slate-400">Net Squad Position:</span>
+            <span class="${netBalance > 0 ? 'text-emerald-600 dark:text-emerald-400' : netBalance < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'} font-black">
+              ${netBalance > 0 ? '+₹' + netBalance.toLocaleString("en-IN") + ' (In Surplus)' : netBalance < 0 ? '-₹' + Math.abs(netBalance).toLocaleString("en-IN") + ' (In Due)' : 'All Settled (₹0)'}
+            </span>
+          </div>
+
+          <!-- Filter Buttons & Search -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              <button onclick="setPayLaterFilter('owed_to_me')"
+                class="px-3.5 py-1.5 rounded-full text-xs font-bold transition shrink-0 ${payLaterActiveFilter === 'owed_to_me'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }">
+                Owed to Me (${countOwedToMe})
+              </button>
+              <button onclick="setPayLaterFilter('i_owe')"
+                class="px-3.5 py-1.5 rounded-full text-xs font-bold transition shrink-0 ${payLaterActiveFilter === 'i_owe'
+                  ? 'bg-rose-600 text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }">
+                I Owe (${countIOwe})
+              </button>
+            </div>
+
+            <!-- Search Filter Bar -->
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+              <input type="text"
+                value="${payLaterSearchQuery}"
+                oninput="handlePayLaterSearch(this.value)"
+                placeholder="Filter by friend name or note..."
+                class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-xs font-medium focus:outline-none focus:border-emerald-500 transition" />
+              ${payLaterSearchQuery ? `
+                <button onclick="handlePayLaterSearch('')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- Dues Cards Feed -->
+          <div class="space-y-2.5">
+            ${displayList.length === 0 ? `
+              <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-8 text-center space-y-3">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl mx-auto">
+                  <i class="fa-solid ${!myName ? 'fa-lock' : 'fa-circle-check'}"></i>
+                </div>
+                <div class="space-y-1">
+                  <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    ${!myName ? 'Select Your Name to View Dues' : payLaterSearchQuery ? 'No matching dues' : 'All Clear! No pending dues'}
+                  </h4>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                    ${!myName ? 'Dues are strictly private and only visible between the student who gave and the student who took.' : payLaterSearchQuery ? 'Try searching for a different friend or reason.' : 'You have no pending dues. Dues are private and only visible to you and the other person involved.'}
+                  </p>
+                </div>
+                <div>
+                  <button onclick="${!myName ? 'openUserIdentityModal()' : 'openPayLaterModal()'}" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs">
+                    <i class="fa-solid ${!myName ? 'fa-user-check' : 'fa-plus'} mr-1"></i> ${!myName ? 'Select Your Name' : 'Add New Due'}
+                  </button>
+                </div>
+              </div>
+            ` : displayList.map(item => {
+              const isLender = (myName && item.lenderName && item.lenderName.toLowerCase() === myName.toLowerCase()) ||
+                               (myId && item.lenderId && item.lenderId.toLowerCase() === myId.toLowerCase());
+              const isBorrower = (myName && item.borrowerName && item.borrowerName.toLowerCase() === myName.toLowerCase()) ||
+                                 (myId && item.borrowerId && item.borrowerId.toLowerCase() === myId.toLowerCase());
+
+              const displayFriendName = isLender ? item.borrowerName : item.lenderName;
+              const avatarClass = getStudentAvatarClass(displayFriendName);
+
+              const isPaymentMarked = item.status === "payment_marked" || item.markedPaidByBorrower === true;
+              const isPartiallyPaid = item.status === "partially_paid" || (item.originalAmount > item.amount && item.amount > 0);
+              const paidSoFar = Math.max(0, (item.originalAmount || item.amount) - item.amount);
+
+              return `
+                <div class="bg-white dark:bg-slate-900 border rounded-2xl p-3.5 shadow-2xs hover:shadow-xs transition space-y-2.5 ${
+                  isPaymentMarked
+                    ? (isLender ? 'border-emerald-400 dark:border-emerald-600 ring-2 ring-emerald-500/20 bg-emerald-50/20 dark:bg-emerald-950/20' : 'border-amber-300 dark:border-amber-700/80 ring-1 ring-amber-500/20 bg-amber-50/20 dark:bg-amber-950/20')
+                    : 'border-slate-200/80 dark:border-slate-800'
+                }">
+                  <div class="flex items-start justify-between gap-3">
+                    <!-- Left: Avatar + Details -->
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <div class="w-9 h-9 rounded-xl ${avatarClass} text-white flex items-center justify-center text-xs font-black shadow-xs shrink-0">
+                        ${(displayFriendName || 'S').charAt(0).toUpperCase()}
+                      </div>
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                          <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                            ${displayFriendName}
+                          </span>
+                          ${isPaymentMarked ? (
+                            isLender ? `
+                              <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 flex items-center gap-1 animate-pulse">
+                                <i class="fa-solid fa-bell text-[8px]"></i> Marked Paid by ${item.borrowerName}
+                              </span>
+                            ` : `
+                              <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-300/60 dark:border-amber-800 flex items-center gap-1">
+                                <i class="fa-solid fa-clock text-[8px] animate-pulse"></i> Awaiting ${item.lenderName}'s Confirmation
+                              </span>
+                            `
+                          ) : isPartiallyPaid ? `
+                            <span class="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300/60">
+                              Partially Paid
+                            </span>
+                          ` : isLender ? `
+                            <span class="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
+                              Owes You
+                            </span>
+                          ` : `
+                            <span class="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/60">
+                              You Owe
+                            </span>
+                          `}
+                        </div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
+                          <span class="truncate">${item.note || 'Money borrowed'}</span>
+                          <span>•</span>
+                          <span class="shrink-0 text-[10px] text-slate-400">${formatRelativePayLaterTime(item.createdAt)}</span>
+                        </div>
+                        ${isPaymentMarked ? `
+                          <div class="text-[10px] ${isLender ? 'text-emerald-700 dark:text-emerald-300 font-bold' : 'text-amber-600 dark:text-amber-400 font-medium'} mt-0.5 flex items-center gap-1">
+                            <i class="fa-solid ${isLender ? 'fa-hand-holding-dollar' : 'fa-hourglass-start'} text-[9px]"></i>
+                            <span>${isLender ? (item.borrowerName + ' says they paid ₹' + item.amount + '. Please check your UPI and confirm below.') : ('You marked ₹' + item.amount + ' as paid. Waiting for ' + item.lenderName + ' to confirm receipt.')}</span>
+                          </div>
+                        ` : isPartiallyPaid ? `
+                          <div class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
+                            ₹${paidSoFar} paid so far • ₹${item.amount} remaining
+                          </div>
+                        ` : ''}
+                      </div>
+                    </div>
+
+                    <!-- Right: Amount -->
+                    <div class="text-right shrink-0">
+                      <div class="text-base sm:text-lg font-black ${isPaymentMarked ? (isLender ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400') : (isLender ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}">
+                        ${(isLender ? '+' : '-') + '₹' + Number(item.amount || 0).toLocaleString("en-IN")}
+                      </div>
+                      ${item.originalAmount && item.originalAmount !== item.amount ? `
+                        <div class="text-[9px] text-slate-400 line-through">
+                          Original: ₹${item.originalAmount}
+                        </div>
+                      ` : ''}
+                    </div>
+                  </div>
+
+                  <!-- Action Toolbar -->
+                  <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 truncate">
+                      ${isLender ? ('Lent by You' + (item.lenderUpi ? (' • UPI: ' + item.lenderUpi) : '')) : ('Lent by ' + item.lenderName + (item.lenderUpi ? (' • UPI: ' + item.lenderUpi) : ''))}
+                    </div>
+
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      ${isLender ? `
+                        <!-- Lender Controls: If borrower marked paid, lender MUST confirm before record is deleted from Firebase -->
+                        ${isPaymentMarked ? `
+                          <button onclick="rejectLenderPaymentReceived('${item.id}')"
+                            class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-500 dark:text-slate-400 hover:text-rose-600 text-[10px] font-bold transition"
+                            title="Payment not received in your bank/UPI">
+                            Not Received
+                          </button>
+                          <button onclick="confirmLenderPaymentReceived('${item.id}')"
+                            class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black transition flex items-center gap-1 shadow-2xs active:scale-95"
+                            title="Confirm payment received and permanently delete this record from Firebase">
+                            <i class="fa-solid fa-circle-check text-[10px]"></i>
+                            <span>Confirm Received</span>
+                          </button>
+                        ` : `
+                          <button onclick="sendPayLaterReminderWhatsApp('${item.id}')"
+                            class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 hover:text-emerald-600 text-[11px] font-bold transition flex items-center gap-1">
+                            <i class="fa-brands fa-whatsapp text-emerald-500 text-xs"></i>
+                            <span>Remind</span>
+                          </button>
+                          <button onclick="confirmLenderPaymentReceived('${item.id}')"
+                            class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
+                            title="Confirm payment received directly (cash/offline) and delete record from Firebase">
+                            <i class="fa-solid fa-circle-check text-[10px]"></i>
+                            <span>Settle</span>
+                          </button>
+                        `}
+                      ` : `
+                        <!-- Borrower (Debtor) Controls: Marks debt as paid; data is NOT deleted until lender confirms -->
+                        ${isPaymentMarked ? `
+                          <span class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 text-[10px] font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-hourglass-half text-[9px]"></i>
+                            <span>Awaiting ${item.lenderName}</span>
+                          </span>
+                          <button onclick="unmarkPayLaterPaidByBorrower('${item.id}')"
+                            class="px-1.5 py-1 text-[10px] font-bold text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition"
+                            title="Cancel payment mark">
+                            Unmark
+                          </button>
+                        ` : `
+                          <button onclick="openPayNowModal('${item.id}')"
+                            class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
+                            title="Pay via UPI with preset QR & app link">
+                            <i class="fa-solid fa-bolt text-amber-300 text-[10px]"></i>
+                            <span>Pay Now</span>
+                          </button>
+                          <button onclick="markPayLaterPaidByBorrower('${item.id}')"
+                            class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
+                            title="Mark this due as paid and request lender to confirm receipt">
+                            <i class="fa-solid fa-check text-[10px]"></i>
+                            <span>Mark Paid</span>
+                          </button>
+                        `}
+                      `}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      } catch (err) {
+        console.error("renderPayLaterUI caught exception:", err);
+        container.innerHTML = `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 text-center space-y-2">
+            <i class="fa-solid fa-hand-holding-dollar text-emerald-500 text-2xl"></i>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white">Pay Me Later</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Syncing dues records...</p>
+            <button onclick="renderPayLaterUI()" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-xs">Refresh</button>
+          </div>
+        `;
+      }
+    }
+
+
+
+/**
+ * ========================================================================
+ * 11.6. TAB 6: MESS MENU MODULE (CAMPUS DINING COMPANION)
+ * ========================================================================
+ */
+const CAMPUS_MESSES = [
+  { id: "mayuri_boys", name: "Mayuri", subtitle: "Boys Hostel", icon: "fa-utensils", color: "from-blue-500 to-indigo-600" },
+  { id: "mayuri_girls", name: "Mayuri", subtitle: "Girls Hostel", icon: "fa-utensils", color: "from-pink-500 to-rose-600" },
+  { id: "ab_catering", name: "AB Catering", subtitle: "Boys & Girls", icon: "fa-bowl-food", color: "from-amber-500 to-orange-600" },
+  { id: "jmb", name: "JMB Mess", subtitle: "Boys Hostel", icon: "fa-kitchen-set", color: "from-emerald-500 to-teal-600" },
+  { id: "crcl", name: "CRCL Mess", subtitle: "Boys & Girls", icon: "fa-plate-wheat", color: "from-purple-500 to-violet-600" },
+  { id: "food_sutra", name: "Food Sutra", subtitle: "Boys Hostel", icon: "fa-burger", color: "from-red-500 to-orange-500" },
+  { id: "safal", name: "Safal Mess", subtitle: "Boys Hostel", icon: "fa-seedling", color: "from-green-500 to-emerald-600" },
+  { id: "anchor", name: "Anchor Mess", subtitle: "Boys & Girls", icon: "fa-anchor", color: "from-cyan-500 to-blue-600" }
+];
+
+let selectedMessId = localStorage.getItem("vitb_user_mess") || "mayuri_boys";
+let selectedMessDateStr = ""; // Defaults to today's YYYY-MM-DD
+let isMessMenuLoading = false;
+let messMenuError = null;
+const MESS_MENU_DATA_CACHE = {};
+
+function getUserMess() {
+  return localStorage.getItem("vitb_user_mess") || "";
+}
+
+function setUserMess(messId) {
+  if (!messId) return;
+  localStorage.setItem("vitb_user_mess", messId);
+  selectedMessId = messId;
+  closeMessSelectorModal();
+  showReviewToast("🍽️ Mess set to " + getMessDisplayName(messId) + "!");
+  if (activeTab === "mess") {
+    fetchMessMenu(messId, selectedMessDateStr);
+  }
+}
+
+function getMessDisplayName(messId) {
+  const m = CAMPUS_MESSES.find(x => x.id === messId);
+  return m ? (m.name + (m.subtitle ? (" (" + m.subtitle + ")") : "")) : (messId || "Mess");
+}
+
+function checkMessOnboardingPrompt() {
+  const userMess = getUserMess();
+  const promptShown = localStorage.getItem("vitb_mess_prompt_shown");
+  if (!userMess && !promptShown) {
+    localStorage.setItem("vitb_mess_prompt_shown", "true");
+    setTimeout(() => {
+      openMessSelectorModal();
+    }, 600);
+  }
+}
+
+function openMessSelectorModal() {
+  const modal = document.getElementById("messSelectorModal");
+  if (!modal) return;
+  renderMessSelectorList();
+  modal.classList.remove("hidden");
+}
+
+function closeMessSelectorModal() {
+  const modal = document.getElementById("messSelectorModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function renderMessSelectorList() {
+  const grid = document.getElementById("messSelectorGrid");
+  if (!grid) return;
+  const current = getUserMess() || selectedMessId;
+
+  grid.innerHTML = CAMPUS_MESSES.map(m => {
+    const isSelected = m.id === current;
+    return `
+      <div onclick="setUserMess('${m.id}')"
+        class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected
+          ? 'bg-blue-50/90 dark:bg-blue-950/40 border-brandBlue dark:border-blue-500 shadow-xs ring-1 ring-brandBlue'
+          : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800'
+        }">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr ${m.color} text-white flex items-center justify-center text-sm shadow-xs shrink-0">
+            <i class="fa-solid ${m.icon}"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+              ${m.name}
+            </div>
+            <div class="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+              ${m.subtitle}
+            </div>
+          </div>
+        </div>
+        <div class="shrink-0">
+          ${isSelected
+            ? '<i class="fa-solid fa-circle-check text-brandBlue text-base"></i>'
+            : '<div class="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600"></div>'
+          }
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function getTodayDateStr() {
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(now.getTime() + (now.getTimezoneOffset() * 60 * 1000) + istOffset);
+  const year = istDate.getFullYear();
+  const month = String(istDate.getMonth() + 1).padStart(2, "0");
+  const day = String(istDate.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function parseFirestoreMealField(rawField) {
+  if (!rawField) return [];
+  if (rawField.arrayValue && rawField.arrayValue.values) {
+    return rawMealValues(rawField.arrayValue.values);
+  } else if (rawField.stringValue) {
+    return rawField.stringValue.split(",").map(s => ({ name: s.trim() })).filter(x => x.name);
+  }
+  return [];
+}
+
+function rawMealValues(values) {
+  return values.map(val => {
+    if (val.mapValue && val.mapValue.fields) {
+      const f = val.mapValue.fields;
+      return {
+        name: f.name ? (f.name.stringValue || "") : "",
+        servingSize: f.servingSize ? (f.servingSize.stringValue || "") : "",
+        specialTag: f.specialTag ? (f.specialTag.stringValue || "") : "",
+        regionalTag: f.regionalTag ? (f.regionalTag.stringValue || "") : "",
+        description: f.description ? (f.description.stringValue || "") : "",
+        calories: f.calories ? (f.calories.doubleValue || f.calories.integerValue || (f.calories.stringValue ? parseFloat(f.calories.stringValue) : null)) : null,
+        protein: f.protein ? (f.protein.doubleValue || f.protein.integerValue || null) : null,
+        carbs: f.carbs ? (f.carbs.doubleValue || f.carbs.integerValue || null) : null,
+        fat: f.fat ? (f.fat.doubleValue || f.fat.integerValue || null) : null,
+        fiber: f.fiber ? (f.fiber.doubleValue || f.fiber.integerValue || null) : null
+      };
+    } else if (val.stringValue) {
+      return { name: val.stringValue };
+    }
+    return null;
+  }).filter(item => item && item.name);
+}
+
+function getCurrentMealSlotInfo() {
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(now.getTime() + (now.getTimezoneOffset() * 60 * 1000) + istOffset);
+  const mins = istDate.getHours() * 60 + istDate.getMinutes();
+
+  // Breakfast: 7:30 AM (450m) to 9:30 AM (570m)
+  // Lunch: 12:30 PM (750m) to 2:30 PM (870m)
+  // Snacks: 5:00 PM (1020m) to 6:15 PM (1095m)
+  // Dinner: 7:30 PM (1170m) to 9:30 PM (1290m)
+
+  const slots = [
+    { key: "breakfast", name: "Breakfast", label: "Breakfast Serving Now", icon: "fa-mug-saucer", start: 7 * 60 + 30, end: 9 * 60 + 30, time: "07:30 AM – 09:30 AM" },
+    { key: "lunch", name: "Lunch", label: "Lunch Serving Now", icon: "fa-bowl-rice", start: 12 * 60 + 30, end: 14 * 60 + 30, time: "12:30 PM – 02:30 PM" },
+    { key: "snacks", name: "Evening Snacks", label: "Evening Snacks Serving Now", icon: "fa-cookie-bite", start: 17 * 60, end: 18 * 60 + 15, time: "05:00 PM – 06:15 PM" },
+    { key: "dinner", name: "Dinner", label: "Dinner Serving Now", icon: "fa-utensils", start: 19 * 60 + 30, end: 21 * 60 + 30, time: "07:30 PM – 09:30 PM" }
+  ];
+
+  function formatDiff(diffMins) {
+    const hrs = Math.floor(diffMins / 60);
+    const rm = diffMins % 60;
+    if (hrs > 0 && rm > 0) return `${hrs}h ${rm}m`;
+    if (hrs > 0) return `${hrs}h`;
+    if (rm > 0) return `${rm}m`;
+    return "< 1m";
+  }
+
+  // Check if currently serving a meal
+  for (const slot of slots) {
+    if (mins >= slot.start && mins < slot.end) {
+      const left = slot.end - mins;
+      const formatted = formatDiff(left);
+      return {
+        isOpen: true,
+        current: slot.key,
+        name: slot.name,
+        label: slot.label,
+        icon: slot.icon,
+        time: slot.time,
+        status: "Serving Now",
+        timerType: "closes",
+        diffMinutes: left,
+        diffFormatted: formatted,
+        timerText: `Closes in ${formatted}`
+      };
+    }
+  }
+
+  // Closed: Find next upcoming meal
+  let nextSlot = null;
+  let diff = 0;
+  for (const slot of slots) {
+    if (mins < slot.start) {
+      nextSlot = slot;
+      diff = slot.start - mins;
+      break;
+    }
+  }
+  if (!nextSlot) {
+    // Past dinner, next is breakfast tomorrow
+    nextSlot = slots[0];
+    diff = (24 * 60 - mins) + nextSlot.start;
+  }
+
+  const formatted = formatDiff(diff);
+  return {
+    isOpen: false,
+    current: null,
+    next: nextSlot.key,
+    name: nextSlot.name,
+    nextName: nextSlot.name,
+    label: `Next: ${nextSlot.name}`,
+    icon: nextSlot.icon,
+    time: nextSlot.time,
+    status: "Closed",
+    timerType: "opens",
+    diffMinutes: diff,
+    diffFormatted: formatted,
+    timerText: `Opens in ${formatted}`
+  };
+}
+
+async function fetchMessMenu(messId, dateStr) {
+  if (!messId) messId = getUserMess() || "mayuri_boys";
+  if (!dateStr) dateStr = getTodayDateStr();
+
+  selectedMessId = messId;
+  selectedMessDateStr = dateStr;
+
+  const cacheKey = `vitb_mess_${messId}_${dateStr}`;
+  if (MESS_MENU_DATA_CACHE[cacheKey]) {
+    renderMessMenuUI();
+    return;
+  }
+
+  // Check localStorage cache
+  try {
+    const local = localStorage.getItem(cacheKey);
+    if (local) {
+      MESS_MENU_DATA_CACHE[cacheKey] = JSON.parse(local);
+      renderMessMenuUI();
+    }
+  } catch (e) { }
+
+  isMessMenuLoading = !MESS_MENU_DATA_CACHE[cacheKey];
+  messMenuError = null;
+  renderMessMenuUI();
+
+  try {
+    // 1. First attempt to fetch today's daily_menus doc
+    const dailyUrl = `https://firestore.googleapis.com/v1/projects/messmenu-a387b/databases/(default)/documents/daily_menus/${messId}_${dateStr}`;
+    let res = await fetch(dailyUrl);
+    let isDaily = true;
+    let data = null;
+
+    if (res.ok) {
+      data = await res.json();
+    } else {
+      // 2. Fall back to weekly template in mess_menus
+      isDaily = false;
+      const targetDate = new Date(dateStr);
+      const dayOfWeek = isNaN(targetDate.getDay()) ? new Date().getDay() : targetDate.getDay();
+      const weeklyUrl = `https://firestore.googleapis.com/v1/projects/messmenu-a387b/databases/(default)/documents/mess_menus/${messId}_day_${dayOfWeek}`;
+      res = await fetch(weeklyUrl);
+      if (res.ok) {
+        data = await res.json();
+      }
+    }
+
+    if (data && data.fields) {
+      const parsedMenu = {
+        messId: messId,
+        date: dateStr,
+        source: isDaily ? "daily" : "weekly",
+        breakfast: parseFirestoreMealField(data.fields.breakfast),
+        lunch: parseFirestoreMealField(data.fields.lunch),
+        snacks: parseFirestoreMealField(data.fields.snacks),
+        dinner: parseFirestoreMealField(data.fields.dinner),
+        fetchedAt: Date.now()
+      };
+
+      MESS_MENU_DATA_CACHE[cacheKey] = parsedMenu;
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(parsedMenu));
+      } catch (e) { }
+    } else {
+      if (!MESS_MENU_DATA_CACHE[cacheKey]) {
+        messMenuError = "Menu not available for this date yet.";
+      }
+    }
+  } catch (err) {
+    console.warn("Mess menu fetch notice:", err);
+    if (!MESS_MENU_DATA_CACHE[cacheKey]) {
+      messMenuError = "Unable to fetch live menu. Please check connection.";
+    }
+  } finally {
+    isMessMenuLoading = false;
+    renderMessMenuUI();
+  }
+}
+
+function shareTodayMessMenu() {
+  const messId = selectedMessId || "mayuri_boys";
+  const dateStr = selectedMessDateStr || getTodayDateStr();
+  const cacheKey = `vitb_mess_${messId}_${dateStr}`;
+  const menu = MESS_MENU_DATA_CACHE[cacheKey];
+
+  if (!menu) {
+    alert("Please wait for menu to load before sharing.");
+    return;
+  }
+
+  const messName = getMessDisplayName(messId);
+  const text = `🍽️ *${messName} Menu* (${dateStr})
+  
+🌅 *Breakfast:*
+${menu.breakfast.map(d => "• " + d.name).join("\n") || "No items"}
+
+☀️ *Lunch:*
+${menu.lunch.map(d => "• " + d.name).join("\n") || "No items"}
+
+☕ *Snacks:*
+${menu.snacks.map(d => "• " + d.name).join("\n") || "No items"}
+
+🌙 *Dinner:*
+${menu.dinner.map(d => "• " + d.name).join("\n") || "No items"}
+
+_Shared via Campus Saathi_`;
+
+  if (navigator.share) {
+    navigator.share({ title: `${messName} Menu`, text: text }).catch(() => { });
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      showReviewToast("📋 Menu copied to clipboard!");
+    }).catch(() => {
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    });
+  }
+}
+
+function renderMessMenuUI() {
+  const container = document.getElementById("tabPanel-mess");
+  if (!container) return;
+
+  const currentMess = getUserMess() || selectedMessId || "mayuri_boys";
+  selectedMessId = currentMess;
+
+  if (!selectedMessDateStr) {
+    selectedMessDateStr = getTodayDateStr();
+  }
+
+  const cacheKey = `vitb_mess_${currentMess}_${selectedMessDateStr}`;
+  const menu = MESS_MENU_DATA_CACHE[cacheKey] || (() => {
+    try {
+      const saved = localStorage.getItem(cacheKey);
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  const messObj = CAMPUS_MESSES.find(m => m.id === currentMess) || CAMPUS_MESSES[0];
+  const liveSlot = getCurrentMealSlotInfo();
+  const todayStr = getTodayDateStr();
+  const isViewingToday = selectedMessDateStr === todayStr;
+
+  // Generate 7-day capsule pills (3 days past, today, 3 days future)
+  const now = new Date();
+  const daysCapsule = [];
+  for (let i = -1; i <= 5; i++) {
+    const d = new Date(now.getTime() + (i * 24 * 60 * 60 * 1000));
+    const yr = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, "0");
+    const da = String(d.getDate()).padStart(2, "0");
+    const dStr = `${yr}-${mo}-${da}`;
+    const dayName = d.toLocaleDateString("en-IN", { weekday: "short" });
+    const isToday = (dStr === todayStr);
+    daysCapsule.push({
+      dateStr: dStr,
+      label: isToday ? "Today" : dayName,
+      dateNum: d.getDate(),
+      isToday: isToday,
+      isSelected: (dStr === selectedMessDateStr)
+    });
+  }
+
+  container.innerHTML = `
+    <!-- Top Header Card -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr ${messObj.color} text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+            <i class="fa-solid ${messObj.icon}"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
+                ${messObj.name} Mess
+              </h2>
+              ${isMessMenuLoading
+                ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 animate-pulse"><i class="fa-solid fa-rotate fa-spin text-[8px]"></i> Fetching</span>'
+                : menu && menu.source === 'daily'
+                  ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live Daily</span>'
+                  : '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">Weekly Schedule</span>'
+              }
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+              ${messObj.subtitle} • HAC VIT Bhopal
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button onclick="openMessSelectorModal()"
+            class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-95">
+            <i class="fa-solid fa-repeat text-[10px] text-brandBlue"></i>
+            <span>Switch</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date Capsule Selector -->
+    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+      ${daysCapsule.map(d => `
+        <button onclick="fetchMessMenu('${currentMess}', '${d.dateStr}')"
+          class="shrink-0 px-3 py-1.5 rounded-xl text-center transition flex flex-col items-center justify-center min-w-[54px] ${d.isSelected
+            ? 'bg-brandBlue text-white shadow-xs'
+            : d.isToday
+              ? 'bg-blue-50 dark:bg-blue-950/50 text-brandBlue dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+          }">
+          <span class="text-[10px] font-bold uppercase tracking-wider">${d.label}</span>
+          <span class="text-xs font-black">${d.dateNum}</span>
+        </button>
+      `).join("")}
+    </div>
+
+    <!-- Live Status & Countdown Hero Card (shown for today's date) -->
+    ${isViewingToday && liveSlot ? `
+      <div class="p-3 rounded-2xl ${
+        liveSlot.isOpen
+          ? 'bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 border-emerald-200 dark:border-emerald-900/60'
+          : 'bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-amber-200 dark:border-amber-900/60'
+      } border flex items-center justify-between gap-3 shadow-2xs">
+        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+          <div class="w-8 h-8 rounded-xl ${liveSlot.isOpen ? 'bg-emerald-600' : 'bg-amber-600'} text-white flex items-center justify-center text-xs shrink-0 shadow-2xs">
+            <i class="fa-solid ${liveSlot.icon}"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${liveSlot.isOpen ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'} shrink-0 shadow-2xs">
+                ${liveSlot.status}
+              </span>
+              <span class="text-xs font-bold text-slate-900 dark:text-white leading-tight">
+                ${liveSlot.label}
+              </span>
+            </div>
+            <div class="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+              ${liveSlot.isOpen ? `Dining hours: ${liveSlot.time}` : `Next meal: ${liveSlot.nextName} (${liveSlot.time})`}
+            </div>
+          </div>
+        </div>
+
+        <!-- Minimal Countdown Timer Pill -->
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold ${
+          liveSlot.isOpen
+            ? 'bg-emerald-100/90 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-200 border border-emerald-300/80 dark:border-emerald-800'
+            : 'bg-amber-100/90 dark:bg-amber-950/80 text-amber-800 dark:text-amber-200 border border-amber-300/80 dark:border-amber-800'
+        } shrink-0 shadow-2xs">
+          <i class="fa-regular fa-clock text-[10px]"></i>
+          <span class="text-[11px] font-mono tracking-tight font-bold whitespace-nowrap">${liveSlot.timerText}</span>
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Meals List / Cards -->
+    ${renderMealCardsStack(menu, liveSlot, isViewingToday)}
+  `;
+}
+
+function renderMealCardsStack(menu, liveSlot, isViewingToday) {
+  if (!menu) {
+    if (isMessMenuLoading) {
+      return `
+        <div class="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2">
+          <i class="fa-solid fa-utensils text-2xl text-brandBlue animate-bounce"></i>
+          <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Loading today's mess menu...</p>
+          <p class="text-[11px] text-slate-400">Syncing live dishes from HAC VITB</p>
+        </div>
+      `;
+    }
+    return `
+      <div class="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
+        <i class="fa-solid fa-circle-exclamation text-2xl text-amber-500"></i>
+        <p class="text-xs font-bold text-slate-700 dark:text-slate-300">${messMenuError || 'Menu not available'}</p>
+        <button onclick="fetchMessMenu(selectedMessId, selectedMessDateStr)"
+          class="px-3 py-1.5 rounded-xl bg-brandBlue text-white text-xs font-bold shadow-xs">
+          Try Again
+        </button>
+      </div>
+    `;
+  }
+
+  const mealSections = [
+    { key: "breakfast", title: "Breakfast", icon: "fa-mug-saucer", time: "07:30 AM – 09:30 AM", items: menu.breakfast || [] },
+    { key: "lunch", title: "Lunch", icon: "fa-bowl-rice", time: "12:30 PM – 02:30 PM", items: menu.lunch || [] },
+    { key: "snacks", title: "Evening Snacks", icon: "fa-cookie-bite", time: "05:00 PM – 06:15 PM", items: menu.snacks || [] },
+    { key: "dinner", title: "Dinner", icon: "fa-utensils", time: "07:30 PM – 09:30 PM", items: menu.dinner || [] }
+  ];
+
+  return `
+    <div class="space-y-3">
+      ${mealSections.map(meal => {
+        const isLive = isViewingToday && liveSlot && (liveSlot.current === meal.key);
+        const hasItems = meal.items.length > 0;
+
+        return `
+          <div class="bg-white dark:bg-slate-900 border rounded-2xl p-3.5 shadow-2xs space-y-2.5 transition ${isLive
+            ? 'border-emerald-500/80 dark:border-emerald-500/60 ring-1 ring-emerald-500/30'
+            : 'border-slate-200/80 dark:border-slate-800'
+          }">
+            <!-- Meal Header -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 min-w-0">
+                <div class="w-7 h-7 rounded-lg ${isLive ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'} flex items-center justify-center text-xs font-bold shrink-0">
+                  <i class="fa-solid ${meal.icon}"></i>
+                </div>
+                <div>
+                  <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                    ${meal.title}
+                  </h3>
+                  <div class="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                    ${meal.time}
+                  </div>
+                </div>
+              </div>
+
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shrink-0">
+                ${meal.items.length} items
+              </span>
+            </div>
+
+            <!-- Dishes Grid / Pill List -->
+            ${hasItems ? `
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                ${meal.items.map(dish => {
+                  return `
+                    <div class="p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-start justify-between gap-2.5 hover:bg-slate-100/70 dark:hover:bg-slate-800/90 transition">
+                      <div class="min-w-0 flex-1">
+                        <div class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-snug break-words whitespace-normal">
+                          ${dish.name}
+                        </div>
+                        ${dish.servingSize ? `
+                          <div class="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                            Portion: ${dish.servingSize}
+                          </div>
+                        ` : ''}
+                      </div>
+
+                      ${dish.calories ? `
+                        <div class="text-right shrink-0 pt-0.5">
+                          <span class="text-[10px] font-mono font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-700 shadow-2xs">
+                            ${Math.round(dish.calories)} cal
+                          </span>
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            ` : `
+              <div class="py-2.5 text-center text-xs text-slate-500 dark:text-slate-400 italic">
+                Menu details for this meal not posted yet.
+              </div>
+            `}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+
+    function updateThemeToggleIcon() {
+      const isDark = document.documentElement.classList.contains("dark");
+      const icon = document.getElementById("themeToggleIcon");
+      if (icon) {
+        icon.className = isDark
+          ? "fa-solid fa-sun text-xs text-amber-400"
+          : "fa-solid fa-moon text-xs text-slate-600";
+      }
+      const color = isDark ? "#020617" : "#ffffff";
+      document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute("content", color));
+      const appleMeta = document.getElementById("metaAppleStatusBar");
+      if (appleMeta) {
+        appleMeta.setAttribute("content", isDark ? "black-translucent" : "default");
+      }
+      const manifestLink = document.querySelector('link[rel="manifest"]');
+      if (manifestLink) {
+        manifestLink.setAttribute('href', isDark ? 'manifest-dark.json' : 'manifest.json');
+      }
+    }
+
+    function toggleDarkMode() {
+      const root = document.documentElement;
+      const isDark = root.classList.toggle("dark");
+      try {
+        localStorage.setItem("vitb_theme", isDark ? "dark" : "light");
+      } catch (e) { }
+      updateThemeToggleIcon();
+    }
+
+    /**
+     * ========================================================================
+     * 12. PWA SERVICE WORKER & INSTALLATION
+     * ========================================================================
+     */
+    let deferredInstallPrompt = null;
+
+    function isAppInstalled() {
+      try {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function checkInstallState() {
+      if (isAppInstalled()) {
+        const installBtn = document.getElementById("installAppBtn");
+        if (installBtn) installBtn.classList.add("hidden");
+        const footerBtn = document.getElementById("footerInstallBtn");
+        if (footerBtn) {
+          footerBtn.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check text-[10px]"></i> Installed</span>`;
+          footerBtn.onclick = null;
+        }
+      }
+    }
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (!isAppInstalled()) {
+        const installBtn = document.getElementById("installAppBtn");
+        if (installBtn) installBtn.classList.remove("hidden");
+      }
+    });
+
+    window.addEventListener("appinstalled", () => {
+      deferredInstallPrompt = null;
+      checkInstallState();
+      console.log("Campus Saathi app installed successfully!");
+      // Automatically prompt to enable notifications now that the app is installed
+      setTimeout(() => {
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+          showNotificationPermissionBanner();
+        }
+      }, 500);
+    });
+
+    function handleInstallAppClick() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then((choice) => {
+          if (choice && choice.outcome === "accepted") {
+            console.log("PWA install accepted");
+          }
+          deferredInstallPrompt = null;
+        });
+      } else {
+        openInstallHelpModal();
+      }
+    }
+
+    function openInstallHelpModal() {
+      const modal = document.getElementById("installHelpModal");
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function closeInstallHelpModal() {
+      const modal = document.getElementById("installHelpModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    // Register Service Worker for offline capability & PWA installability
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+          .then((reg) => {
+            console.log("PWA Service Worker registered:", reg.scope);
+            reg.update();
+            // Try to register periodic background sync if supported by browser
+            if ("periodicSync" in reg) {
+              try {
+                reg.periodicSync.register("check-updates", { minInterval: 15 * 60 * 1000 }).catch(() => { });
+              } catch (e) { }
+            }
+          })
+          .catch((err) => {
+            console.log("PWA Service Worker registration note:", err);
+          });
+      });
+    }
+
+    /**
+     * ========================================================================
+     * 13. USER IDENTITY SYSTEM ("WHO ARE YOU?" FIRST-RUN ONBOARDING)
+     * ========================================================================
+     */
+    function getUserIdentity() {
+      try {
+        const raw = localStorage.getItem("vitb_user_identity") || localStorage.getItem("campus_user_identity");
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function updateUserProfileBtn() {
+      const btnName = document.getElementById("userProfileBtnName");
+      if (!btnName) return;
+      const identity = getUserIdentity();
+      if (identity && identity.name) {
+        btnName.textContent = identity.name.split(" ")[0]; // First name
+      } else {
+        btnName.textContent = "You";
+      }
+    }
+
+    function renderIdentityStudentsList(filterQuery = "") {
+      const grid = document.getElementById("identityStudentsGrid");
+      if (!grid) return;
+      const q = (filterQuery || "").trim().toLowerCase();
+      
+      const sortedSquad = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
+      const filtered = q
+        ? sortedSquad.filter(s => s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q))
+        : sortedSquad;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-4 text-center text-xs text-slate-400 dark:text-slate-500">
+            No squad member matched "${filterQuery}". Use the custom name box below!
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(s => {
+        const initials = s.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+        return `
+          <button type="button" onclick="selectSquadUserIdentity('${s.id}')"
+            class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-brandBlue dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 transition text-left group active:scale-95">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr ${s.avatarBg || 'from-blue-500 to-indigo-600'} text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+              ${initials}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-brandBlue">${s.name}</div>
+              <div class="text-[10px] text-slate-400 dark:text-slate-500 truncate">${s.courses.length} courses</div>
+            </div>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function filterIdentityStudents(val) {
+      renderIdentityStudentsList(val);
+    }
+
+    function openUserIdentityModal() {
+      const modal = document.getElementById("userIdentityModal");
+      if (!modal) return;
+      renderIdentityStudentsList("");
+      const searchInput = document.getElementById("identitySearchInput");
+      if (searchInput) searchInput.value = "";
+      const customInput = document.getElementById("customIdentityNameInput");
+      if (customInput) customInput.value = "";
+      modal.classList.remove("hidden");
+    }
+
+    function closeUserIdentityModal(isSkip = false) {
+      const modal = document.getElementById("userIdentityModal");
+      if (modal) modal.classList.add("hidden");
+      if (isSkip) {
+        try {
+          localStorage.setItem("vitb_identity_prompt_shown", "true");
+        } catch (e) { }
+      }
+    }
+
+    function selectSquadUserIdentity(studentId) {
+      const student = FRIENDS_DATA.find(f => f.id === studentId);
+      if (!student) return;
+      const data = {
+        id: student.id,
+        name: student.name,
+        color: student.color || "blue",
+        avatarBg: student.avatarBg || "from-blue-500 to-indigo-600",
+        isSquadMember: true,
+        savedAt: new Date().toISOString()
+      };
+      saveUserIdentityData(data);
+    }
+
+    function saveCustomUserIdentity() {
+      const input = document.getElementById("customIdentityNameInput");
+      const name = (input ? input.value : "").trim();
+      if (!name) {
+        alert("Please enter your name!");
+        return;
+      }
+      const data = {
+        id: "custom_" + name.toLowerCase().replace(/[^a-z0-9]/g, "_"),
+        name: name,
+        color: "blue",
+        avatarBg: "from-blue-500 to-indigo-600",
+        isSquadMember: false,
+        savedAt: new Date().toISOString()
+      };
+      saveUserIdentityData(data);
+    }
+
+    function saveUserIdentityData(identity) {
+      try {
+        localStorage.setItem("vitb_user_identity", JSON.stringify(identity));
+        localStorage.setItem("campus_user_identity", JSON.stringify(identity));
+        localStorage.setItem("vitb_user_name", identity.name);
+        localStorage.setItem("vitb_user_id", identity.id);
+        localStorage.setItem("vitb_identity_prompt_shown", "true");
+        if (!localStorage.getItem("vitb_last_requester_name")) {
+          localStorage.setItem("vitb_last_requester_name", identity.name);
+        }
+      } catch (e) { }
+
+      hasUserManuallySelectedPayLaterFilter = false;
+      if (typeof trackUserIdentityAssigned === "function") {
+        trackUserIdentityAssigned(identity);
+      }
+      updateUserProfileBtn();
+      renderLiveStatusBanner();
+      closeUserIdentityModal(false);
+      if (activeTab === "paylater") {
+        renderPayLaterUI();
+      }
+      if (!getUserMess()) {
+        setTimeout(openMessSelectorModal, 450);
+      }
+
+      // If notifications haven't been prompted yet, show notification banner shortly after onboarding
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+        setTimeout(() => {
+          showNotificationPermissionBanner();
+        }, 1200);
+      }
+
+      // Show friendly confirmation toast
+      const toast = document.getElementById("reviewToast");
+      const toastMsg = document.getElementById("reviewToastMsg");
+      if (toast && toastMsg) {
+        toastMsg.textContent = `Welcome, ${identity.name}! Profile saved locally.`;
+        toast.classList.remove("hidden");
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 3000);
+      }
+    }
+
+    function checkUserIdentityPrompt() {
+      updateUserProfileBtn();
+      const existing = getUserIdentity();
+      const promptShown = localStorage.getItem("vitb_identity_prompt_shown");
+      if (!existing && !promptShown) {
+        // First time opening the app!
+        setTimeout(() => {
+          openUserIdentityModal();
+        }, 400);
+      }
+    }
+
+    /**
+     * ========================================================================
+     * 14. USER ACTIVITY TRACKER SYSTEM (DHRUBA ADMIN ANALYTICS)
+     * ========================================================================
+     */
+    const TRACKER_DOC_PATH = { collection: "teacher_reviews", doc: "user_activity_tracker" };
+    let cachedTrackerData = null;
+    let userTrackerActiveTimeframe = "7days"; // '7days', '30days', 'today', 'all'
+    let userTrackerSearchQuery = "";
+    let userTrackerSortBy = "opens"; // 'opens', 'recent', 'name'
+    let isTrackerFlushing = false;
+    let trackerFlushTimeout = null;
+
+    let headerLogoClickCount = 0;
+    let headerLogoClickTimer = null;
+
+    const TRACKER_SECTIONS_META = {
+      master: { name: "Schedule / Squad", icon: "fa-calendar-week", color: "blue" },
+      mess: { name: "Mess Menu", icon: "fa-utensils", color: "emerald" },
+      paylater: { name: "Pay Me Later", icon: "fa-hand-holding-dollar", color: "teal" },
+      teacher: { name: "Teacher Reviews", icon: "fa-chalkboard-user", color: "amber" },
+      parcel: { name: "Parcel / Delivery", icon: "fa-box-open", color: "purple" },
+      calendar: { name: "Academic Calendar", icon: "fa-calendar-days", color: "indigo" }
+    };
+
+    function isCurrentUserDhruba() {
+      try {
+        if (typeof sessionStorage !== "undefined" && sessionStorage.getItem("vitb_admin_auth") === "true") {
+          return true;
+        }
+        const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
+        const name = (identity && identity.name) || (typeof localStorage !== "undefined" ? localStorage.getItem("vitb_user_name") : "") || "";
+        const id = (identity && identity.id) || (typeof localStorage !== "undefined" ? localStorage.getItem("vitb_user_id") : "") || "";
+        return id.toLowerCase() === "dhruba" || name.toLowerCase().includes("dhruba");
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function handleHeaderLogoClick() {
+      // 1. If currently active profile is Dhruba, open directly on a single click!
+      if (isCurrentUserDhruba()) {
+        openUserTrackerModal();
+        return;
+      }
+
+      // 2. Secret backdoor for Dhruba if on a fresh device without identity set yet:
+      // Triple-tap the logo within 1.5s to trigger admin passcode prompt
+      headerLogoClickCount++;
+      if (headerLogoClickTimer) clearTimeout(headerLogoClickTimer);
+      headerLogoClickTimer = setTimeout(() => {
+        headerLogoClickCount = 0;
+      }, 1500);
+
+      if (headerLogoClickCount >= 3) {
+        headerLogoClickCount = 0;
+        const pass = prompt("Admin Passcode:");
+        if (pass && (pass.trim().toLowerCase() === "dhruba" || pass.trim() === "2026")) {
+          sessionStorage.setItem("vitb_admin_auth", "true");
+          openUserTrackerModal();
+        }
+      }
+    }
+
+    function getOrCreateDeviceId() {
+      let id = "";
+      try {
+        id = localStorage.getItem("vitb_device_id");
+        if (!id) {
+          id = "dev_" + Math.random().toString(36).substring(2, 8) + Date.now().toString(36).slice(-4);
+          localStorage.setItem("vitb_device_id", id);
+        }
+      } catch (e) {
+        id = "dev_anon";
+      }
+      return id;
+    }
+
+    function getCurrentTrackerUser() {
+      const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
+      let storedName = "";
+      let storedId = "";
+      try {
+        storedName = localStorage.getItem("vitb_user_name") || "";
+        storedId = localStorage.getItem("vitb_user_id") || "";
+      } catch (e) { }
+
+      let userId = (identity && identity.id) || storedId || getOrCreateDeviceId();
+      let userName = (identity && identity.name) || storedName;
+      if (!userName) {
+        userName = "Guest (" + userId.slice(-4) + ")";
+      }
+
+      return {
+        userId: userId.toLowerCase().trim(),
+        userName: userName.trim()
+      };
+    }
+
+    function getPendingTrackerEvents() {
+      try {
+        const raw = localStorage.getItem("vitb_tracker_pending");
+        return raw ? JSON.parse(raw) : { users: {} };
+      } catch (e) {
+        return { users: {} };
+      }
+    }
+
+    function savePendingTrackerEvents(events) {
+      try {
+        localStorage.setItem("vitb_tracker_pending", JSON.stringify(events));
+      } catch (e) { }
+    }
+
+    function clearPendingTrackerEvents() {
+      try {
+        localStorage.removeItem("vitb_tracker_pending");
+      } catch (e) { }
+    }
+
+    function queueTrackerEvent(type, payload) {
+      try {
+        const pending = getPendingTrackerEvents();
+        pending.users = pending.users || {};
+        const { userId, userName } = getCurrentTrackerUser();
+
+        if (!pending.users[userId]) {
+          pending.users[userId] = {
+            id: userId,
+            name: userName,
+            newOpens: [],
+            sections: {},
+            lastSeen: Date.now(),
+            lastSection: (typeof activeTab !== "undefined" ? activeTab : "master")
+          };
+        }
+
+        const pUser = pending.users[userId];
+        if (userName && !userName.startsWith("Guest (")) {
+          pUser.name = userName;
+        }
+        pUser.lastSeen = Date.now();
+
+        if (type === "open") {
+          pUser.newOpens.push(payload.timestamp || Date.now());
+        } else if (type === "section") {
+          const sec = payload.section || "master";
+            sections: {},
+            lastSeen: Date.now(),
+            lastSection: (typeof activeTab !== "undefined" ? activeTab : "master")
+          };
+        }
+
+        const pUser = pending.users[userId];
+        if (userName && !userName.startsWith("Guest (")) {
+          pUser.name = userName;
+        }
+        pUser.lastSeen = Date.now();
+
+        if (type === "open") {
+          pUser.newOpens.push(payload.timestamp || Date.now());
+        } else if (type === "section") {
+          const sec = payload.section || "master";
+          pUser.sections[sec] = (pUser.sections[sec] || 0) + 1;
+          pUser.lastSection = sec;
+        }
+
+        savePendingTrackerEvents(pending);
+
+        // Debounce write to Firebase after 1.5 seconds of inactivity
+        if (trackerFlushTimeout) clearTimeout(trackerFlushTimeout);
+        trackerFlushTimeout = setTimeout(() => {
+          flushTrackerEventsToFirebase();
+        }, 1500);
+      } catch (e) {
+        console.warn("queueTrackerEvent error:", e);
+      }
+    }
+
+    async function flushTrackerEventsToFirebase() {
+      if (isTrackerFlushing) return;
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+
+      const pending = getPendingTrackerEvents();
+      if (!pending || !pending.users || Object.keys(pending.users).length === 0) return;
+
+      isTrackerFlushing = true;
+      try {
+        const docRef = firestore.collection(TRACKER_DOC_PATH.collection).doc(TRACKER_DOC_PATH.doc);
+        const snap = await docRef.get();
+        let existing = {};
+        if (snap && snap.exists) {
+          existing = snap.data() || {};
+        }
+        const users = existing.users || {};
+        const now = Date.now();
+        const cutoff60Days = now - (60 * 24 * 60 * 60 * 1000);
+
+        for (const [uid, pUser] of Object.entries(pending.users)) {
+          if (!users[uid]) {
+            users[uid] = {
+              id: uid,
+              name: pUser.name || "Student",
+              totalOpens: 0,
+              openTimestamps: [],
+              sections: {},
+              firstSeen: now,
+              lastSeen: now,
+              lastSection: pUser.lastSection || "master"
+            };
+          }
+
+          const u = users[uid];
+          if (pUser.name && !pUser.name.startsWith("Guest (")) {
+            u.name = pUser.name;
+          }
+
+          if (Array.isArray(pUser.newOpens) && pUser.newOpens.length > 0) {
+            u.openTimestamps = (u.openTimestamps || []).concat(pUser.newOpens);
+            // Prune timestamps older than 60 days to keep doc size lean
+            u.openTimestamps = u.openTimestamps.filter(t => t > cutoff60Days);
+            u.totalOpens = (u.totalOpens || 0) + pUser.newOpens.length;
+          }
+
+          if (pUser.sections) {
+            u.sections = u.sections || {};
+            for (const [sec, count] of Object.entries(pUser.sections)) {
+              u.sections[sec] = (u.sections[sec] || 0) + count;
+            }
+          }
+
+          u.lastSeen = Math.max(u.lastSeen || 0, pUser.lastSeen || now);
+          if (pUser.lastSection) {
+            u.lastSection = pUser.lastSection;
+          }
+        }
+
+        await docRef.set({
+          lastUpdated: now,
+          users: users
+        }, { merge: true });
+
+        clearPendingTrackerEvents();
+        cachedTrackerData = users;
+      } catch (err) {
+        console.warn("Tracker Firebase sync notice:", err);
+      } finally {
+        isTrackerFlushing = false;
+      }
+    }
+
+    function trackAppOpen() {
+      try {
+        const now = Date.now();
+        let lastSessionOpen = 0;
+        try {
+          lastSessionOpen = parseInt(sessionStorage.getItem("vitb_session_open_time") || "0", 10);
+        } catch (e) { }
+
+        // Track as a new open if fresh session or > 15 mins since last recorded session
+        if (!lastSessionOpen || (now - lastSessionOpen > 15 * 60 * 1000)) {
+          try {
+            sessionStorage.setItem("vitb_session_open_time", now.toString());
+          } catch (e) { }
+          queueTrackerEvent("open", { timestamp: now });
+        }
+
+        // Also track the initial section loaded
+        const initialTab = (typeof activeTab !== "undefined" && activeTab) ? activeTab : "master";
+        trackSectionUsage(initialTab);
+      } catch (e) { }
+    }
+
+    function trackSectionUsage(section) {
+      try {
+        if (!section) return;
+        const normalized = (section === "individual") ? "master" : section;
+        queueTrackerEvent("section", { section: normalized });
+      } catch (e) { }
+    }
+
+    function trackUserIdentityAssigned(identity) {
+      try {
+        if (!identity) return;
+        queueTrackerEvent("section", { section: (typeof activeTab !== "undefined" && activeTab) ? activeTab : "master" });
+        flushTrackerEventsToFirebase();
+      } catch (e) { }
+    }
+
+    async function openUserTrackerModal() {
+      const modal = document.getElementById("userTrackerModal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      document.body.classList.add("overflow-hidden");
+
+      const body = document.getElementById("userTrackerModalBody");
+      if (body && !cachedTrackerData) {
+        body.innerHTML = `
+          <div class="py-12 text-center space-y-3">
+            <i class="fa-solid fa-spinner fa-spin text-3xl text-brandBlue"></i>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Fetching live student analytics from Firebase...</p>
+          </div>
+        `;
+      }
+
+      // Flush local pending data then fetch fresh Firestore snapshot
+      await flushTrackerEventsToFirebase();
+      await refreshUserTrackerData();
+    }
+
+    function closeUserTrackerModal() {
+      const modal = document.getElementById("userTrackerModal");
+      if (modal) {
+        modal.classList.add("hidden");
+        document.body.classList.remove("overflow-hidden");
+      }
+    }
+
+    async function refreshUserTrackerData() {
+      const refreshIcon = document.getElementById("userTrackerRefreshIcon");
+      if (refreshIcon) refreshIcon.classList.add("fa-spin");
+
+      try {
+        const firestore = (typeof getDb === "function") ? getDb() : null;
+        if (firestore) {
+          const docRef = firestore.collection(TRACKER_DOC_PATH.collection).doc(TRACKER_DOC_PATH.doc);
+          const snap = await docRef.get();
+          if (snap && snap.exists) {
+            const data = snap.data() || {};
+            cachedTrackerData = data.users || {};
+          } else {
+            cachedTrackerData = {};
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load tracker data:", err);
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove("fa-spin");
+        renderUserTrackerUI();
+      }
+    }
+
+    function setUserTrackerTimeframe(tf) {
+      userTrackerActiveTimeframe = tf;
+      renderUserTrackerUI();
+    }
+
+    function setUserTrackerSort(sort) {
+      userTrackerSortBy = sort;
+      renderUserTrackerUI();
+    }
+
+    function handleUserTrackerSearch(q) {
+      userTrackerSearchQuery = (q || "").trim().toLowerCase();
+      renderUserTrackerUI();
+    }
+
+    function formatTrackerTime(timestamp) {
+      if (!timestamp) return "Never";
+      const now = Date.now();
+      const diffMs = now - Number(timestamp);
+      const diffSecs = Math.floor(diffMs / 1000);
+      const diffMins = Math.floor(diffSecs / 60);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
+      if (diffSecs < 60) return "Just now";
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays === 1) return "Yesterday";
+      if (diffDays < 7) return `${diffDays}d ago`;
+
+      const d = new Date(Number(timestamp));
+      return d.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+    }
+
+    function renderUserTrackerUI() {
+      const body = document.getElementById("userTrackerModalBody");
+      if (!body) return;
+
+      const usersObj = cachedTrackerData || {};
+      const userList = Object.values(usersObj);
+
+      const now = Date.now();
+      let cutoff = 0;
+      let timeframeLabel = "Last 7 Days";
+      if (userTrackerActiveTimeframe === "7days") {
+        cutoff = now - (7 * 24 * 60 * 60 * 1000);
+        timeframeLabel = "Last 7 Days";
+      } else if (userTrackerActiveTimeframe === "30days") {
+        cutoff = now - (30 * 24 * 60 * 60 * 1000);
+        timeframeLabel = "Last 30 Days";
+      } else if (userTrackerActiveTimeframe === "today") {
+        cutoff = now - (24 * 60 * 60 * 1000);
+        timeframeLabel = "Today";
+      } else {
+        cutoff = 0;
+        timeframeLabel = "All Time";
+      }
+
+      // Compute aggregate statistics
+      let totalOpensInPeriod = 0;
+      let activeStudentsInPeriod = 0;
+      const sectionAggregate = { master: 0, mess: 0, paylater: 0, teacher: 0, parcel: 0, calendar: 0 };
+
+      const userStats = userList.map(u => {
+        const timestamps = Array.isArray(u.openTimestamps) ? u.openTimestamps : [];
+        const opensInPeriod = (cutoff === 0)
+          ? (u.totalOpens || timestamps.length)
+          : timestamps.filter(t => t >= cutoff).length;
+
+        const totalOpens = u.totalOpens || timestamps.length;
+        if (opensInPeriod > 0) activeStudentsInPeriod++;
+        totalOpensInPeriod += opensInPeriod;
+
+        // Aggregate sections
+        const sections = u.sections || {};
+        for (const [sec, count] of Object.entries(sections)) {
+          if (sectionAggregate[sec] !== undefined) {
+            sectionAggregate[sec] += (count || 0);
+          }
+        }
+
+        return {
+          ...u,
+          opensInPeriod,
+          totalOpens
+        };
+      });
+
+      // Find top section
+      let topSectionKey = "master";
+      let topSectionCount = 0;
+      for (const [sec, count] of Object.entries(sectionAggregate)) {
+        if (count > topSectionCount) {
+          topSectionCount = count;
+          topSectionKey = sec;
+        }
+      }
+      const topSectionMeta = TRACKER_SECTIONS_META[topSectionKey] || TRACKER_SECTIONS_META.master;
+
+      // Filter by search query
+      let filteredUsers = userStats;
+      if (userTrackerSearchQuery) {
+        filteredUsers = filteredUsers.filter(u => {
+          const name = (u.name || "").toLowerCase();
+          const id = (u.id || "").toLowerCase();
+          return name.includes(userTrackerSearchQuery) || id.includes(userTrackerSearchQuery);
+        });
+      }
+
+      // Sort users
+      filteredUsers.sort((a, b) => {
+        if (userTrackerSortBy === "opens") {
+          if (b.opensInPeriod !== a.opensInPeriod) {
+            return b.opensInPeriod - a.opensInPeriod;
+          }
+          return (b.totalOpens || 0) - (a.totalOpens || 0);
+        } else if (userTrackerSortBy === "recent") {
+          return (b.lastSeen || 0) - (a.lastSeen || 0);
+        } else if (userTrackerSortBy === "name") {
+          return (a.name || "").localeCompare(b.name || "");
+        }
+        return (b.opensInPeriod || 0) - (a.opensInPeriod || 0);
+      });
+
+      body.innerHTML = `
+        <!-- High-Level Metric Stat Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div class="p-2.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/70 dark:border-blue-900/50">
+            <div class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Students</div>
+            <div class="text-lg font-black text-slate-900 dark:text-white mt-0.5">${userList.length}</div>
+            <div class="text-[9px] text-slate-500 dark:text-slate-400">${activeStudentsInPeriod} active in period</div>
+          </div>
+          <div class="p-2.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-900/50">
+            <div class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">App Opens</div>
+            <div class="text-lg font-black text-slate-900 dark:text-white mt-0.5">${totalOpensInPeriod}</div>
+            <div class="text-[9px] text-slate-500 dark:text-slate-400">${timeframeLabel}</div>
+          </div>
+          <div class="p-2.5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/70 dark:border-amber-900/50">
+            <div class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Top Section</div>
+            <div class="text-xs font-black text-slate-900 dark:text-white truncate mt-1">
+              <i class="fa-solid ${topSectionMeta.icon} text-amber-500 mr-1"></i>${topSectionMeta.name.split("/")[0]}
+            </div>
+            <div class="text-[9px] text-slate-500 dark:text-slate-400">${topSectionCount} total views</div>
+          </div>
+          <div class="p-2.5 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200/70 dark:border-purple-900/50">
+            <div class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Cloud Sync</div>
+            <div class="text-xs font-black text-slate-900 dark:text-white truncate mt-1">
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>Firestore Live
+            </div>
+            <div class="text-[9px] text-slate-500 dark:text-slate-400">Single Doc Storage</div>
+          </div>
+        </div>
+
+        <!-- Filter Controls: Timeframe Pills, Search Bar & Sort Dropdown -->
+        <div class="space-y-2 pt-1">
+          <!-- Timeframe selector -->
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+            <button onclick="setUserTrackerTimeframe('7days')"
+              class="px-3 py-1 rounded-full text-xs font-bold transition shrink-0 ${userTrackerActiveTimeframe === '7days'
+                ? 'bg-brandBlue text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }">
+              Last 7 Days
+            </button>
+            <button onclick="setUserTrackerTimeframe('30days')"
+              class="px-3 py-1 rounded-full text-xs font-bold transition shrink-0 ${userTrackerActiveTimeframe === '30days'
+                ? 'bg-brandBlue text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }">
+              Last 30 Days
+            </button>
+            <button onclick="setUserTrackerTimeframe('today')"
+              class="px-3 py-1 rounded-full text-xs font-bold transition shrink-0 ${userTrackerActiveTimeframe === 'today'
+                ? 'bg-brandBlue text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }">
+              Today (24h)
+            </button>
+            <button onclick="setUserTrackerTimeframe('all')"
+              class="px-3 py-1 rounded-full text-xs font-bold transition shrink-0 ${userTrackerActiveTimeframe === 'all'
+                ? 'bg-brandBlue text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }">
+              All Time
+            </button>
+          </div>
+
+          <!-- Search and Sort Row -->
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+              <input type="text"
+                value="${userTrackerSearchQuery}"
+                oninput="handleUserTrackerSearch(this.value)"
+                placeholder="Search student by name or ID..."
+                class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue transition" />
+            </div>
+
+            <select onchange="setUserTrackerSort(this.value)"
+              class="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none shrink-0">
+              <option value="opens" ${userTrackerSortBy === 'opens' ? 'selected' : ''}>Most Opens</option>
+              <option value="recent" ${userTrackerSortBy === 'recent' ? 'selected' : ''}>Recently Active</option>
+              <option value="name" ${userTrackerSortBy === 'name' ? 'selected' : ''}>Name (A-Z)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Student Cards List -->
+        <div class="space-y-2.5 pt-1">
+          ${filteredUsers.length === 0 ? `
+            <div class="py-12 text-center space-y-2 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/60 dark:border-slate-800 p-6">
+              <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-xl mx-auto">
+                <i class="fa-solid fa-user-slash"></i>
+              </div>
+              <div class="text-xs font-bold text-slate-700 dark:text-slate-300">
+                ${userTrackerSearchQuery ? 'No students match your search' : 'No user activity recorded yet'}
+              </div>
+              <p class="text-[11px] text-slate-400 max-w-xs mx-auto">
+                Activity updates automatically to Firebase whenever students open Campus Saathi or switch sections.
+              </p>
+            </div>
+          ` : filteredUsers.map(u => {
+            const sections = u.sections || {};
+            const userInitial = (u.name || "S").charAt(0).toUpperCase();
+            const lastActiveStr = formatTrackerTime(u.lastSeen);
+            const isOnlineRecent = u.lastSeen && (Date.now() - u.lastSeen < 10 * 60 * 1000);
+
+            // Total section clicks for this user
+            const totalSectionViews = Object.values(sections).reduce((acc, c) => acc + (Number(c) || 0), 0);
+
+            return `
+              <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-2.5 hover:border-slate-300 dark:hover:border-slate-700 transition">
+                <!-- User Header Row -->
+                <div class="flex items-center justify-between gap-2.5">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="relative shrink-0">
+                      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-sm flex items-center justify-center shadow-xs">
+                        ${userInitial}
+                      </div>
+                      ${isOnlineRecent ? `
+                        <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 shadow-2xs" title="Active in last 10m"></span>
+                      ` : ''}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">
+                          ${u.name}
+                        </span>
+                      </div>
+                      <div class="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5">
+                        <i class="fa-regular fa-clock text-[9px]"></i>
+                        <span>Last active: <strong class="text-slate-600 dark:text-slate-300 font-semibold">${lastActiveStr}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Opens Metric Badge -->
+                  <div class="text-right shrink-0">
+                    <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-900/60 text-brandBlue dark:text-blue-300 font-black text-xs shadow-2xs">
+                      <span>${u.opensInPeriod} opens</span>
+                    </div>
+                    <div class="text-[9px] text-slate-400 mt-0.5 font-medium">
+                      ${timeframeLabel} • Total: ${u.totalOpens}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Sections Used Breakdown -->
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+                  <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <span>Sections Used</span>
+                    <span>${totalSectionViews} total views</span>
+                  </div>
+
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                    ${Object.entries(TRACKER_SECTIONS_META).map(([key, meta]) => {
+                      const count = Number(sections[key] || 0);
+                      const isUsed = count > 0;
+                      return `
+                        <div class="px-2 py-1.5 rounded-xl border flex items-center justify-between text-[11px] transition ${isUsed
+                          ? 'bg-slate-50 dark:bg-slate-800/70 border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200'
+                          : 'bg-transparent border-slate-100 dark:border-slate-800/40 text-slate-400 dark:text-slate-600 opacity-60'
+                        }">
+                          <span class="flex items-center gap-1.5 truncate">
+                            <i class="fa-solid ${meta.icon} text-[10px] text-${meta.color}-500 shrink-0"></i>
+                            <span class="truncate">${meta.name.split("/")[0].trim()}</span>
+                          </span>
+                          <span class="font-mono font-bold shrink-0 ml-1.5 ${isUsed ? 'text-slate-900 dark:text-white' : 'text-slate-400'}">
+                            ${count}
+                          </span>
+                        </div>
+                      `;
+                    }).join("")}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+
+    /**
+     * ========================================================================
+     * INITIALIZATION (INSTANT RENDER + BACKGROUND ENHANCEMENTS)
+     * ========================================================================
+     */
+    // Route by URL hash (#delivery, #teacher-review) or query param (?tab=...)
+    function applyRoute() {
+      try {
+        const hash = (window.location.hash || "").toLowerCase().replace("#", "").trim();
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedTab = urlParams.get("tab");
+        if (hash === "delivery" || hash === "deliveries" || hash === "parcel" || requestedTab === "parcel") {
+          switchTab("parcel");
+        } else if (hash === "pay-later" || hash === "paylater" || hash === "pay_me_later" || requestedTab === "paylater") {
+          switchTab("paylater");
+        } else if (hash === "mess" || hash === "mess-menu" || hash === "mess_menu" || requestedTab === "mess") {
+          switchTab("mess");
+        } else if (hash === "calendar" || hash === "calender" || requestedTab === "calendar" || requestedTab === "calender") {
+          switchTab("calendar");
+        } else if (hash === "teacher-review" || hash === "teacher_review" || hash === "teachers" || hash === "teacher" || requestedTab === "teacher") {
+          switchTab("teacher");
+        } else if (hash === "individual" || requestedTab === "individual") {
+          switchTab("individual");
+        } else if (hash === "squad" || requestedTab === "master") {
+          switchTab("master");
+        } else {
+          switchTab("master");
+        }
+      } catch (e) {
+        switchTab("master");
+      }
+    }
+
+    // Fast Synchronous UI Mount: Renders schedule data INSTANTLY in 0ms without waiting for external fonts/images/CDNs
+    function initAppImmediate() {
+      try {
+        updateThemeToggleIcon();
+        updateUserProfileBtn();
+        if (typeof trackAppOpen === "function") {
+          trackAppOpen();
+        }
+        updateTopSummaryMetrics();
+        renderLiveStatusBanner();
+        applyRoute();
+      } catch (e) {
+        console.warn("Fast UI mount notice:", e);
+      }
+    }
+
+    // Execute immediately since script is at the bottom of <body>
+    initAppImmediate();
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("hashchange", applyRoute);
+    }
+
+    // Background listeners, SW message channels, and network tasks
+    window.onload = function () {
+      checkInstallState();
+      checkUserIdentityPrompt();
+      checkMessOnboardingPrompt();
+      checkNotificationState();
+
+      // Lifecycle listeners to keep notifications alive across tab switches and network reconnects
+      if (typeof document !== "undefined") {
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") {
+            ensureNotificationListenersActive();
+          }
+        });
+      }
+      if (typeof window !== "undefined") {
+        window.addEventListener("focus", ensureNotificationListenersActive);
+        window.addEventListener("online", ensureNotificationListenersActive);
+      }
+
+      // Service Worker message listener for notification clicks
+      if ("serviceWorker" in navigator && navigator.serviceWorker && navigator.serviceWorker.addEventListener) {
+        navigator.serviceWorker.addEventListener("message", (event) => {
+          if (event.data && event.data.action === "navigate_tab" && event.data.tab) {
+            switchTab(event.data.tab);
+          }
+        });
+      }
+
+      // Always listen for Pay Me Later squad dues & notifications
+      initFirebasePayLaterRequests();
+
+      // If parcel notifications are enabled, listen for incoming squad requests immediately
+      if (localStorage.getItem("vitb_parcel_notifications_enabled") === "true") {
+        initFirebaseParcelRequests();
+      }
+
+      setInterval(() => {
+        renderLiveStatusBanner();
+        checkUpcomingClassReminders();
+        ensureNotificationListenersActive();
+        if (activeTab === "master") {
+          renderMobileSlotCards();
+        } else if (activeTab === "calendar") {
+          renderCalendar();
+        } else if (activeTab === "parcel") {
+          renderParcelHelper();
+        } else if (activeTab === "paylater") {
+          renderPayLaterUI();
+        } else if (activeTab === "mess") {
+          renderMessMenuUI();
+        }
+      }, 30000);
+    };
+  
