@@ -10,10 +10,13 @@
 
   <!-- PWA & Mobile Web App Meta -->
   <link rel="manifest" href="manifest.json" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#020617" />
   <meta name="theme-color" id="metaThemeColor" content="#ffffff" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" id="metaAppleStatusBar" content="default" />
   <meta name="apple-mobile-web-app-title" content="Campus Saathi" />
 
   <!-- App Icons -->
@@ -76,9 +79,15 @@
         } else {
           document.documentElement.classList.remove("dark");
         }
-        const metaTheme = document.getElementById("metaThemeColor");
-        if (metaTheme) {
-          metaTheme.setAttribute("content", isDark ? "#020617" : "#ffffff");
+        const color = isDark ? "#020617" : "#ffffff";
+        document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute("content", color));
+        const appleMeta = document.getElementById("metaAppleStatusBar");
+        if (appleMeta) {
+          appleMeta.setAttribute("content", isDark ? "black-translucent" : "default");
+        }
+        const manifestLink = document.querySelector('link[rel="manifest"]');
+        if (manifestLink) {
+          manifestLink.setAttribute('href', isDark ? 'manifest-dark.json' : 'manifest.json');
         }
       } catch (e) { }
     })();
@@ -91,17 +100,26 @@
       touch-action: manipulation;
     }
 
+    :root {
+      color-scheme: light;
+    }
+
     html {
       background-color: #ffffff;
+      min-height: 100%;
+      min-height: 100dvh;
     }
 
     html.dark {
+      color-scheme: dark;
       background-color: #020617;
     }
 
     body {
       background-color: #ffffff;
       color: #1e293b;
+      min-height: 100%;
+      min-height: 100dvh;
       font-family: 'Google Sans', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
@@ -11769,9 +11787,15 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
           ? "fa-solid fa-sun text-xs text-amber-400"
           : "fa-solid fa-moon text-xs text-slate-600";
       }
-      const meta = document.getElementById("metaThemeColor");
-      if (meta) {
-        meta.setAttribute("content", isDark ? "#020617" : "#ffffff");
+      const color = isDark ? "#020617" : "#ffffff";
+      document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute("content", color));
+      const appleMeta = document.getElementById("metaAppleStatusBar");
+      if (appleMeta) {
+        appleMeta.setAttribute("content", isDark ? "black-translucent" : "default");
+      }
+      const manifestLink = document.querySelector('link[rel="manifest"]');
+      if (manifestLink) {
+        manifestLink.setAttribute('href', isDark ? 'manifest-dark.json' : 'manifest.json');
       }
     }
 
