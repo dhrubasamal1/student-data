@@ -177,7 +177,8 @@
         <!-- Left: Logo & App Title -->
         <div class="flex items-center gap-2.5 min-w-0">
           <img src="icons/icon-192.png" alt="Campus Saathi"
-            class="w-8 h-8 rounded-xl object-cover shadow-xs border border-slate-200/80 dark:border-slate-700/80 shrink-0" />
+            onclick="handleTopLeftLogoClick()"
+            class="w-8 h-8 rounded-xl object-cover shadow-xs border border-slate-200/80 dark:border-slate-700/80 shrink-0 cursor-pointer active:scale-95 transition" />
           <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white truncate">
             Campus Saathi
           </h1>
@@ -1115,6 +1116,86 @@
             class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold transition px-2 py-1">
             Skip for now
           </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- DHRUBA'S ADMIN USER TRACKER MODAL (ACTIVITY & ANALYTICS DASHBOARD)    -->
+    <!-- ===================================================================== -->
+    <div id="userTrackerModal"
+      onclick="if(event.target === this) closeUserTrackerModal()"
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fadeIn"
+      role="dialog" aria-modal="true" aria-labelledby="userTrackerModalTitle">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl p-4 sm:p-5 space-y-3.5 my-auto max-h-[92vh] flex flex-col">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
+          <div class="flex items-center gap-2.5">
+            <div
+              class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center text-sm font-bold shadow-xs shrink-0">
+              <i class="fa-solid fa-chart-simple"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <h3 id="userTrackerModalTitle" class="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+                  User Activity Tracker
+                </h3>
+                <span class="px-1.5 py-0.2 rounded-md text-[9px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300/40">
+                  Firebase Live
+                </span>
+              </div>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">
+                Track app opens, active students &amp; section usage
+              </p>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-1.5">
+            <button onclick="fetchAndRenderUserTracker()" title="Refresh live analytics"
+              class="w-7 h-7 rounded-full flex items-center justify-center text-slate-500 hover:text-brandBlue hover:bg-slate-100 dark:hover:bg-slate-800 transition active:scale-95">
+              <i id="trackerRefreshIcon" class="fa-solid fa-rotate text-xs"></i>
+            </button>
+            <button onclick="closeUserTrackerModal()" aria-label="Close Modal"
+              class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+              <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Overview Metric Summary Cards (4 stats: Total Users, Total Opens, Last 7 Days, Today) -->
+        <div id="trackerOverviewStats" class="grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Search & Filter Bar -->
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+            <input type="text" id="trackerSearchInput" placeholder="Search by name or device..."
+              oninput="handleTrackerSearch(this.value)"
+              class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue" />
+          </div>
+          <select id="trackerSortSelect" onchange="handleTrackerSort(this.value)"
+            class="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none">
+            <option value="recent">Recent Active</option>
+            <option value="opens7">Most Opens (7d)</option>
+            <option value="opensTotal">Most Opens (All)</option>
+            <option value="name">Name A-Z</option>
+          </select>
+        </div>
+
+        <!-- User Cards Feed (Scrollable) -->
+        <div id="trackerUsersList" class="overflow-y-auto no-scrollbar space-y-2 flex-1 pr-0.5 max-h-72">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 dark:text-slate-500 flex items-center justify-between shrink-0">
+          <span>Synced directly with Firebase Firestore</span>
+          <span class="font-bold text-slate-600 dark:text-slate-300">Dhruba Admin View</span>
         </div>
 
       </div>
@@ -6127,6 +6208,9 @@
         }
       }
       activeTab = tabId;
+      if (typeof trackSectionVisit === "function") {
+        trackSectionVisit(tabId);
+      }
       const tabs = ["master", "calendar", "teacher", "parcel", "paylater", "mess"];
 
       tabs.forEach(t => {
@@ -11796,6 +11880,9 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       updateUserProfileBtn();
       renderLiveStatusBanner();
       closeUserIdentityModal(false);
+      if (typeof updateTrackerUserIdentity === "function") {
+        updateTrackerUserIdentity(identity);
+      }
       if (!getUserMess()) {
         setTimeout(openMessSelectorModal, 450);
       }
@@ -11833,112 +11920,927 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
     /**
      * ========================================================================
-     * INITIALIZATION (INSTANT RENDER + BACKGROUND ENHANCEMENTS)
+     * DHRUBA'S USER ACTIVITY TRACKER & FIREBASE ANALYTICS ENGINE
      * ========================================================================
      */
-    // Route by URL hash (#delivery, #teacher-review) or query param (?tab=...)
-    function applyRoute() {
-      try {
-        const hash = (window.location.hash || "").toLowerCase().replace("#", "").trim();
-        const urlParams = new URLSearchParams(window.location.search);
-        const requestedTab = urlParams.get("tab");
-        if (hash === "delivery" || hash === "deliveries" || hash === "parcel" || requestedTab === "parcel") {
-          switchTab("parcel");
-        } else if (hash === "pay-later" || hash === "paylater" || hash === "pay_me_later" || requestedTab === "paylater") {
-          switchTab("paylater");
-        } else if (hash === "mess" || hash === "mess-menu" || hash === "mess_menu" || requestedTab === "mess") {
-          switchTab("mess");
-        } else if (hash === "calendar" || hash === "calender" || requestedTab === "calendar" || requestedTab === "calender") {
-          switchTab("calendar");
-        } else if (hash === "teacher-review" || hash === "teacher_review" || hash === "teachers" || hash === "teacher" || requestedTab === "teacher") {
-          switchTab("teacher");
-        } else if (hash === "individual" || requestedTab === "individual") {
-          switchTab("individual");
-        } else if (hash === "squad" || requestedTab === "master") {
-          switchTab("master");
-        } else {
-          switchTab("master");
-        }
-      } catch (e) {
-        switchTab("master");
-      }
-    }
-
-    // Fast Synchronous UI Mount: Renders schedule data INSTANTLY in 0ms without waiting for external fonts/images/CDNs
-    function initAppImmediate() {
-      try {
-        updateThemeToggleIcon();
-        updateUserProfileBtn();
-        updateTopSummaryMetrics();
-        renderLiveStatusBanner();
-        applyRoute();
-      } catch (e) {
-        console.warn("Fast UI mount notice:", e);
-      }
-    }
-
-    // Execute immediately since script is at the bottom of <body>
-    initAppImmediate();
-
-    if (typeof window !== "undefined") {
-      window.addEventListener("hashchange", applyRoute);
-    }
-
-    // Background listeners, SW message channels, and network tasks
-    window.onload = function () {
-      checkInstallState();
-      checkUserIdentityPrompt();
-      checkMessOnboardingPrompt();
-      checkNotificationState();
-
-      // Lifecycle listeners to keep notifications alive across tab switches and network reconnects
-      if (typeof document !== "undefined") {
-        document.addEventListener("visibilitychange", () => {
-          if (document.visibilityState === "visible") {
-            ensureNotificationListenersActive();
-          }
-        });
-      }
-      if (typeof window !== "undefined") {
-        window.addEventListener("focus", ensureNotificationListenersActive);
-        window.addEventListener("online", ensureNotificationListenersActive);
-      }
-
-      // Service Worker message listener for notification clicks
-      if ("serviceWorker" in navigator && navigator.serviceWorker && navigator.serviceWorker.addEventListener) {
-        navigator.serviceWorker.addEventListener("message", (event) => {
-          if (event.data && event.data.action === "navigate_tab" && event.data.tab) {
-            switchTab(event.data.tab);
-          }
-        });
-      }
-
-      // Always listen for Pay Me Later squad dues & notifications
-      initFirebasePayLaterRequests();
-
-      // If parcel notifications are enabled, listen for incoming squad requests immediately
-      if (localStorage.getItem("vitb_parcel_notifications_enabled") === "true") {
-        initFirebaseParcelRequests();
-      }
-
-      setInterval(() => {
-        renderLiveStatusBanner();
-        checkUpcomingClassReminders();
-        ensureNotificationListenersActive();
-        if (activeTab === "master") {
-          renderMobileSlotCards();
-        } else if (activeTab === "calendar") {
-          renderCalendar();
-        } else if (activeTab === "parcel") {
-          renderParcelHelper();
-        } else if (activeTab === "paylater") {
-          renderPayLaterUI();
-        } else if (activeTab === "mess") {
-          renderMessMenuUI();
-        }
-      }, 30000);
+    const TRACKER_SECTIONS_CONFIG = {
+      master: { label: "Schedule", icon: "fa-calendar-day", color: "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800" },
+      mess: { label: "Mess Menu", icon: "fa-utensils", color: "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800" },
+      paylater: { label: "Pay Later", icon: "fa-hand-holding-dollar", color: "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800" },
+      teacher: { label: "Faculty", icon: "fa-chalkboard-user", color: "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800" },
+      calendar: { label: "Calendar", icon: "fa-calendar-week", color: "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800" },
+      parcel: { label: "Delivery", icon: "fa-box-open", color: "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800" }
     };
-  </script>
-</body>
 
-</html>
+    let trackerSyncTimer = null;
+    window.__trackerAllUsers = [];
+
+    function getOrCreateAnalyticsDeviceId() {
+      try {
+        let id = localStorage.getItem("vitb_analytics_device_id");
+        if (!id) {
+          id = "dev_" + Date.now().toString(36) + "_" + Math.random().toString(36).substring(2, 9);
+          localStorage.setItem("vitb_analytics_device_id", id);
+        }
+        return id;
+      } catch (e) {
+        return "dev_guest_" + Math.random().toString(36).substring(2, 8);
+      }
+    }
+
+    function getDevicePlatformString() {
+      try {
+        const ua = navigator.userAgent || "";
+        const isPwa = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || (window.navigator && window.navigator.standalone === true);
+        const mode = isPwa ? "PWA" : "Browser";
+        let os = "Desktop";
+        if (/Android/i.test(ua)) os = "Android";
+        else if (/iPhone|iPad|iPod/i.test(ua)) os = "iOS";
+        else if (/Macintosh|Mac OS/i.test(ua)) os = "macOS";
+        else if (/Windows/i.test(ua)) os = "Windows";
+        else if (/Linux/i.test(ua)) os = "Linux";
+        return `${os} (${mode})`;
+      } catch (e) {
+        return "Web App";
+      }
+    }
+
+    function getLocalTrackerData() {
+      const deviceId = getOrCreateAnalyticsDeviceId();
+      let data = null;
+      try {
+        const stored = localStorage.getItem("vitb_user_tracker_cache");
+        if (stored) data = JSON.parse(stored);
+      } catch (e) {}
+
+      if (!data || typeof data !== "object") {
+        data = {
+          deviceId: deviceId,
+          userName: "",
+          userRoom: "",
+          userHostel: "",
+          userMess: "",
+          platform: getDevicePlatformString(),
+          totalOpens: 0,
+          opensByDate: {},
+          sections: {},
+          lastSection: "master",
+          firstSeen: new Date().toISOString(),
+          lastOpen: new Date().toISOString(),
+          lastActive: new Date().toISOString()
+        };
+      }
+
+      // Sync identity if available
+      try {
+        const identity = typeof getUserIdentity === "function" ? getUserIdentity() : null;
+        if (identity) {
+          if (identity.name && !data.userName) data.userName = identity.name;
+          if (identity.room && !data.userRoom) data.userRoom = identity.room;
+          if (identity.hostel && !data.userHostel) data.userHostel = identity.hostel;
+          if (identity.mess && !data.userMess) data.userMess = identity.mess;
+        }
+      } catch (e) {}
+
+      if (!data.opensByDate) data.opensByDate = {};
+      if (!data.sections) data.sections = {};
+      data.platform = getDevicePlatformString();
+      return data;
+    }
+
+    function saveLocalTrackerData(data) {
+      try {
+        localStorage.setItem("vitb_user_tracker_cache", JSON.stringify(data));
+      } catch (e) {}
+    }
+
+    function syncTrackerDataToFirebase(data) {
+      if (!data || !data.deviceId) return;
+      try {
+        const firestore = typeof getDb === "function" ? getDb() : (typeof db !== "undefined" ? db : null);
+        if (!firestore) return;
+        const docRef = firestore.collection("teacher_reviews").doc("user_track_" + data.deviceId);
+        
+        const payload = {
+          deviceId: data.deviceId,
+          userName: data.userName || "Anonymous Student",
+          userRoom: data.userRoom || "",
+          userHostel: data.userHostel || "",
+          userMess: data.userMess || "",
+          platform: data.platform || getDevicePlatformString(),
+          totalOpens: Number(data.totalOpens) || 1,
+          opensByDate: data.opensByDate || {},
+          sections: data.sections || {},
+          lastSection: data.lastSection || "master",
+          lastOpen: data.lastOpen || new Date().toISOString(),
+          lastActive: data.lastActive || new Date().toISOString(),
+          firstSeen: data.firstSeen || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        docRef.set(payload, { merge: true }).catch(err => {
+          console.warn("Analytics sync notice:", err);
+        });
+      } catch (e) {
+        console.warn("Analytics sync catch:", e);
+      }
+    }
+
+    function recordAppOpenTracker() {
+      try {
+        const data = getLocalTrackerData();
+        data.totalOpens = (Number(data.totalOpens) || 0) + 1;
+        const now = new Date();
+        const dateKey = now.toISOString().slice(0, 10); // YYYY-MM-DD
+        data.opensByDate[dateKey] = (Number(data.opensByDate[dateKey]) || 0) + 1;
+        data.lastOpen = now.toISOString();
+        data.lastActive = now.toISOString();
+
+        saveLocalTrackerData(data);
+        syncTrackerDataToFirebase(data);
+      } catch (e) {
+        console.warn("App open tracker notice:", e);
+      }
+    }
+
+    function trackSectionVisit(tabId) {
+      if (!tabId || !TRACKER_SECTIONS_CONFIG[tabId]) return;
+      try {
+        const data = getLocalTrackerData();
+        data.sections[tabId] = (Number(data.sections[tabId]) || 0) + 1;
+        data.lastSection = tabId;
+        data.lastActive = new Date().toISOString();
+
+        saveLocalTrackerData(data);
+
+        // Debounce Firestore writes for section visits to prevent excessive write operations
+        if (trackerSyncTimer) clearTimeout(trackerSyncTimer);
+        trackerSyncTimer = setTimeout(() => {
+          syncTrackerDataToFirebase(data);
+        }, 3000);
+      } catch (e) {
+        console.warn("Section tracker notice:", e);
+      }
+    }
+
+    function updateTrackerUserIdentity(identity) {
+      if (!identity) return;
+      try {
+        const data = getLocalTrackerData();
+        if (identity.name) data.userName = identity.name;
+        if (identity.room) data.userRoom = identity.room;
+        if (identity.hostel) data.userHostel = identity.hostel;
+        if (identity.mess) data.userMess = identity.mess;
+        data.lastActive = new Date().toISOString();
+
+        saveLocalTrackerData(data);
+        syncTrackerDataToFirebase(data);
+      } catch (e) {
+        console.warn("Tracker identity update notice:", e);
+      }
+    }
+
+    // Calculate rolling 7-day opens, today's opens, and total opens from opensByDate map
+    function calculateOpensMetrics(opensByDate, fallbackTotal = 0) {
+      const dates = opensByDate && typeof opensByDate === "object" ? opensByDate : {};
+      const now = new Date();
+      const todayKey = now.toISOString().slice(0, 10);
+      
+      const last7Keys = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        last7Keys.push(d.toISOString().slice(0, 10));
+      }
+
+      let opensToday = Number(dates[todayKey]) || 0;
+      let opens7d = 0;
+      let calculatedTotal = 0;
+
+      Object.keys(dates).forEach(key => {
+        const count = Number(dates[key]) || 0;
+        calculatedTotal += count;
+        if (last7Keys.includes(key)) {
+          opens7d += count;
+        }
+      });
+
+      const totalOpens = Math.max(calculatedTotal, Number(fallbackTotal) || 0);
+      return { opensToday, opens7d, totalOpens };
+    }
+
+    // Top-left logo click handler: strictly verifies Dhruba's identity or admin access
+    function handleTopLeftLogoClick() {
+      let isDhruba = false;
+      try {
+        if (localStorage.getItem("campus_saathi_admin_dhruba") === "true") {
+          isDhruba = true;
+        } else {
+          const idObj = typeof getUserIdentity === "function" ? getUserIdentity() : null;
+          if (idObj) {
+            const nameStr = (idObj.name || "").toLowerCase().trim();
+            const idStr = (idObj.id || "").toLowerCase().trim();
+            if (nameStr.includes("dhruba") || idStr.includes("dhruba")) {
+              isDhruba = true;
+            }
+          }
+        }
+      } catch (e) {}
+
+      if (isDhruba) {
+        openUserTrackerModal();
+        return;
+      }
+
+      // If opening on a new incognito window, device, or fresh install where identity isn't set yet:
+      const pass = prompt("Dhruba Admin Verification:\nEnter your admin key to open User Tracker:");
+      if (pass !== null) {
+        const trimmed = pass.toLowerCase().trim();
+        if (trimmed === "dhruba" || trimmed === "dhruba2026" || trimmed === "admin" || trimmed === "vitb2026") {
+          localStorage.setItem("campus_saathi_admin_dhruba", "true");
+          openUserTrackerModal();
+        } else {
+          if (typeof showReviewToast === "function") {
+            showReviewToast("Access restricted to Dhruba", "error");
+          } else {
+            alert("Access restricted to Dhruba.");
+          }
+        }
+      }
+    }
+
+    function openUserTrackerModal() {
+      const modal = document.getElementById("userTrackerModal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      document.body.classList.add("overflow-hidden");
+      fetchAndRenderUserTracker();
+    }
+
+    function closeUserTrackerModal() {
+      const modal = document.getElementById("userTrackerModal");
+      if (!modal) return;
+      modal.classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
+    }
+
+    async function fetchAndRenderUserTracker() {
+      const icon = document.getElementById("trackerRefreshIcon");
+      if (icon) icon.classList.add("fa-spin");
+
+      const statsContainer = document.getElementById("trackerOverviewStats");
+      const listContainer = document.getElementById("trackerUsersList");
+
+      if (statsContainer && statsContainer.children.length === 0) {
+        statsContainer.innerHTML = `
+          <div class="col-span-2 sm:col-span-4 p-4 text-center text-xs text-slate-400">
+            <i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Fetching live analytics from Firebase...
+          </div>
+        `;
+      }
+
+      try {
+        const firestore = typeof getDb === "function" ? getDb() : (typeof db !== "undefined" ? db : null);
+        let userDocs = [];
+
+        if (firestore) {
+          const snapshot = await firestore.collection("teacher_reviews").get();
+          snapshot.forEach(doc => {
+            if (doc.id.startsWith("user_track_")) {
+              const d = doc.data() || {};
+              d._id = doc.id;
+              userDocs.push(d);
+            }
+          });
+        }
+
+        // Always ensure current local user data is included in the analytics view
+        const localData = getLocalTrackerData();
+        const existingIdx = userDocs.findIndex(u => u.deviceId === localData.deviceId);
+        if (existingIdx >= 0) {
+          const existing = userDocs[existingIdx];
+          const localTotal = Number(localData.totalOpens) || 0;
+          const remoteTotal = Number(existing.totalOpens) || 0;
+          if (localTotal > remoteTotal) {
+            userDocs[existingIdx] = { ...existing, ...localData };
+          }
+        } else {
+          userDocs.push(localData);
+        }
+
+        window.__trackerAllUsers = userDocs;
+        renderTrackerOverviewMetrics(userDocs);
+        applyTrackerFiltersAndRender();
+      } catch (e) {
+        console.error("Tracker fetch error:", e);
+        if (listContainer) {
+          listContainer.innerHTML = `
+            <div class="p-6 text-center text-xs text-rose-500 bg-rose-50 dark:bg-rose-950/30 rounded-2xl border border-rose-200 dark:border-rose-800">
+              <i class="fa-solid fa-triangle-exclamation text-base mb-1 block"></i>
+              Failed to load live tracker from Firebase. Check your internet connection.
+            </div>
+          `;
+        }
+      } finally {
+        if (icon) icon.classList.remove("fa-spin");
+      }
+    }
+
+    function renderTrackerOverviewMetrics(users) {
+      const statsContainer = document.getElementById("trackerOverviewStats");
+      if (!statsContainer) return;
+
+      let totalUniqueUsers = users.length;
+      let grandTotalOpens = 0;
+      let grandOpens7d = 0;
+      let grandOpensToday = 0;
+
+      users.forEach(u => {
+        const metrics = calculateOpensMetrics(u.opensByDate, u.totalOpens);
+        grandTotalOpens += metrics.totalOpens;
+        grandOpens7d += metrics.opens7d;
+        grandOpensToday += metrics.opensToday;
+      });
+
+      statsContainer.innerHTML = `
+        <div class="p-2.5 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-800/60">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Total Users</div>
+          <div class="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-0.5">${totalUniqueUsers}</div>
+          <div class="text-[9px] text-slate-500 dark:text-slate-400">Unique devices</div>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/60">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Total Opens</div>
+          <div class="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-0.5">${grandTotalOpens}</div>
+          <div class="text-[9px] text-slate-500 dark:text-slate-400">All-time launches</div>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-800/60">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Last 7 Days</div>
+          <div class="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-0.5 text-indigo-600 dark:text-indigo-300">${grandOpens7d}</div>
+          <div class="text-[9px] text-slate-500 dark:text-slate-400">Rolling 7 days</div>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/60">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Today</div>
+          <div class="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-0.5 text-amber-600 dark:text-amber-300">${grandOpensToday}</div>
+          <div class="text-[9px] text-slate-500 dark:text-slate-400">Active today</div>
+        </div>
+      `;
+    }
+
+    function handleTrackerSearch(query) {
+      applyTrackerFiltersAndRender();
+    }
+
+    function handleTrackerSort(sortVal) {
+      applyTrackerFiltersAndRender();
+    }
+
+    function applyTrackerFiltersAndRender() {
+      const listContainer = document.getElementById("trackerUsersList");
+      if (!listContainer) return;
+
+      const searchInput = document.getElementById("trackerSearchInput");
+      const sortSelect = document.getElementById("trackerSortSelect");
+
+      const query = (searchInput ? searchInput.value : "").toLowerCase().trim();
+      const sortBy = sortSelect ? sortSelect.value : "recent";
+
+      let filtered = (window.__trackerAllUsers || []).filter(u => {
+        if (!query) return true;
+        const name = (u.userName || "").toLowerCase();
+        const room = (u.userRoom || "").toLowerCase();
+        const hostel = (u.userHostel || "").toLowerCase();
+        const mess = (u.userMess || "").toLowerCase();
+        const devId = (u.deviceId || "").toLowerCase();
+        const platform = (u.platform || "").toLowerCase();
+        return name.includes(query) || room.includes(query) || hostel.includes(query) || mess.includes(query) || devId.includes(query) || platform.includes(query);
+      });
+
+      // Augment with calculated metrics for sorting
+      filtered.forEach(u => {
+        const m = calculateOpensMetrics(u.opensByDate, u.totalOpens);
+        u._metrics = m;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortBy === "opens7") {
+          return b._metrics.opens7d - a._metrics.opens7d;
+        } else if (sortBy === "opensTotal") {
+          return b._metrics.totalOpens - a._metrics.totalOpens;
+        } else if (sortBy === "name") {
+          const nameA = (a.userName || "zz").toLowerCase();
+          const nameB = (b.userName || "zz").toLowerCase();
+          return nameA.localeCompare(nameB);
+        } else {
+          // "recent" by default
+          const timeA = new Date(a.lastActive || a.lastOpen || 0).getTime();
+          const timeB = new Date(b.lastActive || b.lastOpen || 0).getTime();
+          return timeB - timeA;
+        }
+      });
+
+      renderTrackerUsersFeed(filtered);
+    }
+
+    function formatTimeAgo(isoString) {
+      if (!isoString) return "Never";
+      try {
+        const d = new Date(isoString);
+        const now = new Date();
+        const diffMs = now - d;
+        const diffMins = Math.floor(diffMs / 60000);
+        if (diffMins < 1) return "Just now";
+        if (diffMins < 60) return `${diffMins}m ago`;
+        const diffHours = Math.floor(diffMins / 60);
+        if (diffHours < 24) return `${diffHours}h ago`;
+        const diffDays = Math.floor(diffHours / 24);
+        if (diffDays < 7) return `${diffDays}d ago`;
+        return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      } catch (e) {
+        return "Recent";
+      }
+    }
+
+    function renderTrackerUsersFeed(users) {
+      const listContainer = document.getElementById("trackerUsersList");
+      if (!listContainer) return;
+
+      if (!users || users.length === 0) {
+        listContainer.innerHTML = `
+          <div class="py-10 text-center text-xs text-slate-400">
+            <i class="fa-solid fa-users-slash text-2xl mb-2 text-slate-300 dark:text-slate-600 block"></i>
+            No users found matching your search.
+          </div>
+        `;
+        return;
+      }
+
+      const colors = [
+        "bg-blue-500", "bg-indigo-500", "bg-purple-500", "bg-pink-500",
+        "bg-emerald-500", "bg-teal-500", "bg-amber-500", "bg-rose-500"
+      ];
+
+      const html = users.map(user => {
+        const name = (user.userName && user.userName.trim()) ? user.userName.trim() : "Anonymous Student";
+        const isCurrentDevice = user.deviceId === getOrCreateAnalyticsDeviceId();
+        const metrics = user._metrics || calculateOpensMetrics(user.opensByDate, user.totalOpens);
+        
+        // Initial letter
+        const initial = name.charAt(0).toUpperCase() || "S";
+        let colorIndex = 0;
+        for (let i = 0; i < name.length; i++) colorIndex = (colorIndex + name.charCodeAt(i)) % colors.length;
+        const avatarBg = colors[colorIndex];
+
+        // Format details subtitle (room, hostel, mess, platform)
+        const detailsParts = [];
+        if (user.userRoom) detailsParts.push(`Rm ${user.userRoom}`);
+        if (user.userHostel) detailsParts.push(user.userHostel);
+        if (user.userMess) detailsParts.push(user.userMess);
+        const detailsStr = detailsParts.length ? detailsParts.join(" • ") : (user.platform || "Web");
+
+        // Format sections usage pills
+        const sectionsObj = user.sections || {};
+        const sectionKeys = Object.keys(sectionsObj).filter(k => TRACKER_SECTIONS_CONFIG[k] && Number(sectionsObj[k]) > 0);
+        sectionKeys.sort((a, b) => Number(sectionsObj[b]) - Number(sectionsObj[a]));
+
+        const sectionsHtml = sectionKeys.length > 0
+          ? sectionKeys.map(key => {
+              const cfg = TRACKER_SECTIONS_CONFIG[key];
+              const count = sectionsObj[key];
+              const isLast = user.lastSection === key;
+              return `
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[9px] font-semibold border ${cfg.color} ${isLast ? 'ring-1 ring-slate-400 dark:ring-slate-500' : ''}" title="${cfg.label}: ${count} visits${isLast ? ' (Last visited)' : ''}">
+                  <i class="fa-solid ${cfg.icon} text-[8px]"></i>
+                  <span>${cfg.label}</span>
+                  <span class="font-black opacity-80">${count}</span>
+                </span>
+              `;
+            }).join("")
+          : `<span class="text-[9px] text-slate-400 italic">No section data yet</span>`;
+
+        return `
+          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 space-y-2 hover:border-slate-300 dark:hover:border-slate-600 transition">
+            
+            <!-- User Header Row -->
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <div class="w-8 h-8 rounded-full ${avatarBg} text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
+                  ${initial}
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-bold text-slate-900 dark:text-white truncate">
+                      ${name}
+                    </span>
+                    ${isCurrentDevice ? '<span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-300/40">You</span>' : ''}
+                  </div>
+                  <div class="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                    ${detailsStr}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Last Active Badge -->
+              <div class="text-right shrink-0">
+                <span class="inline-flex items-center gap-1 text-[9px] font-semibold text-slate-400 dark:text-slate-500">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  ${formatTimeAgo(user.lastActive || user.lastOpen)}
+                </span>
+                <div class="text-[8px] text-slate-400 truncate max-w-[90px]" title="${user.platform || ''}">
+                  ${user.platform || 'Device'}
+                </div>
+              </div>
+            </div>
+
+            <!-- Opens Stats Bar -->
+            <div class="grid grid-cols-3 gap-1.5 pt-1 border-t border-slate-100 dark:border-slate-700/50 text-center">
+              <div class="bg-white dark:bg-slate-900/60 py-1 px-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+                <div class="text-[8px] uppercase tracking-wider text-slate-400 font-bold">Total</div>
+                <div class="text-xs font-black text-slate-800 dark:text-slate-100">${metrics.totalOpens}</div>
+              </div>
+              <div class="bg-indigo-50/60 dark:bg-indigo-950/40 py-1 px-1.5 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50">
+                <div class="text-[8px] uppercase tracking-wider text-indigo-600 dark:text-indigo-400 font-bold">Last 7 Days</div>
+                <div class="text-xs font-black text-indigo-600 dark:text-indigo-300">${metrics.opens7d}</div>
+              </div>
+              <div class="bg-amber-50/60 dark:bg-amber-950/40 py-1 px-1.5 rounded-xl border border-amber-200/60 dark:border-amber-800/50">
+                <div class="text-[8px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-bold">Today</div>
+                <div class="text-xs font-black text-amber-600 dark:text-amber-300">${metrics.opensToday}</div>
+              </div>
+            </div>
+
+            <!-- Section Usage Breakdown -->
+            <div class="pt-0.5 space-y-1">
+              <div class="flex items-center justify-between text-[9px] text-slate-400 font-medium">
+                <span>Sections Used:</span>
+                ${user.lastSection && TRACKER_SECTIONS_CONFIG[user.lastSection] ? `<span class="text-[8px] text-slate-400">Last visited: <span class="font-bold text-slate-600 dark:text-slate-300">${TRACKER_SECTIONS_CONFIG[user.lastSection].label}</span></span>` : ''}
+              </div>
+              <div class="flex flex-wrap gap-1">
+                ${sectionsHtml}
+              </div>
+            </div>
+
+          </div>
+        `;
+      }).join("");
+
+      listContainer.innerHTML = html;
+    }
+
+    // Modal Keyboard shortcuts (Esc to close)
+    if (typeof document !== "undefined") {
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          const modal = document.getElementById("userTrackerModal");
+          if (modal && !modal.classList.contains("hidden")) {
+            closeUserTrackerModal();
+          }
+        }
+      });
+    }
+
+    /**
+     * ========================================================================
+     * DHRUBA'S USER ACTIVITY TRACKER & FIREBASE ANALYTICS ENGINE
+     * ========================================================================
+     */
+    const TRACKER_SECTIONS_CONFIG = {
+      master: { label: "Schedule", icon: "fa-calendar-day", color: "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800" },
+      mess: { label: "Mess Menu", icon: "fa-utensils", color: "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800" },
+      paylater: { label: "Pay Later", icon: "fa-hand-holding-dollar", color: "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800" },
+      teacher: { label: "Faculty", icon: "fa-chalkboard-user", color: "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800" },
+      calendar: { label: "Calendar", icon: "fa-calendar-week", color: "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800" },
+      parcel: { label: "Delivery", icon: "fa-box-open", color: "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800" }
+    };
+
+    let trackerSyncTimer = null;
+    window.__trackerAllUsers = [];
+
+    function getOrCreateAnalyticsDeviceId() {
+      try {
+        let id = localStorage.getItem("vitb_analytics_device_id");
+        if (!id) {
+          id = "dev_" + Date.now().toString(36) + "_" + Math.random().toString(36).substring(2, 9);
+          localStorage.setItem("vitb_analytics_device_id", id);
+        }
+        return id;
+      } catch (e) {
+        return "dev_guest_" + Math.random().toString(36).substring(2, 8);
+      }
+    }
+
+    function getDevicePlatformString() {
+      try {
+        const ua = navigator.userAgent || "";
+        const isPwa = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || (window.navigator && window.navigator.standalone === true);
+        const mode = isPwa ? "PWA" : "Browser";
+        let os = "Desktop";
+        if (/Android/i.test(ua)) os = "Android";
+        else if (/iPhone|iPad|iPod/i.test(ua)) os = "iOS";
+        else if (/Macintosh|Mac OS/i.test(ua)) os = "macOS";
+        else if (/Windows/i.test(ua)) os = "Windows";
+        else if (/Linux/i.test(ua)) os = "Linux";
+        return `${os} (${mode})`;
+      } catch (e) {
+        return "Web App";
+      }
+    }
+
+    function getLocalTrackerData() {
+      const deviceId = getOrCreateAnalyticsDeviceId();
+      let data = null;
+      try {
+        const stored = localStorage.getItem("vitb_user_tracker_cache");
+        if (stored) data = JSON.parse(stored);
+      } catch (e) {}
+
+      if (!data || typeof data !== "object") {
+        data = {
+          deviceId: deviceId,
+          userName: "",
+          userRoom: "",
+          userHostel: "",
+          userMess: "",
+          platform: getDevicePlatformString(),
+          totalOpens: 0,
+          opensByDate: {},
+          sections: {},
+          lastSection: "master",
+          firstSeen: new Date().toISOString(),
+          lastOpen: new Date().toISOString(),
+          lastActive: new Date().toISOString()
+        };
+      }
+
+      // Sync identity if available
+      try {
+        const identity = typeof getUserIdentity === "function" ? getUserIdentity() : null;
+        if (identity) {
+          if (identity.name && !data.userName) data.userName = identity.name;
+          if (identity.room && !data.userRoom) data.userRoom = identity.room;
+          if (identity.hostel && !data.userHostel) data.userHostel = identity.hostel;
+          if (identity.mess && !data.userMess) data.userMess = identity.mess;
+        }
+      } catch (e) {}
+
+      if (!data.opensByDate) data.opensByDate = {};
+      if (!data.sections) data.sections = {};
+      data.platform = getDevicePlatformString();
+      return data;
+    }
+
+    function saveLocalTrackerData(data) {
+      try {
+        localStorage.setItem("vitb_user_tracker_cache", JSON.stringify(data));
+      } catch (e) {}
+    }
+      if (typeof recordAppOpenTracker === "function") {
+        recordAppOpenTracker();
+      }
+
+    function syncTrackerDataToFirebase(data) {
+      if (!data || !data.deviceId) return;
+      try {
+        const firestore = typeof getDb === "function" ? getDb() : (typeof db !== "undefined" ? db : null);
+        if (!firestore) return;
+        const docRef = firestore.collection("teacher_reviews").doc("user_track_" + data.deviceId);
+        
+        const payload = {
+          deviceId: data.deviceId,
+          userName: data.userName || "Anonymous Student",
+          userRoom: data.userRoom || "",
+          userHostel: data.userHostel || "",
+          userMess: data.userMess || "",
+          platform: data.platform || getDevicePlatformString(),
+          totalOpens: Number(data.totalOpens) || 1,
+          opensByDate: data.opensByDate || {},
+          sections: data.sections || {},
+          lastSection: data.lastSection || "master",
+          lastOpen: data.lastOpen || new Date().toISOString(),
+          lastActive: data.lastActive || new Date().toISOString(),
+          firstSeen: data.firstSeen || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        docRef.set(payload, { merge: true }).catch(err => {
+          console.warn("Analytics sync notice:", err);
+        });
+      } catch (e) {
+        console.warn("Analytics sync catch:", e);
+      }
+    }
+
+    function recordAppOpenTracker() {
+      try {
+        const data = getLocalTrackerData();
+        data.totalOpens = (Number(data.totalOpens) || 0) + 1;
+        const now = new Date();
+        const dateKey = now.toISOString().slice(0, 10); // YYYY-MM-DD
+        data.opensByDate[dateKey] = (Number(data.opensByDate[dateKey]) || 0) + 1;
+        data.lastOpen = now.toISOString();
+        data.lastActive = now.toISOString();
+
+        saveLocalTrackerData(data);
+        syncTrackerDataToFirebase(data);
+      } catch (e) {
+        console.warn("App open tracker notice:", e);
+      }
+    }
+
+    function trackSectionVisit(tabId) {
+      if (!tabId || !TRACKER_SECTIONS_CONFIG[tabId]) return;
+      try {
+        const data = getLocalTrackerData();
+        data.sections[tabId] = (Number(data.sections[tabId]) || 0) + 1;
+        data.lastSection = tabId;
+        data.lastActive = new Date().toISOString();
+
+        saveLocalTrackerData(data);
+
+        // Debounce Firestore writes for section visits to prevent excessive write operations
+        if (trackerSyncTimer) clearTimeout(trackerSyncTimer);
+        trackerSyncTimer = setTimeout(() => {
+          syncTrackerDataToFirebase(data);
+        }, 3000);
+      } catch (e) {
+        console.warn("Section tracker notice:", e);
+      }
+    }
+
+    function updateTrackerUserIdentity(identity) {
+      if (!identity) return;
+      try {
+        const data = getLocalTrackerData();
+        if (identity.name) data.userName = identity.name;
+        if (identity.room) data.userRoom = identity.room;
+        if (identity.hostel) data.userHostel = identity.hostel;
+        if (identity.mess) data.userMess = identity.mess;
+        data.lastActive = new Date().toISOString();
+
+        saveLocalTrackerData(data);
+        syncTrackerDataToFirebase(data);
+      } catch (e) {
+        console.warn("Tracker identity update notice:", e);
+      }
+    }
+
+    // Calculate rolling 7-day opens, today's opens, and total opens from opensByDate map
+    function calculateOpensMetrics(opensByDate, fallbackTotal = 0) {
+      const dates = opensByDate && typeof opensByDate === "object" ? opensByDate : {};
+      const now = new Date();
+      const todayKey = now.toISOString().slice(0, 10);
+      
+      const last7Keys = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        last7Keys.push(d.toISOString().slice(0, 10));
+      }
+
+      let opensToday = Number(dates[todayKey]) || 0;
+      let opens7d = 0;
+      let calculatedTotal = 0;
+
+      Object.keys(dates).forEach(key => {
+        const count = Number(dates[key]) || 0;
+        calculatedTotal += count;
+        if (last7Keys.includes(key)) {
+          opens7d += count;
+        }
+      });
+
+      const totalOpens = Math.max(calculatedTotal, Number(fallbackTotal) || 0);
+      return { opensToday, opens7d, totalOpens };
+    }
+
+    // Top-left logo click handler: strictly verifies Dhruba's identity or admin access
+    function handleTopLeftLogoClick() {
+      let isDhruba = false;
+      try {
+        if (localStorage.getItem("campus_saathi_admin_dhruba") === "true") {
+          isDhruba = true;
+        } else {
+          const idObj = typeof getUserIdentity === "function" ? getUserIdentity() : null;
+          if (idObj) {
+            const nameStr = (idObj.name || "").toLowerCase().trim();
+            const idStr = (idObj.id || "").toLowerCase().trim();
+            if (nameStr.includes("dhruba") || idStr.includes("dhruba")) {
+              isDhruba = true;
+            }
+          }
+        }
+      } catch (e) {}
+
+      if (isDhruba) {
+        openUserTrackerModal();
+        return;
+      }
+
+      // If opening on a new incognito window, device, or fresh install where identity isn't set yet:
+      const pass = prompt("Dhruba Admin Verification:\nEnter your admin key to open User Tracker:");
+      if (pass !== null) {
+        const trimmed = pass.toLowerCase().trim();
+        if (trimmed === "dhruba" || trimmed === "dhruba2026" || trimmed === "admin" || trimmed === "vitb2026") {
+          localStorage.setItem("campus_saathi_admin_dhruba", "true");
+          openUserTrackerModal();
+        } else {
+          if (typeof showReviewToast === "function") {
+            showReviewToast("Access restricted to Dhruba", "error");
+          } else {
+            alert("Access restricted to Dhruba.");
+          }
+        }
+      }
+    }
+
+    function openUserTrackerModal() {
+      const modal = document.getElementById("userTrackerModal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      document.body.classList.add("overflow-hidden");
+      fetchAndRenderUserTracker();
+    }
+
+    function closeUserTrackerModal() {
+      const modal = document.getElementById("userTrackerModal");
+      if (!modal) return;
+      modal.classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
+    }
+
+    async function fetchAndRenderUserTracker() {
+      const icon = document.getElementById("trackerRefreshIcon");
+      if (icon) icon.classList.add("fa-spin");
+
+      const statsContainer = document.getElementById("trackerOverviewStats");
+      const listContainer = document.getElementById("trackerUsersList");
+
+      if (statsContainer && statsContainer.children.length === 0) {
+        statsContainer.innerHTML = `
+          <div class="col-span-2 sm:col-span-4 p-4 text-center text-xs text-slate-400">
+            <i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Fetching live analytics from Firebase...
+          </div>
+        `;
+      }
+
+      try {
+        const firestore = typeof getDb === "function" ? getDb() : (typeof db !== "undefined" ? db : null);
+        let userDocs = [];
+
+        if (firestore) {
+          const snapshot = await firestore.collection("teacher_reviews").get();
+          snapshot.forEach(doc => {
+            if (doc.id.startsWith("user_track_")) {
+              const d = doc.data() || {};
+              d._id = doc.id;
+              userDocs.push(d);
+            }
+          });
+        }
+
+        // Always ensure current local user data is included in the analytics view
+        const localData = getLocalTrackerData();
+        const existingIdx = userDocs.findIndex(u => u.deviceId === localData.deviceId);
+        if (existingIdx >= 0) {
+          const existing = userDocs[existingIdx];
+          const localTotal = Number(localData.totalOpens) || 0;
+          const remoteTotal = Number(existing.totalOpens) || 0;
+          if (localTotal > remoteTotal) {
+            userDocs[existingIdx] = { ...existing, ...localData };
+          }
+        } else {
+          userDocs.push(localData);
+        }
+
+        window.__trackerAllUsers = userDocs;
+        renderTrackerOverviewMetrics(userDocs);
+        applyTrackerFiltersAndRender();
+      } catch (e) {
+        console.error("Tracker fetch error:", e);
+        if (listContainer) {
+          listContainer.innerHTML = `
+            <div class="p-6 text-center text-xs text-rose-500 bg-rose-50 dark:bg-rose-950/30 rounded-2xl border border-rose-200 dark:border-rose-800">
+              <i class="fa-solid fa-triangle-exclamation text-base mb-1 block"></i>
+              Failed to load live tracker from Firebase. Check your internet connection.
+            </div>
+          `;
+        }
+      } finally {
+        if (icon) icon.classList.remove("fa-spin");
+      }
+    }
+
+    function renderTrackerOverviewMetrics(users) {
+      const statsContainer = document.getElementById("trackerOverviewStats");
+      if (!statsContainer) return;
+
+      let totalUniqueUsers = users.length;
+      let grandTotalOpens = 0;
+      let grandOpens7d = 0;
+      let grandOpensToday = 0;
+
+      users.forEach(u => {
+        const metrics = calculateOpensMetrics(u.opensByDate, u.totalOpens);
+        grandTotalOpens += metrics.totalOpens;
+        grandOpens7d += metrics.opens7d;
+        grandOpensToday += metrics.opensToday;
+      });
+
+      statsContainer.innerHTML = `
+... [truncated for diff preview]
