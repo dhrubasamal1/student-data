@@ -7,8 +7,8 @@
   "id": "vitb-timetable-squad",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#020617",
-  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "lang": "en",
   "dir": "ltr",
   "categories": [
