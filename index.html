@@ -219,13 +219,13 @@
     <!-- NOTIFICATION PERMISSION PROMPT BANNER (Shows only if permission is default and not dismissed) -->
     <div id="notificationPermissionBanner"
       class="hidden mb-3 p-3 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-blue-500/10 border border-blue-200 dark:border-blue-900/60 flex items-center justify-between gap-3 text-xs shadow-xs transition animate-in fade-in">
-      <div class="flex items-center gap-2.5 min-w-0 flex-1">
+      <div class="flex items-center gap-2.5 min-w-0">
         <div class="w-8 h-8 rounded-xl bg-brandBlue text-white flex items-center justify-center shrink-0 shadow-2xs">
           <i class="fa-solid fa-bell text-xs"></i>
         </div>
-        <div class="min-w-0 flex-1">
-          <div class="font-bold text-slate-900 dark:text-white leading-snug">Enable Live Notifications</div>
-          <div class="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">Get class reminders & squad parcel alerts</div>
+        <div class="min-w-0">
+          <div class="font-bold text-slate-900 dark:text-white truncate">Enable Live Notifications</div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate">Get class reminders & squad parcel alerts</div>
         </div>
       </div>
       <div class="flex items-center gap-1.5 shrink-0">
@@ -9762,14 +9762,14 @@
       container.innerHTML = `
         <!-- Sleek Header Card -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
               <div class="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-base shadow-xs shrink-0">
                 <i class="fa-solid fa-box-open"></i>
               </div>
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
                     Campus Parcel Helper
                   </h2>
                   ${isParcelLoading ? `
@@ -9789,7 +9789,7 @@
                     </span>
                   `)}
                 </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400 leading-snug">
+                <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
                   ${availableCount > 0
           ? `<span class="text-emerald-600 dark:text-emerald-400 font-semibold">${availableCount} squad members</span> free to help`
           : `No squad members free in this slot`}
@@ -9798,7 +9798,7 @@
             </div>
 
             <!-- Action Controls -->
-            <div class="flex items-center justify-end sm:justify-start gap-1.5 sm:gap-2 shrink-0">
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <button
                 onclick="toggleParcelNotifications()"
                 id="parcelNotificationToggleBtn"
@@ -9809,7 +9809,7 @@
         }"
               >
                 <i class="fa-solid ${isParcelNotificationEnabled() ? 'fa-bell text-emerald-600 dark:text-emerald-400' : 'fa-bell-slash text-slate-400'} text-xs"></i>
-                <span>${isParcelNotificationEnabled() ? 'Alerts On' : 'Alerts'}</span>
+                <span class="hidden sm:inline">${isParcelNotificationEnabled() ? 'Alerts On' : 'Alerts'}</span>
               </button>
               <button
                 onclick="sendTestNotification()"
@@ -9818,7 +9818,7 @@
                 class="px-2 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold transition shadow-xs flex items-center gap-1 shrink-0 active:scale-95"
               >
                 <i class="fa-solid fa-vial text-[11px] text-amber-500"></i>
-                <span>Test</span>
+                <span class="hidden sm:inline">Test</span>
               </button>
               <button
                 onclick="openParcelRequestModal()"
@@ -10822,14 +10822,14 @@
         container.innerHTML = `
           <!-- Sleek Header Card -->
           <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-3 min-w-0">
                 <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-base shadow-xs shrink-0">
                   <i class="fa-solid fa-hand-holding-dollar"></i>
                 </div>
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
                       Pay Me Later
                     </h2>
                     ${isPayLaterLoading
@@ -10837,18 +10837,18 @@
                       : '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live</span>'
                     }
                   </div>
-                  <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                     Campus expense & debt tracker
                   </p>
                 </div>
               </div>
 
-              <div class="flex items-center justify-end sm:justify-start gap-1.5 shrink-0">
+              <div class="flex items-center gap-1.5 shrink-0">
                 <button onclick="promptSetMyUpiId()"
                   title="Set or update your default UPI ID"
                   class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs active:scale-95">
                   <i class="fa-solid fa-qrcode text-amber-500 text-xs"></i>
-                  <span class="max-w-[140px] sm:max-w-none truncate">${myUpi ? myUpi : 'Set UPI'}</span>
+                  <span class="max-w-[85px] sm:max-w-none truncate">${myUpi ? myUpi : 'Set UPI'}</span>
                 </button>
 
                 <button onclick="openPayLaterModal()"
@@ -11512,14 +11512,14 @@ function renderMessMenuUI() {
   container.innerHTML = `
     <!-- Top Header Card -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
           <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr ${messObj.color} text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0">
             <i class="fa-solid ${messObj.icon}"></i>
           </div>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2 flex-wrap">
-              <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
                 ${messObj.name} Mess
               </h2>
               ${isMessMenuLoading
@@ -11529,13 +11529,13 @@ function renderMessMenuUI() {
                   : '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">Weekly Schedule</span>'
               }
             </div>
-            <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
               ${messObj.subtitle} • HAC VIT Bhopal
             </p>
           </div>
         </div>
 
-        <div class="flex items-center justify-end sm:justify-start gap-1.5 shrink-0">
+        <div class="flex items-center gap-1.5 shrink-0">
           <button onclick="openMessSelectorModal()"
             class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-95">
             <i class="fa-solid fa-repeat text-[10px] text-brandBlue"></i>
