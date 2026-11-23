@@ -264,6 +264,10 @@
           class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
           Pay Me Later
         </button>
+        <button onclick="switchTab('mess')" id="tabBtn-mess"
+          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
+          Mess Menu
+        </button>
         <button onclick="switchTab('individual')" id="tabBtn-individual" class="hidden"></button>
       </div>
     </div>
@@ -432,6 +436,13 @@
     <!-- =================================================================== -->
     <main id="tabPanel-paylater" class="hidden space-y-4 flex-1">
       <!-- Injected dynamically by renderPayLaterUI() -->
+    </main>
+
+    <!-- =================================================================== -->
+    <!-- TAB 6: MESS MENU (CAMPUS HOSTEL DINING COMPANION)                   -->
+    <!-- =================================================================== -->
+    <main id="tabPanel-mess" class="hidden space-y-4 flex-1">
+      <!-- Injected dynamically by renderMessMenuUI() -->
     </main>
 
 
@@ -866,6 +877,45 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MESS SELECTION MODAL                                                  -->
+    <!-- ===================================================================== -->
+    <div id="messSelectorModal"
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md p-5 shadow-2xl space-y-4">
+        
+        <!-- Modal Header -->
+        <div class="flex items-start justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center text-lg font-bold shadow-xs shrink-0">
+              <i class="fa-solid fa-utensils"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-slate-900 dark:text-white">Choose Your Mess</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Select your hostel mess caterer to see today's menu</p>
+            </div>
+          </div>
+          <button onclick="closeMessSelectorModal()" aria-label="Close Modal"
+            class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
+
+        <!-- Mess List Grid -->
+        <div id="messSelectorGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto no-scrollbar py-0.5">
+          <!-- Populated dynamically by renderMessSelectorList() -->
+        </div>
+
+        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 text-center">
+          <p class="text-[11px] text-slate-400 dark:text-slate-500">
+            You can switch your mess anytime using the "Switch" button on the Mess tab.
+          </p>
+        </div>
       </div>
     </div>
 
@@ -5943,7 +5993,7 @@
         }
       }
       activeTab = tabId;
-      const tabs = ["master", "calendar", "teacher", "parcel", "paylater"];
+      const tabs = ["master", "calendar", "teacher", "parcel", "paylater", "mess"];
 
       tabs.forEach(t => {
         const panel = document.getElementById(`tabPanel-${t}`);
@@ -5966,7 +6016,8 @@
             teacher: "#teacher-review",
             master: "#squad",
             calendar: "#calendar",
-            paylater: "#pay-later"
+            paylater: "#pay-later",
+            mess: "#mess"
           };
           if (hashMapping[tabId] && window.location.hash !== hashMapping[tabId]) {
             if (window.history && window.history.replaceState) {
@@ -5992,6 +6043,8 @@
       } else if (tabId === "paylater") {
         initFirebasePayLaterRequests();
         renderPayLaterUI();
+      } else if (tabId === "mess") {
+        fetchMessMenu(getUserMess() || selectedMessId);
       }
     }
 
@@ -10515,6 +10568,626 @@
     }
 
 
+/**
+ * ========================================================================
+ * 11.6. TAB 6: MESS MENU MODULE (CAMPUS DINING COMPANION)
+ * ========================================================================
+ */
+const CAMPUS_MESSES = [
+  { id: "mayuri_boys", name: "Mayuri", subtitle: "Boys Hostel", icon: "fa-utensils", color: "from-blue-500 to-indigo-600" },
+  { id: "mayuri_girls", name: "Mayuri", subtitle: "Girls Hostel", icon: "fa-utensils", color: "from-pink-500 to-rose-600" },
+  { id: "ab_catering", name: "AB Catering", subtitle: "Boys & Girls", icon: "fa-bowl-food", color: "from-amber-500 to-orange-600" },
+  { id: "jmb", name: "JMB Mess", subtitle: "Boys Hostel", icon: "fa-kitchen-set", color: "from-emerald-500 to-teal-600" },
+  { id: "crcl", name: "CRCL Mess", subtitle: "Boys & Girls", icon: "fa-plate-wheat", color: "from-purple-500 to-violet-600" },
+  { id: "food_sutra", name: "Food Sutra", subtitle: "Boys Hostel", icon: "fa-burger", color: "from-red-500 to-orange-500" },
+  { id: "safal", name: "Safal Mess", subtitle: "Boys Hostel", icon: "fa-seedling", color: "from-green-500 to-emerald-600" },
+  { id: "anchor", name: "Anchor Mess", subtitle: "Boys & Girls", icon: "fa-anchor", color: "from-cyan-500 to-blue-600" }
+];
+
+let selectedMessId = localStorage.getItem("vitb_user_mess") || "mayuri_boys";
+let selectedMessDateStr = ""; // Defaults to today's YYYY-MM-DD
+let isMessMenuLoading = false;
+let messMenuError = null;
+const MESS_MENU_DATA_CACHE = {};
+
+function getUserMess() {
+  return localStorage.getItem("vitb_user_mess") || "";
+}
+
+function setUserMess(messId) {
+  if (!messId) return;
+  localStorage.setItem("vitb_user_mess", messId);
+  selectedMessId = messId;
+  closeMessSelectorModal();
+  showReviewToast("🍽️ Mess set to " + getMessDisplayName(messId) + "!");
+  if (activeTab === "mess") {
+    fetchMessMenu(messId, selectedMessDateStr);
+  }
+}
+
+function getMessDisplayName(messId) {
+  const m = CAMPUS_MESSES.find(x => x.id === messId);
+  return m ? (m.name + (m.subtitle ? (" (" + m.subtitle + ")") : "")) : (messId || "Mess");
+}
+
+function checkMessOnboardingPrompt() {
+  const userMess = getUserMess();
+  const promptShown = localStorage.getItem("vitb_mess_prompt_shown");
+  if (!userMess && !promptShown) {
+    localStorage.setItem("vitb_mess_prompt_shown", "true");
+    setTimeout(() => {
+      openMessSelectorModal();
+    }, 600);
+  }
+}
+
+function openMessSelectorModal() {
+  const modal = document.getElementById("messSelectorModal");
+  if (!modal) return;
+  renderMessSelectorList();
+  modal.classList.remove("hidden");
+}
+
+function closeMessSelectorModal() {
+  const modal = document.getElementById("messSelectorModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function renderMessSelectorList() {
+  const grid = document.getElementById("messSelectorGrid");
+  if (!grid) return;
+  const current = getUserMess() || selectedMessId;
+
+  grid.innerHTML = CAMPUS_MESSES.map(m => {
+    const isSelected = m.id === current;
+    return `
+      <div onclick="setUserMess('${m.id}')"
+        class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected
+          ? 'bg-blue-50/90 dark:bg-blue-950/40 border-brandBlue dark:border-blue-500 shadow-xs ring-1 ring-brandBlue'
+          : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800'
+        }">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr ${m.color} text-white flex items-center justify-center text-sm shadow-xs shrink-0">
+            <i class="fa-solid ${m.icon}"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+              ${m.name}
+            </div>
+            <div class="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+              ${m.subtitle}
+            </div>
+          </div>
+        </div>
+        <div class="shrink-0">
+          ${isSelected
+            ? '<i class="fa-solid fa-circle-check text-brandBlue text-base"></i>'
+            : '<div class="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600"></div>'
+          }
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function getTodayDateStr() {
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(now.getTime() + (now.getTimezoneOffset() * 60 * 1000) + istOffset);
+  const year = istDate.getFullYear();
+  const month = String(istDate.getMonth() + 1).padStart(2, "0");
+  const day = String(istDate.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function parseFirestoreMealField(rawField) {
+  if (!rawField) return [];
+  if (rawField.arrayValue && rawField.arrayValue.values) {
+    return rawMealValues(rawField.arrayValue.values);
+  } else if (rawField.stringValue) {
+    return rawField.stringValue.split(",").map(s => ({ name: s.trim() })).filter(x => x.name);
+  }
+  return [];
+}
+
+function rawMealValues(values) {
+  return values.map(val => {
+    if (val.mapValue && val.mapValue.fields) {
+      const f = val.mapValue.fields;
+      return {
+        name: f.name ? (f.name.stringValue || "") : "",
+        servingSize: f.servingSize ? (f.servingSize.stringValue || "") : "",
+        specialTag: f.specialTag ? (f.specialTag.stringValue || "") : "",
+        regionalTag: f.regionalTag ? (f.regionalTag.stringValue || "") : "",
+        description: f.description ? (f.description.stringValue || "") : "",
+        calories: f.calories ? (f.calories.doubleValue || f.calories.integerValue || (f.calories.stringValue ? parseFloat(f.calories.stringValue) : null)) : null,
+        protein: f.protein ? (f.protein.doubleValue || f.protein.integerValue || null) : null,
+        carbs: f.carbs ? (f.carbs.doubleValue || f.carbs.integerValue || null) : null,
+        fat: f.fat ? (f.fat.doubleValue || f.fat.integerValue || null) : null,
+        fiber: f.fiber ? (f.fiber.doubleValue || f.fiber.integerValue || null) : null
+      };
+    } else if (val.stringValue) {
+      return { name: val.stringValue };
+    }
+    return null;
+  }).filter(item => item && item.name);
+}
+
+function getCurrentMealSlotInfo() {
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(now.getTime() + (now.getTimezoneOffset() * 60 * 1000) + istOffset);
+  const mins = istDate.getHours() * 60 + istDate.getMinutes();
+
+  // Breakfast: 7:30 AM (450m) to 9:30 AM (570m)
+  // Lunch: 12:30 PM (750m) to 2:30 PM (870m)
+  // Snacks: 5:00 PM (1020m) to 6:15 PM (1095m)
+  // Dinner: 7:30 PM (1170m) to 9:30 PM (1290m)
+
+  const slots = [
+    { key: "breakfast", name: "Breakfast", label: "Breakfast Serving Now", icon: "fa-mug-saucer", start: 7 * 60 + 30, end: 9 * 60 + 30, time: "07:30 AM – 09:30 AM" },
+    { key: "lunch", name: "Lunch", label: "Lunch Serving Now", icon: "fa-bowl-rice", start: 12 * 60 + 30, end: 14 * 60 + 30, time: "12:30 PM – 02:30 PM" },
+    { key: "snacks", name: "Evening Snacks", label: "Evening Snacks Serving Now", icon: "fa-cookie-bite", start: 17 * 60, end: 18 * 60 + 15, time: "05:00 PM – 06:15 PM" },
+    { key: "dinner", name: "Dinner", label: "Dinner Serving Now", icon: "fa-utensils", start: 19 * 60 + 30, end: 21 * 60 + 30, time: "07:30 PM – 09:30 PM" }
+  ];
+
+  function formatDiff(diffMins) {
+    const hrs = Math.floor(diffMins / 60);
+    const rm = diffMins % 60;
+    if (hrs > 0 && rm > 0) return `${hrs}h ${rm}m`;
+    if (hrs > 0) return `${hrs}h`;
+    if (rm > 0) return `${rm}m`;
+    return "< 1m";
+  }
+
+  // Check if currently serving a meal
+  for (const slot of slots) {
+    if (mins >= slot.start && mins < slot.end) {
+      const left = slot.end - mins;
+      const formatted = formatDiff(left);
+      return {
+        isOpen: true,
+        current: slot.key,
+        name: slot.name,
+        label: slot.label,
+        icon: slot.icon,
+        time: slot.time,
+        status: "Serving Now",
+        timerType: "closes",
+        diffMinutes: left,
+        diffFormatted: formatted,
+        timerText: `Closes in ${formatted}`
+      };
+    }
+  }
+
+  // Closed: Find next upcoming meal
+  let nextSlot = null;
+  let diff = 0;
+  for (const slot of slots) {
+    if (mins < slot.start) {
+      nextSlot = slot;
+      diff = slot.start - mins;
+      break;
+    }
+  }
+  if (!nextSlot) {
+    // Past dinner, next is breakfast tomorrow
+    nextSlot = slots[0];
+    diff = (24 * 60 - mins) + nextSlot.start;
+  }
+
+  const formatted = formatDiff(diff);
+  return {
+    isOpen: false,
+    current: null,
+    next: nextSlot.key,
+    name: nextSlot.name,
+    nextName: nextSlot.name,
+    label: `Next: ${nextSlot.name}`,
+    icon: nextSlot.icon,
+    time: nextSlot.time,
+    status: "Closed",
+    timerType: "opens",
+    diffMinutes: diff,
+    diffFormatted: formatted,
+    timerText: `Opens in ${formatted}`
+  };
+}
+
+async function fetchMessMenu(messId, dateStr) {
+  if (!messId) messId = getUserMess() || "mayuri_boys";
+  if (!dateStr) dateStr = getTodayDateStr();
+
+  selectedMessId = messId;
+  selectedMessDateStr = dateStr;
+
+  const cacheKey = `vitb_mess_${messId}_${dateStr}`;
+  if (MESS_MENU_DATA_CACHE[cacheKey]) {
+    renderMessMenuUI();
+    return;
+  }
+
+  // Check localStorage cache
+  try {
+    const local = localStorage.getItem(cacheKey);
+    if (local) {
+      MESS_MENU_DATA_CACHE[cacheKey] = JSON.parse(local);
+      renderMessMenuUI();
+    }
+  } catch (e) { }
+
+  isMessMenuLoading = !MESS_MENU_DATA_CACHE[cacheKey];
+  messMenuError = null;
+  renderMessMenuUI();
+
+  try {
+    // 1. First attempt to fetch today's daily_menus doc
+    const dailyUrl = `https://firestore.googleapis.com/v1/projects/messmenu-a387b/databases/(default)/documents/daily_menus/${messId}_${dateStr}`;
+    let res = await fetch(dailyUrl);
+    let isDaily = true;
+    let data = null;
+
+    if (res.ok) {
+      data = await res.json();
+    } else {
+      // 2. Fall back to weekly template in mess_menus
+      isDaily = false;
+      const targetDate = new Date(dateStr);
+      const dayOfWeek = isNaN(targetDate.getDay()) ? new Date().getDay() : targetDate.getDay();
+      const weeklyUrl = `https://firestore.googleapis.com/v1/projects/messmenu-a387b/databases/(default)/documents/mess_menus/${messId}_day_${dayOfWeek}`;
+      res = await fetch(weeklyUrl);
+      if (res.ok) {
+        data = await res.json();
+      }
+    }
+
+    if (data && data.fields) {
+      const parsedMenu = {
+        messId: messId,
+        date: dateStr,
+        source: isDaily ? "daily" : "weekly",
+        breakfast: parseFirestoreMealField(data.fields.breakfast),
+        lunch: parseFirestoreMealField(data.fields.lunch),
+        snacks: parseFirestoreMealField(data.fields.snacks),
+        dinner: parseFirestoreMealField(data.fields.dinner),
+        fetchedAt: Date.now()
+      };
+
+      MESS_MENU_DATA_CACHE[cacheKey] = parsedMenu;
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(parsedMenu));
+      } catch (e) { }
+    } else {
+      if (!MESS_MENU_DATA_CACHE[cacheKey]) {
+        messMenuError = "Menu not available for this date yet.";
+      }
+    }
+  } catch (err) {
+    console.warn("Mess menu fetch notice:", err);
+    if (!MESS_MENU_DATA_CACHE[cacheKey]) {
+      messMenuError = "Unable to fetch live menu. Please check connection.";
+    }
+  } finally {
+    isMessMenuLoading = false;
+    renderMessMenuUI();
+  }
+}
+
+function shareTodayMessMenu() {
+  const messId = selectedMessId || "mayuri_boys";
+  const dateStr = selectedMessDateStr || getTodayDateStr();
+  const cacheKey = `vitb_mess_${messId}_${dateStr}`;
+  const menu = MESS_MENU_DATA_CACHE[cacheKey];
+
+  if (!menu) {
+    alert("Please wait for menu to load before sharing.");
+    return;
+  }
+
+  const messName = getMessDisplayName(messId);
+  const text = `🍽️ *${messName} Menu* (${dateStr})
+  
+🌅 *Breakfast:*
+${menu.breakfast.map(d => "• " + d.name).join("\n") || "No items"}
+
+☀️ *Lunch:*
+${menu.lunch.map(d => "• " + d.name).join("\n") || "No items"}
+
+☕ *Snacks:*
+${menu.snacks.map(d => "• " + d.name).join("\n") || "No items"}
+
+🌙 *Dinner:*
+${menu.dinner.map(d => "• " + d.name).join("\n") || "No items"}
+
+_Shared via Campus Saathi_`;
+
+  if (navigator.share) {
+    navigator.share({ title: `${messName} Menu`, text: text }).catch(() => { });
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      showReviewToast("📋 Menu copied to clipboard!");
+    }).catch(() => {
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    });
+  }
+}
+
+function renderMessMenuUI() {
+  const container = document.getElementById("tabPanel-mess");
+  if (!container) return;
+
+  const currentMess = getUserMess() || selectedMessId || "mayuri_boys";
+  selectedMessId = currentMess;
+
+  if (!selectedMessDateStr) {
+    selectedMessDateStr = getTodayDateStr();
+  }
+
+  const cacheKey = `vitb_mess_${currentMess}_${selectedMessDateStr}`;
+  const menu = MESS_MENU_DATA_CACHE[cacheKey] || (() => {
+    try {
+      const saved = localStorage.getItem(cacheKey);
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  const messObj = CAMPUS_MESSES.find(m => m.id === currentMess) || CAMPUS_MESSES[0];
+  const liveSlot = getCurrentMealSlotInfo();
+  const todayStr = getTodayDateStr();
+  const isViewingToday = selectedMessDateStr === todayStr;
+
+  // Generate 7-day capsule pills (3 days past, today, 3 days future)
+  const now = new Date();
+  const daysCapsule = [];
+  for (let i = -1; i <= 5; i++) {
+    const d = new Date(now.getTime() + (i * 24 * 60 * 60 * 1000));
+    const yr = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, "0");
+    const da = String(d.getDate()).padStart(2, "0");
+    const dStr = `${yr}-${mo}-${da}`;
+    const dayName = d.toLocaleDateString("en-IN", { weekday: "short" });
+    const isToday = (dStr === todayStr);
+    daysCapsule.push({
+      dateStr: dStr,
+      label: isToday ? "Today" : dayName,
+      dateNum: d.getDate(),
+      isToday: isToday,
+      isSelected: (dStr === selectedMessDateStr)
+    });
+  }
+
+  container.innerHTML = `
+    <!-- Top Header Card -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr ${messObj.color} text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+            <i class="fa-solid ${messObj.icon}"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
+                ${messObj.name} Mess
+              </h2>
+              ${isMessMenuLoading
+                ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 animate-pulse"><i class="fa-solid fa-rotate fa-spin text-[8px]"></i> Fetching</span>'
+                : menu && menu.source === 'daily'
+                  ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live Daily</span>'
+                  : '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">Weekly Schedule</span>'
+              }
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+              ${messObj.subtitle} • HAC VIT Bhopal
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button onclick="openMessSelectorModal()"
+            class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-95">
+            <i class="fa-solid fa-repeat text-[10px] text-brandBlue"></i>
+            <span>Switch</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date Capsule Selector -->
+    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+      ${daysCapsule.map(d => `
+        <button onclick="fetchMessMenu('${currentMess}', '${d.dateStr}')"
+          class="shrink-0 px-3 py-1.5 rounded-xl text-center transition flex flex-col items-center justify-center min-w-[54px] ${d.isSelected
+            ? 'bg-brandBlue text-white shadow-xs'
+            : d.isToday
+              ? 'bg-blue-50 dark:bg-blue-950/50 text-brandBlue dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+          }">
+          <span class="text-[10px] font-bold uppercase tracking-wider">${d.label}</span>
+          <span class="text-xs font-black">${d.dateNum}</span>
+        </button>
+      `).join("")}
+    </div>
+
+    <!-- Live Status & Countdown Hero Card (shown for today's date) -->
+    ${isViewingToday && liveSlot ? `
+      <div class="p-3 rounded-2xl ${
+        liveSlot.isOpen
+          ? 'bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 border-emerald-200 dark:border-emerald-900/60'
+          : 'bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-amber-200 dark:border-amber-900/60'
+      } border flex items-center justify-between gap-2.5 shadow-2xs">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-xl ${liveSlot.isOpen ? 'bg-emerald-600' : 'bg-amber-600'} text-white flex items-center justify-center text-xs shrink-0 shadow-2xs">
+            <i class="fa-solid ${liveSlot.icon}"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${liveSlot.isOpen ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'}">
+                ${liveSlot.status}
+              </span>
+              <span class="text-xs font-bold text-slate-900 dark:text-white truncate">
+                ${liveSlot.label}
+              </span>
+            </div>
+            <div class="text-[10px] font-medium text-slate-500 dark:text-slate-400 truncate">
+              ${liveSlot.isOpen ? `Dining hours: ${liveSlot.time}` : `Next meal: ${liveSlot.nextName} (${liveSlot.time})`}
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+          <!-- Minimal Countdown Timer Pill -->
+          <div class="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs font-bold ${
+            liveSlot.isOpen
+              ? 'bg-emerald-100/90 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-200 border border-emerald-300/80 dark:border-emerald-800'
+              : 'bg-amber-100/90 dark:bg-amber-950/80 text-amber-800 dark:text-amber-200 border border-amber-300/80 dark:border-amber-800'
+          }">
+            <i class="fa-regular fa-clock text-[10px]"></i>
+            <span class="text-[11px] font-mono tracking-tight font-bold">${liveSlot.timerText}</span>
+          </div>
+
+          <button onclick="shareTodayMessMenu()" title="Share today's menu"
+            class="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs hover:bg-slate-50 dark:hover:bg-slate-700 shrink-0 shadow-2xs active:scale-95 transition">
+            <i class="fa-solid fa-share-nodes text-[11px]"></i>
+          </button>
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Meals List / Cards -->
+    ${renderMealCardsStack(menu, liveSlot, isViewingToday)}
+  `;
+}
+
+function renderMealCardsStack(menu, liveSlot, isViewingToday) {
+  if (!menu) {
+    if (isMessMenuLoading) {
+      return `
+        <div class="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2">
+          <i class="fa-solid fa-utensils text-2xl text-brandBlue animate-bounce"></i>
+          <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Loading today's mess menu...</p>
+          <p class="text-[11px] text-slate-400">Syncing live dishes from HAC VITB</p>
+        </div>
+      `;
+    }
+    return `
+      <div class="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
+        <i class="fa-solid fa-circle-exclamation text-2xl text-amber-500"></i>
+        <p class="text-xs font-bold text-slate-700 dark:text-slate-300">${messMenuError || 'Menu not available'}</p>
+        <button onclick="fetchMessMenu(selectedMessId, selectedMessDateStr)"
+          class="px-3 py-1.5 rounded-xl bg-brandBlue text-white text-xs font-bold shadow-xs">
+          Try Again
+        </button>
+      </div>
+    `;
+  }
+
+  const mealSections = [
+    { key: "breakfast", title: "Breakfast", icon: "fa-mug-saucer", time: "07:30 AM – 09:30 AM", items: menu.breakfast || [] },
+    { key: "lunch", title: "Lunch", icon: "fa-bowl-rice", time: "12:30 PM – 02:30 PM", items: menu.lunch || [] },
+    { key: "snacks", title: "Evening Snacks", icon: "fa-cookie-bite", time: "05:00 PM – 06:15 PM", items: menu.snacks || [] },
+    { key: "dinner", title: "Dinner", icon: "fa-utensils", time: "07:30 PM – 09:30 PM", items: menu.dinner || [] }
+  ];
+
+  return `
+    <div class="space-y-3">
+      ${mealSections.map(meal => {
+        const isLive = isViewingToday && liveSlot && (liveSlot.current === meal.key);
+        const hasItems = meal.items.length > 0;
+
+        return `
+          <div class="bg-white dark:bg-slate-900 border rounded-2xl p-3.5 shadow-2xs space-y-2.5 transition ${isLive
+            ? 'border-emerald-500/80 dark:border-emerald-500/60 ring-1 ring-emerald-500/30'
+            : 'border-slate-200/80 dark:border-slate-800'
+          }">
+            <!-- Meal Header -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 min-w-0">
+                <div class="w-7 h-7 rounded-lg ${isLive ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'} flex items-center justify-center text-xs font-bold shrink-0">
+                  <i class="fa-solid ${meal.icon}"></i>
+                </div>
+                <div>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                      ${meal.title}
+                    </h3>
+                    ${isLive ? `
+                      <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-emerald-600 text-white shadow-2xs">
+                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                        Serving Now
+                      </span>
+                      <span class="inline-flex items-center gap-1 text-[10px] font-mono font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800/80">
+                        <i class="fa-regular fa-clock text-[9px]"></i>
+                        Closes in ${liveSlot.diffFormatted}
+                      </span>
+                    ` : (isViewingToday && !liveSlot.isOpen && liveSlot.next === meal.key) ? `
+                      <span class="inline-flex items-center gap-1 text-[10px] font-mono font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/80">
+                        <i class="fa-regular fa-clock text-[9px]"></i>
+                        Opens in ${liveSlot.diffFormatted}
+                      </span>
+                    ` : ''}
+                  </div>
+                  <div class="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                    ${meal.time}
+                  </div>
+                </div>
+              </div>
+
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shrink-0">
+                ${meal.items.length} items
+              </span>
+            </div>
+
+            <!-- Dishes Grid / Pill List -->
+            ${hasItems ? `
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                ${meal.items.map(dish => {
+                  return `
+                    <div class="p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-start justify-between gap-2.5 hover:bg-slate-100/70 dark:hover:bg-slate-800/90 transition">
+                      <div class="min-w-0 flex-1">
+                        <div class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-snug break-words">
+                          ${dish.name}
+                        </div>
+                        <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                          ${dish.servingSize ? `
+                            <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                              Portion: ${dish.servingSize}
+                            </span>
+                          ` : ''}
+                          ${dish.specialTag ? `
+                            <span class="text-[9px] font-semibold px-1.5 py-0.2 rounded-md bg-slate-200/70 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300">
+                              ${dish.specialTag}
+                            </span>
+                          ` : ''}
+                        </div>
+                      </div>
+
+                      ${dish.calories ? `
+                        <div class="text-right shrink-0 pt-0.5">
+                          <span class="text-[10px] font-mono font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-700 shadow-2xs">
+                            ${Math.round(dish.calories)} cal
+                          </span>
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            ` : `
+              <div class="py-2.5 text-center text-xs text-slate-500 dark:text-slate-400 italic">
+                Menu details for this meal not posted yet.
+              </div>
+            `}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+
     function updateThemeToggleIcon() {
       const isDark = document.documentElement.classList.contains("dark");
       const icon = document.getElementById("themeToggleIcon");
@@ -10763,6 +11436,9 @@
       updateUserProfileBtn();
       renderLiveStatusBanner();
       closeUserIdentityModal(false);
+      if (!getUserMess()) {
+        setTimeout(openMessSelectorModal, 450);
+      }
 
       // If notifications haven't been prompted yet, show notification banner shortly after onboarding
       if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
@@ -10810,6 +11486,8 @@
           switchTab("parcel");
         } else if (hash === "pay-later" || hash === "paylater" || hash === "pay_me_later" || requestedTab === "paylater") {
           switchTab("paylater");
+        } else if (hash === "mess" || hash === "mess-menu" || hash === "mess_menu" || requestedTab === "mess") {
+          switchTab("mess");
         } else if (hash === "calendar" || hash === "calender" || requestedTab === "calendar" || requestedTab === "calender") {
           switchTab("calendar");
         } else if (hash === "teacher-review" || hash === "teacher_review" || hash === "teachers" || hash === "teacher" || requestedTab === "teacher") {
@@ -10850,6 +11528,7 @@
     window.onload = function () {
       checkInstallState();
       checkUserIdentityPrompt();
+      checkMessOnboardingPrompt();
       checkNotificationState();
 
       // Lifecycle listeners to keep notifications alive across tab switches and network reconnects
@@ -10894,6 +11573,8 @@
           renderParcelHelper();
         } else if (activeTab === "paylater") {
           renderPayLaterUI();
+        } else if (activeTab === "mess") {
+          renderMessMenuUI();
         }
       }, 30000);
     };

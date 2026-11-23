@@ -95,6 +95,18 @@
           "sizes": "192x192"
         }
       ]
+    },
+    {
+      "name": "Mess Menu",
+      "short_name": "Mess",
+      "description": "View today's campus hostel mess menu",
+      "url": "./index.html?tab=mess",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
