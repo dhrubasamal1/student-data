@@ -865,6 +865,23 @@
             </div>
           </div>
 
+          <!-- Lender's UPI ID (for receiving direct Pay Now payments) -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                Your UPI ID <span class="font-normal text-slate-400">(Optional)</span>
+              </label>
+              <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Enables Pay Now button</span>
+            </div>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
+                <i class="fa-solid fa-qrcode"></i>
+              </span>
+              <input type="text" id="payLaterUpiInput" placeholder="e.g. mobile@upi, name@okaxis, etc."
+                class="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-emerald-500" />
+            </div>
+          </div>
+
           <!-- Submit Buttons -->
           <div class="pt-2 flex items-center justify-end gap-2">
             <button type="button" onclick="closePayLaterModal()"
@@ -877,6 +894,123 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- PAY NOW VIA UPI MODAL                                                 -->
+    <!-- ===================================================================== -->
+    <div id="payNowModal"
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-4 animate-fadeIn">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <div
+              class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-emerald-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+              <i class="fa-solid fa-bolt"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white">Pay via UPI</h3>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Preset amount &amp; launch UPI app</p>
+            </div>
+          </div>
+          <button onclick="closePayNowModal()" aria-label="Close Modal"
+            class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
+
+        <div class="space-y-3.5">
+          <!-- Payee Info Box -->
+          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Paying to</span>
+              <span id="payNowTotalDueBadge" class="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">Total Due: ₹0</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="min-w-0">
+                <div id="payNowPayeeName" class="text-sm font-black text-slate-900 dark:text-white truncate">Friend</div>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                  <span id="payNowPayeeUpi" class="text-[11px] font-mono text-slate-600 dark:text-slate-300 font-semibold truncate">upi@id</span>
+                  <button type="button" onclick="copyPayNowUpiId()" title="Copy UPI ID" class="text-slate-400 hover:text-brandBlue text-xs">
+                    <i class="fa-regular fa-copy"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
+                <i class="fa-solid fa-qrcode"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Mode Selection (Full Pay vs Custom Pay) -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              How much would you like to pay?
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" id="payNowFullOptionBtn" onclick="setPayNowMode('full')"
+                class="p-2.5 rounded-xl border text-left transition relative flex flex-col justify-between border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-900 dark:text-white">Full Pay</span>
+                  <i id="payNowFullCheckIcon" class="fa-solid fa-circle-check text-emerald-600 text-xs"></i>
+                </div>
+                <div id="payNowFullAmountDisplay" class="text-base font-black text-emerald-600 dark:text-emerald-400 mt-1">₹0</div>
+                <div class="text-[9px] text-slate-400">Clears full remaining due</div>
+              </button>
+
+              <button type="button" id="payNowCustomOptionBtn" onclick="setPayNowMode('custom')"
+                class="p-2.5 rounded-xl border text-left transition relative flex flex-col justify-between border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-900 dark:text-white">Custom Pay</span>
+                  <i id="payNowCustomCheckIcon" class="fa-regular fa-circle text-slate-300 text-xs"></i>
+                </div>
+                <div class="text-base font-black text-slate-700 dark:text-slate-300 mt-1">Partial</div>
+                <div class="text-[9px] text-slate-400">Pay a portion now</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Custom Amount Input (Hidden when Full Pay selected) -->
+          <div id="payNowCustomInputContainer" class="hidden space-y-1.5">
+            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300">
+              Enter Custom Amount (₹)
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none font-bold text-emerald-600 dark:text-emerald-400 text-sm">₹</span>
+              <input type="number" id="payNowCustomAmountInput" min="1" step="any" placeholder="0" oninput="handlePayNowCustomAmountChange()"
+                class="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-base font-bold focus:outline-none focus:border-emerald-500" />
+            </div>
+            <p id="payNowRemainingPreview" class="text-[10px] text-slate-400 font-medium"></p>
+          </div>
+
+          <!-- Open UPI Launch Button -->
+          <div class="pt-1">
+            <a id="payNowLaunchLink" href="#" target="_blank" onclick="handleLaunchUpiApp()"
+              class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-95">
+              <i class="fa-solid fa-bolt text-amber-300"></i>
+              <span id="payNowLaunchBtnText">Open UPI App (Pay ₹0)</span>
+            </a>
+            <p class="text-[10px] text-slate-400 text-center mt-1.5">
+              Launches GPay, PhonePe, Paytm, or BHIM with preset amount
+            </p>
+          </div>
+
+          <!-- Confirm Payment Button -->
+          <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+            <button type="button" onclick="confirmPayNowCompleted()"
+              class="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-300 text-xs font-bold transition flex items-center justify-center gap-1.5 border border-slate-200 dark:border-slate-700">
+              <i class="fa-solid fa-check text-emerald-500"></i>
+              <span>I Have Completed This Payment</span>
+            </button>
+            <p class="text-[10px] text-slate-400 text-center">
+              Updates your remaining balance and notifies your friend.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -9917,6 +10051,10 @@
     let payLaterSyncError = null;
     let payLaterActiveFilter = "all"; // 'all', 'owed_to_me', 'i_owe'
     let payLaterSearchQuery = "";
+    let activePayNowRecord = null;
+    let activePayNowMode = "full"; // 'full' or 'custom'
+
+    const PAY_ME_LATER_DOC_PATH = { collection: "teacher_reviews", doc: "pay_me_later_records" };
 
     function initFirebasePayLaterRequests() {
       if (isFirebasePayLaterListenerActive) return;
@@ -9928,45 +10066,72 @@
       payLaterSyncError = null;
 
       try {
-        firestore.collection("pay_me_later").onSnapshot((snapshot) => {
-          isPayLaterLoading = false;
-          payLaterSyncError = null;
-          const items = [];
-          snapshot.forEach((doc) => {
-            const data = doc.data();
-            if (!data || !data.amount) return;
-            items.push({
-              id: doc.id,
-              ...data,
-              createdAt: data.createdAt || Date.now()
-            });
+        // Single document storage architecture: listens to pay_me_later_records in authorized collection
+        firestore.collection(PAY_ME_LATER_DOC_PATH.collection).doc(PAY_ME_LATER_DOC_PATH.doc)
+          .onSnapshot((doc) => {
+            isPayLaterLoading = false;
+            payLaterSyncError = null;
+            let items = [];
+            if (doc && doc.exists) {
+              const data = doc.data();
+              if (data && Array.isArray(data.records)) {
+                items = data.records.map(r => ({
+                  ...r,
+                  amount: Number(r.amount || 0),
+                  originalAmount: Number(r.originalAmount || r.amount || 0),
+                  createdAt: Number(r.createdAt || Date.now()),
+                  payments: Array.isArray(r.payments) ? r.payments : []
+                }));
+              }
+            }
+
+            // Sort newest first
+            items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            PAY_ME_LATER_LIST = items;
+
+            try {
+              localStorage.setItem("vitb_pay_me_later", JSON.stringify(items));
+            } catch (e) { }
+
+            // Notify borrower if a new debt was added for them
+            checkPayLaterNotifications(items);
+
+            if (activeTab === "paylater") {
+              renderPayLaterUI();
+            }
+          }, (err) => {
+            console.warn("Pay Me Later single doc listener error:", err);
+            isPayLaterLoading = false;
+            payLaterSyncError = err.message || "Failed to sync with Firebase";
+            if (activeTab === "paylater") {
+              renderPayLaterUI();
+            }
           });
-
-          // Sort newest first
-          items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-          PAY_ME_LATER_LIST = items;
-
-          try {
-            localStorage.setItem("vitb_pay_me_later", JSON.stringify(items));
-          } catch (e) { }
-
-          // Check if current student is the borrower on any newly added record and notify!
-          checkPayLaterNotifications(items);
-
-          if (activeTab === "paylater") {
-            renderPayLaterUI();
-          }
-        }, (err) => {
-          console.warn("Pay Me Later Firestore listener error:", err);
-          isPayLaterLoading = false;
-          payLaterSyncError = err.message || "Failed to sync with Firebase";
-          if (activeTab === "paylater") {
-            renderPayLaterUI();
-          }
-        });
       } catch (e) {
         console.warn("Pay Me Later listener init exception:", e);
         isPayLaterLoading = false;
+      }
+    }
+
+    async function syncPayLaterRecordsToFirebase(recordsList) {
+      PAY_ME_LATER_LIST = recordsList;
+      try {
+        localStorage.setItem("vitb_pay_me_later", JSON.stringify(recordsList));
+      } catch (e) { }
+
+      const firestore = getDb();
+      if (!firestore) return false;
+
+      try {
+        await firestore.collection(PAY_ME_LATER_DOC_PATH.collection).doc(PAY_ME_LATER_DOC_PATH.doc).set({
+          records: recordsList,
+          updatedAt: Date.now()
+        }, { merge: true });
+        return true;
+      } catch (err) {
+        console.error("Error updating Pay Me Later single document in Firebase:", err);
+        showReviewToast("Saved locally (Firebase sync pending: " + (err.message || "offline") + ")");
+        return false;
       }
     }
 
@@ -9986,11 +10151,10 @@
       let hasNew = false;
 
       items.forEach(item => {
-        // Check if the current user is the borrower (the one who took the money)
         const isBorrower = (myId && item.borrowerId && item.borrowerId.toLowerCase() === myId.toLowerCase()) ||
                            (myName && item.borrowerName && item.borrowerName.toLowerCase() === myName.toLowerCase());
 
-        if (isBorrower && !notifiedSet.has(item.id)) {
+        if (isBorrower && item.amount > 0 && !notifiedSet.has(item.id)) {
           notifiedSet.add(item.id);
           hasNew = true;
 
@@ -10049,6 +10213,11 @@
         customBorrowerInput.classList.add("hidden");
       }
 
+      const upiInput = document.getElementById("payLaterUpiInput");
+      if (upiInput) {
+        upiInput.value = localStorage.getItem("vitb_user_upi_id") || "";
+      }
+
       modal.classList.remove("hidden");
     }
 
@@ -10082,11 +10251,12 @@
       noteInput.value = note;
     }
 
-    function submitPayLaterEntry() {
+    async function submitPayLaterEntry() {
       const borrowerSelect = document.getElementById("payLaterBorrowerSelect");
       const customBorrowerInput = document.getElementById("payLaterCustomBorrowerInput");
       const amountInput = document.getElementById("payLaterAmountInput");
       const noteInput = document.getElementById("payLaterNoteInput");
+      const upiInput = document.getElementById("payLaterUpiInput");
       const submitBtn = document.getElementById("submitPayLaterBtn");
       const btnText = document.getElementById("submitPayLaterBtnText");
 
@@ -10118,97 +10288,288 @@
       }
 
       const note = noteInput ? noteInput.value.trim() : "";
+      const upiId = upiInput ? upiInput.value.trim() : "";
+      if (upiId) {
+        try {
+          localStorage.setItem("vitb_user_upi_id", upiId);
+        } catch (e) { }
+      }
 
       if (submitBtn) submitBtn.disabled = true;
       if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving to Firebase...';
 
       const entry = {
+        id: "pml_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6),
         lenderId: myId,
         lenderName: myName,
+        lenderUpi: upiId || localStorage.getItem("vitb_user_upi_id") || "",
         borrowerId: borrowerId,
         borrowerName: borrowerName,
         amount: amount,
+        originalAmount: amount,
         note: note || "Money borrowed",
         createdAt: Date.now(),
-        status: "unpaid"
+        status: "unpaid",
+        payments: []
       };
 
-      const firestore = getDb();
-      if (firestore) {
-        firestore.collection("pay_me_later").add(entry)
-          .then((docRef) => {
-            closePayLaterModal();
-            showReviewToast("✅ Added! ₹" + amount + " with " + borrowerName + " saved.");
-            try {
-              const notified = JSON.parse(localStorage.getItem("vitb_notified_paylater_ids") || "[]");
-              notified.push(docRef.id);
-              localStorage.setItem("vitb_notified_paylater_ids", JSON.stringify(notified));
-            } catch (e) { }
-          })
-          .catch((err) => {
-            console.warn("Error adding Pay Me Later doc:", err);
-            entry.id = "local_" + Date.now();
-            PAY_ME_LATER_LIST.unshift(entry);
-            try {
-              localStorage.setItem("vitb_pay_me_later", JSON.stringify(PAY_ME_LATER_LIST));
-            } catch (e) { }
-            closePayLaterModal();
-            showReviewToast("Saved locally: ₹" + amount + " with " + borrowerName);
-            renderPayLaterUI();
-          })
-          .finally(() => {
-            if (submitBtn) submitBtn.disabled = false;
-            if (btnText) btnText.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Save &amp; Notify Friend';
-          });
-      } else {
-        entry.id = "local_" + Date.now();
-        PAY_ME_LATER_LIST.unshift(entry);
-        try {
-          localStorage.setItem("vitb_pay_me_later", JSON.stringify(PAY_ME_LATER_LIST));
-        } catch (e) { }
+      try {
+        const updatedList = [entry, ...PAY_ME_LATER_LIST];
+        await syncPayLaterRecordsToFirebase(updatedList);
         closePayLaterModal();
-        showReviewToast("Saved locally: ₹" + amount + " with " + borrowerName);
+        showReviewToast("✅ Added! ₹" + amount + " with " + borrowerName + " saved to Firebase.");
         renderPayLaterUI();
+      } catch (err) {
+        console.warn("Exception saving Pay Me Later entry:", err);
+      } finally {
         if (submitBtn) submitBtn.disabled = false;
         if (btnText) btnText.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Save &amp; Notify Friend';
       }
     }
 
-    function markPayLaterAsPaid(docId, friendName, amount) {
-      if (!confirm("Mark ₹" + amount + " from " + friendName + " as paid?\n\nThis will settle and delete this record from Firebase.")) {
+    async function markPayLaterAsPaid(docId, friendName, amount) {
+      if (!confirm("Confirm that you received payment of ₹" + amount + " from " + friendName + "?\n\nThis will permanently delete this record from Firebase.")) {
         return;
       }
 
-      PAY_ME_LATER_LIST = PAY_ME_LATER_LIST.filter(item => item.id !== docId);
-      try {
-        localStorage.setItem("vitb_pay_me_later", JSON.stringify(PAY_ME_LATER_LIST));
-      } catch (e) { }
+      const updatedList = PAY_ME_LATER_LIST.filter(item => item.id !== docId);
+      await syncPayLaterRecordsToFirebase(updatedList);
+      showReviewToast("🎉 Payment confirmed! ₹" + amount + " marked as received and deleted from Firebase.");
       renderPayLaterUI();
-
-      const firestore = getDb();
-      if (firestore && docId && !String(docId).startsWith("local_")) {
-        firestore.collection("pay_me_later").doc(docId).delete()
-          .then(() => {
-            showReviewToast("🎉 Settled! ₹" + amount + " marked as paid and removed.");
-          })
-          .catch((err) => {
-            console.warn("Error deleting Pay Me Later doc:", err);
-            showReviewToast("Settled locally. (Sync error: " + err.message + ")");
-          });
-      } else {
-        showReviewToast("🎉 Settled! ₹" + amount + " marked as paid and removed.");
-      }
     }
 
-    function sendPayLaterReminderWhatsApp(friendName, amount, note) {
-      const text = "Hey " + friendName + "! Friendly reminder to clear ₹" + amount + (note ? (" for " + note) : "") + " on Pay Me Later (Campus Saathi). Thank you! 😊";
+    function sendPayLaterReminderWhatsApp(friendName, amount, note, upiId) {
+      let text = "Hey " + friendName + "! Friendly reminder to clear ₹" + amount + (note ? (" for " + note) : "") + " on Pay Me Later (Campus Saathi).";
+      if (upiId) {
+        text += " You can pay directly via UPI: " + upiId;
+      }
+      text += " Thank you! 😊";
       const url = "https://wa.me/?text=" + encodeURIComponent(text);
       window.open(url, "_blank");
     }
 
-    function openUPIPayment(payeeName, amount, note) {
-      const upiUrl = "upi://pay?pn=" + encodeURIComponent(payeeName) + "&am=" + amount + "&cu=INR&tn=" + encodeURIComponent("PayMeLater: " + (note || "Dues"));
-      window.location.href = upiUrl;
+    function promptSetMyUpiId() {
+      const current = localStorage.getItem("vitb_user_upi_id") || "";
+      const input = prompt("Enter your UPI ID to receive direct Pay Now payments (e.g. mobile@upi, username@okaxis):", current);
+      if (input !== null) {
+        const cleaned = input.trim();
+        localStorage.setItem("vitb_user_upi_id", cleaned);
+        if (cleaned) {
+          showReviewToast("UPI ID saved: " + cleaned);
+          // Also update active records where I am the lender
+          const identity = getUserIdentity();
+          const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
+          const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
+          let modified = false;
+          PAY_ME_LATER_LIST.forEach(item => {
+            if ((myId && item.lenderId === myId) || (myName && item.lenderName === myName)) {
+              if (!item.lenderUpi || item.lenderUpi !== cleaned) {
+                item.lenderUpi = cleaned;
+                modified = true;
+              }
+            }
+          });
+          if (modified) {
+            syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+          }
+        } else {
+          showReviewToast("UPI ID cleared.");
+        }
+        renderPayLaterUI();
+      }
+    }
+
+    function openPayNowModal(docId) {
+      const record = PAY_ME_LATER_LIST.find(x => x.id === docId);
+      if (!record) return;
+
+      // If lender hasn't added UPI ID, prompt borrower to enter it
+      if (!record.lenderUpi) {
+        const entered = prompt(record.lenderName + " hasn't added their UPI ID yet.\n\nEnter " + record.lenderName + "'s UPI ID if you know it (e.g. 9876543210@paytm, name@okaxis):");
+        if (!entered || !entered.trim()) {
+          alert("UPI ID is required to launch Pay Now. You can still pay manually or ask " + record.lenderName + " for their UPI ID.");
+          return;
+        }
+        record.lenderUpi = entered.trim();
+        syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      }
+
+      activePayNowRecord = record;
+      activePayNowMode = "full";
+
+      const modal = document.getElementById("payNowModal");
+      if (!modal) return;
+
+      const payeeName = document.getElementById("payNowPayeeName");
+      if (payeeName) payeeName.textContent = record.lenderName;
+
+      const payeeUpi = document.getElementById("payNowPayeeUpi");
+      if (payeeUpi) payeeUpi.textContent = record.lenderUpi;
+
+      const totalBadge = document.getElementById("payNowTotalDueBadge");
+      if (totalBadge) totalBadge.textContent = "Remaining Due: ₹" + record.amount;
+
+      const fullAmountDisplay = document.getElementById("payNowFullAmountDisplay");
+      if (fullAmountDisplay) fullAmountDisplay.textContent = "₹" + record.amount;
+
+      const customInput = document.getElementById("payNowCustomAmountInput");
+      if (customInput) customInput.value = "";
+
+      setPayNowMode("full");
+      modal.classList.remove("hidden");
+    }
+
+    function closePayNowModal() {
+      const modal = document.getElementById("payNowModal");
+      if (modal) modal.classList.add("hidden");
+      activePayNowRecord = null;
+    }
+
+    function copyPayNowUpiId() {
+      if (!activePayNowRecord || !activePayNowRecord.lenderUpi) return;
+      navigator.clipboard.writeText(activePayNowRecord.lenderUpi).then(() => {
+        showReviewToast("📋 UPI ID copied: " + activePayNowRecord.lenderUpi);
+      }).catch(() => {
+        showReviewToast("UPI ID: " + activePayNowRecord.lenderUpi);
+      });
+    }
+
+    function setPayNowMode(mode) {
+      activePayNowMode = mode;
+      const fullBtn = document.getElementById("payNowFullOptionBtn");
+      const customBtn = document.getElementById("payNowCustomOptionBtn");
+      const fullIcon = document.getElementById("payNowFullCheckIcon");
+      const customIcon = document.getElementById("payNowCustomCheckIcon");
+      const customContainer = document.getElementById("payNowCustomInputContainer");
+      const customInput = document.getElementById("payNowCustomAmountInput");
+
+      if (mode === "full") {
+        if (fullBtn) {
+          fullBtn.className = "p-2.5 rounded-xl border text-left transition relative flex flex-col justify-between border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30";
+        }
+        if (customBtn) {
+          customBtn.className = "p-2.5 rounded-xl border text-left transition relative flex flex-col justify-between border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800";
+        }
+        if (fullIcon) fullIcon.className = "fa-solid fa-circle-check text-emerald-600 text-xs";
+        if (customIcon) customIcon.className = "fa-regular fa-circle text-slate-300 text-xs";
+        if (customContainer) customContainer.classList.add("hidden");
+      } else {
+        if (fullBtn) {
+          fullBtn.className = "p-2.5 rounded-xl border text-left transition relative flex flex-col justify-between border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800";
+        }
+        if (customBtn) {
+          customBtn.className = "p-2.5 rounded-xl border text-left transition relative flex flex-col justify-between border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30";
+        }
+        if (fullIcon) fullIcon.className = "fa-regular fa-circle text-slate-300 text-xs";
+        if (customIcon) customIcon.className = "fa-solid fa-circle-check text-emerald-600 text-xs";
+        if (customContainer) customContainer.classList.remove("hidden");
+        if (customInput && !customInput.value && activePayNowRecord) {
+          customInput.value = Math.min(50, activePayNowRecord.amount);
+        }
+      }
+      updatePayNowLinkAndPreview();
+    }
+
+    function handlePayNowCustomAmountChange() {
+      updatePayNowLinkAndPreview();
+    }
+
+    function getPayNowSelectedAmount() {
+      if (!activePayNowRecord) return 0;
+      if (activePayNowMode === "full") {
+        return activePayNowRecord.amount;
+      }
+      const customInput = document.getElementById("payNowCustomAmountInput");
+      const val = parseFloat(customInput ? customInput.value : 0);
+      return isNaN(val) ? 0 : val;
+    }
+
+    function updatePayNowLinkAndPreview() {
+      if (!activePayNowRecord) return;
+      const amount = getPayNowSelectedAmount();
+      const preview = document.getElementById("payNowRemainingPreview");
+      const launchLink = document.getElementById("payNowLaunchLink");
+      const launchBtnText = document.getElementById("payNowLaunchBtnText");
+
+      const remainingAfter = Math.max(0, activePayNowRecord.amount - amount);
+
+      if (preview) {
+        if (activePayNowMode === "custom") {
+          if (amount > activePayNowRecord.amount) {
+            preview.innerHTML = '<span class="text-rose-500 font-bold">Amount exceeds remaining due of ₹' + activePayNowRecord.amount + '</span>';
+          } else if (amount <= 0) {
+            preview.innerHTML = '<span class="text-rose-500 font-bold">Please enter an amount greater than ₹0</span>';
+          } else {
+            preview.innerHTML = 'Remaining balance after this payment: <strong class="text-emerald-600 dark:text-emerald-400">₹' + remainingAfter.toFixed(2) + '</strong>';
+          }
+        } else {
+          preview.innerHTML = "";
+        }
+      }
+
+      // Format standard UPI URL
+      const upiUrl = "upi://pay?pa=" + encodeURIComponent(activePayNowRecord.lenderUpi || "") +
+        "&pn=" + encodeURIComponent(activePayNowRecord.lenderName || "Friend") +
+        "&am=" + amount.toFixed(2) +
+        "&cu=INR&tn=" + encodeURIComponent("PayMeLater: " + (activePayNowRecord.note || "Dues"));
+
+      if (launchLink) {
+        launchLink.href = upiUrl;
+      }
+      if (launchBtnText) {
+        launchBtnText.textContent = "Open UPI App (Pay ₹" + amount + ")";
+      }
+    }
+
+    function handleLaunchUpiApp() {
+      const amount = getPayNowSelectedAmount();
+      if (amount <= 0) {
+        alert("Please specify a valid payment amount.");
+        return;
+      }
+      if (amount > activePayNowRecord.amount) {
+        alert("Amount cannot exceed the total due of ₹" + activePayNowRecord.amount);
+        return;
+      }
+    }
+
+    async function confirmPayNowCompleted() {
+      if (!activePayNowRecord) return;
+      const amount = getPayNowSelectedAmount();
+      if (amount <= 0) {
+        alert("Please enter a valid amount.");
+        return;
+      }
+      if (amount > activePayNowRecord.amount) {
+        alert("Amount cannot exceed ₹" + activePayNowRecord.amount);
+        return;
+      }
+
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "Friend";
+
+      const remaining = activePayNowRecord.amount - amount;
+      activePayNowRecord.amount = remaining;
+      activePayNowRecord.payments = activePayNowRecord.payments || [];
+      activePayNowRecord.payments.push({
+        amount: amount,
+        paidAt: Date.now(),
+        payerName: myName,
+        type: (remaining <= 0) ? "full" : "custom"
+      });
+
+      if (remaining <= 0) {
+        activePayNowRecord.status = "paid";
+        await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+        showReviewToast("🎉 Full payment of ₹" + amount + " marked! Waiting for " + activePayNowRecord.lenderName + " to confirm receipt & settle.");
+      } else {
+        activePayNowRecord.status = "partially_paid";
+        await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+        showReviewToast("✅ Partial payment of ₹" + amount + " recorded! Remaining due: ₹" + remaining);
+      }
+
+      closePayNowModal();
+      renderPayLaterUI();
     }
 
     function setPayLaterFilter(filter) {
@@ -10222,26 +10583,21 @@
     }
 
     function formatRelativePayLaterTime(timestamp) {
-      if (!timestamp) return "Just now";
-      const diffMs = Date.now() - timestamp;
-      const mins = Math.floor(diffMs / 60000);
-      if (mins < 1) return "Just now";
-      if (mins < 60) return mins + "m ago";
-      const hours = Math.floor(mins / 60);
-      if (hours < 24) return hours + "h ago";
-      const days = Math.floor(hours / 24);
-      if (days === 1) return "Yesterday";
-      if (days < 7) return days + "d ago";
-      const d = new Date(timestamp);
-      return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
-    }
+      if (!timestamp) return "";
+      const now = Date.now();
+      const diffMs = now - Number(timestamp);
+      const diffSecs = Math.floor(diffMs / 1000);
+      const diffMins = Math.floor(diffSecs / 60);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
 
-    function getStudentAvatarClass(name) {
-      const friend = FRIENDS_DATA.find(f => f.name.toLowerCase() === (name || "").toLowerCase());
-      if (friend && friend.avatarBg) {
-        return "bg-gradient-to-tr " + friend.avatarBg;
-      }
-      return "bg-gradient-to-tr from-blue-500 to-indigo-600";
+      if (diffSecs < 60) return "Just now";
+      if (diffMins < 60) return diffMins + "m ago";
+      if (diffHours < 24) return diffHours + "h ago";
+      if (diffDays === 1) return "Yesterday";
+      if (diffDays < 7) return diffDays + "d ago";
+      const d = new Date(timestamp);
+      return d.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
     }
 
     function renderPayLaterUI() {
@@ -10251,6 +10607,7 @@
       const identity = getUserIdentity();
       const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
       const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
+      const myUpi = localStorage.getItem("vitb_user_upi_id") || "";
 
       // Load cached local records if PAY_ME_LATER_LIST is empty
       if (PAY_ME_LATER_LIST.length === 0) {
@@ -10329,11 +10686,20 @@
               </div>
             </div>
 
-            <button onclick="openPayLaterModal()"
-              class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 shrink-0 active:scale-95">
-              <i class="fa-solid fa-plus text-[10px]"></i>
-              <span>Add Due</span>
-            </button>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button onclick="promptSetMyUpiId()"
+                title="Set or update your default UPI ID"
+                class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs active:scale-95">
+                <i class="fa-solid fa-qrcode text-amber-500 text-xs"></i>
+                <span class="max-w-[85px] sm:max-w-none truncate">${myUpi ? myUpi : 'Set UPI'}</span>
+              </button>
+
+              <button onclick="openPayLaterModal()"
+                class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 active:scale-95">
+                <i class="fa-solid fa-plus text-[10px]"></i>
+                <span>Add Due</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -10485,8 +10851,12 @@
             const displayFriendName = isLender ? item.borrowerName : isBorrower ? item.lenderName : (item.borrowerName + ' (from ' + item.lenderName + ')');
             const avatarClass = getStudentAvatarClass(displayFriendName);
 
+            const isPaid = item.status === "paid" || item.amount <= 0;
+            const isPartiallyPaid = item.status === "partially_paid" || (item.originalAmount > item.amount && item.amount > 0);
+            const paidSoFar = Math.max(0, (item.originalAmount || item.amount) - item.amount);
+
             return `
-              <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 shadow-2xs hover:shadow-xs transition space-y-2.5">
+              <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 shadow-2xs hover:shadow-xs transition space-y-2.5 ${isPaid ? 'opacity-90 ring-1 ring-emerald-500/30' : ''}">
                 <div class="flex items-start justify-between gap-3">
                   <!-- Left: Avatar + Details -->
                   <div class="flex items-center gap-2.5 min-w-0">
@@ -10498,7 +10868,15 @@
                         <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
                           ${displayFriendName}
                         </span>
-                        ${isLender ? `
+                        ${isPaid ? `
+                          <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300/60">
+                            Payment Completed
+                          </span>
+                        ` : isPartiallyPaid ? `
+                          <span class="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300/60">
+                            Partially Paid
+                          </span>
+                        ` : isLender ? `
                           <span class="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
                             Owes You
                           </span>
@@ -10517,46 +10895,58 @@
                         <span>•</span>
                         <span class="shrink-0 text-[10px] text-slate-400">${formatRelativePayLaterTime(item.createdAt)}</span>
                       </div>
+                      ${isPartiallyPaid && !isPaid ? `
+                        <div class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
+                          ₹${paidSoFar} paid so far • ₹${item.amount} remaining
+                        </div>
+                      ` : ''}
                     </div>
                   </div>
 
                   <!-- Right: Amount -->
                   <div class="text-right shrink-0">
-                    <div class="text-base sm:text-lg font-black ${isLender ? 'text-emerald-600 dark:text-emerald-400' : isBorrower ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}">
-                      ${isLender ? '+' : isBorrower ? '-' : ''}₹${Number(item.amount || 0).toLocaleString("en-IN")}
+                    <div class="text-base sm:text-lg font-black ${isPaid ? 'text-emerald-600 dark:text-emerald-400' : isLender ? 'text-emerald-600 dark:text-emerald-400' : isBorrower ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}">
+                      ${isPaid ? '₹0' : (isLender ? '+' : isBorrower ? '-' : '') + '₹' + Number(item.amount || 0).toLocaleString("en-IN")}
                     </div>
+                    ${item.originalAmount && item.originalAmount !== item.amount ? `
+                      <div class="text-[9px] text-slate-400 line-through">
+                        Original: ₹${item.originalAmount}
+                      </div>
+                    ` : ''}
                   </div>
                 </div>
 
                 <!-- Action Toolbar -->
                 <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
                   <div class="text-[10px] text-slate-400 dark:text-slate-500 truncate">
-                    ${isLender ? ('Lent by You') : ('Lent by ' + item.lenderName)}
+                    ${isLender ? ('Lent by You' + (item.lenderUpi ? (' • UPI: ' + item.lenderUpi) : '')) : ('Lent by ' + item.lenderName + (item.lenderUpi ? (' • UPI: ' + item.lenderUpi) : ''))}
                   </div>
 
                   <div class="flex items-center gap-1.5 shrink-0">
-                    ${isLender ? `
-                      <button onclick="sendPayLaterReminderWhatsApp('${(item.borrowerName || '').replace(/'/g, "\\'")}', ${item.amount}, '${(item.note || '').replace(/'/g, "\\'")}')"
+                    ${isLender && !isPaid ? `
+                      <button onclick="sendPayLaterReminderWhatsApp('${(item.borrowerName || '').replace(/'/g, "\\'")}', ${item.amount}, '${(item.note || '').replace(/'/g, "\\'")}', '${(item.lenderUpi || '').replace(/'/g, "\\'")}')"
                         class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 hover:text-emerald-600 text-[11px] font-bold transition flex items-center gap-1">
                         <i class="fa-brands fa-whatsapp text-emerald-500 text-xs"></i>
                         <span>Remind</span>
                       </button>
                     ` : ''}
 
-                    ${isBorrower ? `
-                      <button onclick="openUPIPayment('${(item.lenderName || '').replace(/'/g, "\\'")}', ${item.amount}, '${(item.note || '').replace(/'/g, "\\'")}')"
-                        class="px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 text-brandBlue dark:text-blue-400 text-[11px] font-bold transition flex items-center gap-1 border border-blue-200 dark:border-blue-800">
-                        <i class="fa-solid fa-bolt text-amber-500 text-xs"></i>
-                        <span>Pay UPI</span>
+                    <!-- Pay Now (UPI) Button -->
+                    ${!isPaid ? `
+                      <button onclick="openPayNowModal('${item.id}')"
+                        class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
+                        title="Preset amount & launch UPI app">
+                        <i class="fa-solid fa-bolt text-amber-300 text-[10px]"></i>
+                        <span>Pay Now</span>
                       </button>
                     ` : ''}
 
-                    <!-- Mark as Paid Button (Deletes record from Firebase!) -->
+                    <!-- Mark as Paid / Confirm Received Button (Deletes record from Firebase single document!) -->
                     <button onclick="markPayLaterAsPaid('${item.id}', '${(isLender ? item.borrowerName : item.lenderName || '').replace(/'/g, "\\'")}', ${item.amount})"
-                      class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
-                      title="Mark as paid and delete from Firebase">
-                      <i class="fa-solid fa-check text-[10px]"></i>
-                      <span>Mark Paid</span>
+                      class="px-2.5 py-1 rounded-lg ${isPaid ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white'} text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
+                      title="Confirm payment received and permanently delete this record from Firebase">
+                      <i class="fa-solid fa-circle-check text-[10px]"></i>
+                      <span>${isPaid ? 'Confirm & Settle' : 'Mark Paid'}</span>
                     </button>
                   </div>
                 </div>
@@ -10566,6 +10956,7 @@
         </div>
       `;
     }
+
 
 
 /**
@@ -11017,41 +11408,34 @@ function renderMessMenuUI() {
         liveSlot.isOpen
           ? 'bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 border-emerald-200 dark:border-emerald-900/60'
           : 'bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-amber-200 dark:border-amber-900/60'
-      } border flex items-center justify-between gap-2.5 shadow-2xs">
-        <div class="flex items-center gap-2.5 min-w-0">
+      } border flex items-center justify-between gap-3 shadow-2xs">
+        <div class="flex items-center gap-2.5 min-w-0 flex-1">
           <div class="w-8 h-8 rounded-xl ${liveSlot.isOpen ? 'bg-emerald-600' : 'bg-amber-600'} text-white flex items-center justify-center text-xs shrink-0 shadow-2xs">
             <i class="fa-solid ${liveSlot.icon}"></i>
           </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${liveSlot.isOpen ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'}">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${liveSlot.isOpen ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'} shrink-0 shadow-2xs">
                 ${liveSlot.status}
               </span>
-              <span class="text-xs font-bold text-slate-900 dark:text-white truncate">
+              <span class="text-xs font-bold text-slate-900 dark:text-white leading-tight">
                 ${liveSlot.label}
               </span>
             </div>
-            <div class="text-[10px] font-medium text-slate-500 dark:text-slate-400 truncate">
+            <div class="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
               ${liveSlot.isOpen ? `Dining hours: ${liveSlot.time}` : `Next meal: ${liveSlot.nextName} (${liveSlot.time})`}
             </div>
           </div>
         </div>
 
-        <div class="flex items-center gap-1.5 shrink-0">
-          <!-- Minimal Countdown Timer Pill -->
-          <div class="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs font-bold ${
-            liveSlot.isOpen
-              ? 'bg-emerald-100/90 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-200 border border-emerald-300/80 dark:border-emerald-800'
-              : 'bg-amber-100/90 dark:bg-amber-950/80 text-amber-800 dark:text-amber-200 border border-amber-300/80 dark:border-amber-800'
-          }">
-            <i class="fa-regular fa-clock text-[10px]"></i>
-            <span class="text-[11px] font-mono tracking-tight font-bold">${liveSlot.timerText}</span>
-          </div>
-
-          <button onclick="shareTodayMessMenu()" title="Share today's menu"
-            class="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs hover:bg-slate-50 dark:hover:bg-slate-700 shrink-0 shadow-2xs active:scale-95 transition">
-            <i class="fa-solid fa-share-nodes text-[11px]"></i>
-          </button>
+        <!-- Minimal Countdown Timer Pill -->
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold ${
+          liveSlot.isOpen
+            ? 'bg-emerald-100/90 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-200 border border-emerald-300/80 dark:border-emerald-800'
+            : 'bg-amber-100/90 dark:bg-amber-950/80 text-amber-800 dark:text-amber-200 border border-amber-300/80 dark:border-amber-800'
+        } shrink-0 shadow-2xs">
+          <i class="fa-regular fa-clock text-[10px]"></i>
+          <span class="text-[11px] font-mono tracking-tight font-bold whitespace-nowrap">${liveSlot.timerText}</span>
         </div>
       </div>
     ` : ''}
@@ -11150,18 +11534,11 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
                         <div class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-snug break-words">
                           ${dish.name}
                         </div>
-                        <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
-                          ${dish.servingSize ? `
-                            <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                              Portion: ${dish.servingSize}
-                            </span>
-                          ` : ''}
-                          ${dish.specialTag ? `
-                            <span class="text-[9px] font-semibold px-1.5 py-0.2 rounded-md bg-slate-200/70 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300">
-                              ${dish.specialTag}
-                            </span>
-                          ` : ''}
-                        </div>
+                        ${dish.servingSize ? `
+                          <div class="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                            Portion: ${dish.servingSize}
+                          </div>
+                        ` : ''}
                       </div>
 
                       ${dish.calories ? `
