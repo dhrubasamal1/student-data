@@ -22,20 +22,6 @@ Campus Saathi is a mobile-first progressive web app for VIT Bhopal students. It 
 - Firebase Firestore
 - Web App Manifest and Service Worker
 
-## Getting Started
-
-The app is a static website and does not require a build step.
-
-Run a local server from the repository root:
-
-```bash
-python3 -m http.server 8000
-```
-
-Then open `http://localhost:8000` in a browser.
-
-Using an HTTP server is recommended instead of opening `index.html` directly, so browser features such as the service worker and PWA installation work correctly.
-
 ## Project Structure
 
 ```text
