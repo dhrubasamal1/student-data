@@ -36,6 +36,8 @@
   <!-- Firebase App & Firestore (Compat for seamless browser integration) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <!-- Client-side Fast QR Code Generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <script>
     tailwind.config = {
@@ -903,7 +905,7 @@
     <div id="payNowModal"
       class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-4 animate-fadeIn">
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-4 sm:p-5 shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto no-scrollbar">
         
         <!-- Modal Header -->
         <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -914,7 +916,7 @@
             </div>
             <div>
               <h3 class="text-sm font-bold text-slate-900 dark:text-white">Pay via UPI</h3>
-              <p class="text-[10px] text-slate-500 dark:text-slate-400">Preset amount &amp; launch UPI app</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Scan QR with amount or open UPI app</p>
             </div>
           </div>
           <button onclick="closePayNowModal()" aria-label="Close Modal"
@@ -987,15 +989,42 @@
             <p id="payNowRemainingPreview" class="text-[10px] text-slate-400 font-medium"></p>
           </div>
 
-          <!-- Open UPI Launch Button -->
-          <div class="pt-1">
+          <!-- QR Code Section: WITH AMOUNT PRESET! -->
+          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-center space-y-2">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-qrcode text-emerald-600 text-xs"></i>
+                <span>Scan QR with Any UPI App</span>
+              </span>
+              <span id="payNowQrAmountBadge" class="text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-300/60">
+                ₹0
+              </span>
+            </div>
+
+            <!-- QR Code Container -->
+            <div class="inline-block p-2 bg-white rounded-2xl shadow-xs border border-slate-200/90 mx-auto">
+              <div id="payNowQrCodeContainer" class="w-[160px] h-[160px] flex items-center justify-center mx-auto overflow-hidden">
+                <!-- Injected dynamically by renderPayNowQrCode() -->
+              </div>
+            </div>
+
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+              Amount is pre-filled when scanned with GPay, PhonePe, Paytm, or BHIM!
+            </p>
+          </div>
+
+          <!-- Direct UPI Launch Button (WITHOUT amount for non-merchant accounts) -->
+          <div class="pt-0.5 space-y-1.5">
+            <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1">
+              Or open directly in UPI app:
+            </div>
             <a id="payNowLaunchLink" href="#" target="_blank" onclick="handleLaunchUpiApp()"
               class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-95">
               <i class="fa-solid fa-bolt text-amber-300"></i>
-              <span id="payNowLaunchBtnText">Open UPI App (Pay ₹0)</span>
+              <span id="payNowLaunchBtnText">Open in UPI App</span>
             </a>
-            <p class="text-[10px] text-slate-400 text-center mt-1.5">
-              Launches GPay, PhonePe, Paytm, or BHIM with preset amount
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 text-center">
+              Direct app links cannot preset amount on personal (non-merchant) UPI IDs. Please enter <strong class="text-slate-700 dark:text-slate-300" id="payNowLinkAmountHint">₹0</strong> in the app if prompted, or scan the QR code above.
             </p>
           </div>
 
@@ -6195,6 +6224,7 @@
         initFirebaseParcelRequests();
         renderParcelHelper();
       } else if (tabId === "paylater") {
+        hasUserManuallySelectedPayLaterFilter = false;
         initFirebasePayLaterRequests();
         renderPayLaterUI();
       } else if (tabId === "mess") {
@@ -10070,6 +10100,7 @@
     let isPayLaterLoading = false;
     let payLaterSyncError = null;
     let payLaterActiveFilter = "owed_to_me"; // 'owed_to_me' or 'i_owe'
+    let hasUserManuallySelectedPayLaterFilter = false;
     let payLaterSearchQuery = "";
     let activePayNowRecord = null;
     let activePayNowMode = "full"; // 'full' or 'custom'
@@ -10513,14 +10544,54 @@
       return isNaN(val) ? 0 : val;
     }
 
+    function renderPayNowQrCode(upiQrUri) {
+      const container = document.getElementById("payNowQrCodeContainer");
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (typeof QRCode !== "undefined") {
+        try {
+          new QRCode(container, {
+            text: upiQrUri,
+            width: 160,
+            height: 160,
+            colorDark: "#0f172a",
+            colorLight: "#ffffff",
+            correctLevel: (typeof QRCode.CorrectLevel !== "undefined" && QRCode.CorrectLevel.M) ? QRCode.CorrectLevel.M : 0
+          });
+          return;
+        } catch (e) {
+          console.warn("Client QR generation failed, falling back to API image:", e);
+        }
+      }
+
+      // Fallback to QR Server API if QRCode library is not loaded
+      const img = document.createElement("img");
+      img.src = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=" + encodeURIComponent(upiQrUri) + "&margin=4";
+      img.alt = "UPI QR Code";
+      img.className = "w-[160px] h-[160px] rounded-lg shadow-2xs mx-auto";
+      img.loading = "lazy";
+      container.appendChild(img);
+    }
+
     function updatePayNowLinkAndPreview() {
       if (!activePayNowRecord) return;
       const amount = getPayNowSelectedAmount();
       const preview = document.getElementById("payNowRemainingPreview");
       const launchLink = document.getElementById("payNowLaunchLink");
       const launchBtnText = document.getElementById("payNowLaunchBtnText");
+      const qrAmountBadge = document.getElementById("payNowQrAmountBadge");
+      const linkAmountHint = document.getElementById("payNowLinkAmountHint");
 
       const remainingAfter = Math.max(0, activePayNowRecord.amount - amount);
+      const displayAmountStr = "₹" + amount.toFixed(amount % 1 === 0 ? 0 : 2);
+
+      if (qrAmountBadge) {
+        qrAmountBadge.textContent = displayAmountStr;
+      }
+      if (linkAmountHint) {
+        linkAmountHint.textContent = displayAmountStr;
+      }
 
       if (preview) {
         if (activePayNowMode === "custom") {
@@ -10536,18 +10607,25 @@
         }
       }
 
-      // Format standard UPI URL
-      const upiUrl = "upi://pay?pa=" + encodeURIComponent(activePayNowRecord.lenderUpi || "") +
+      // 1. Direct UPI Deep Link: STRICTLY WITHOUT AMOUNT (for non-merchant P2P accounts)
+      const upiDeepLink = "upi://pay?pa=" + encodeURIComponent(activePayNowRecord.lenderUpi || "") +
         "&pn=" + encodeURIComponent(activePayNowRecord.lenderName || "Friend") +
-        "&am=" + amount.toFixed(2) +
         "&cu=INR&tn=" + encodeURIComponent("PayMeLater: " + (activePayNowRecord.note || "Dues"));
 
       if (launchLink) {
-        launchLink.href = upiUrl;
+        launchLink.href = upiDeepLink;
       }
       if (launchBtnText) {
-        launchBtnText.textContent = "Open UPI App (Pay ₹" + amount + ")";
+        launchBtnText.textContent = "Open in UPI App";
       }
+
+      // 2. QR Code URI: WITH AMOUNT PRESET!
+      const upiQrUri = "upi://pay?pa=" + encodeURIComponent(activePayNowRecord.lenderUpi || "") +
+        "&pn=" + encodeURIComponent(activePayNowRecord.lenderName || "Friend") +
+        "&am=" + (amount > 0 ? amount.toFixed(2) : "0.00") +
+        "&cu=INR&tn=" + encodeURIComponent("PayMeLater: " + (activePayNowRecord.note || "Dues"));
+
+      renderPayNowQrCode(upiQrUri);
     }
 
     function handleLaunchUpiApp() {
@@ -10602,6 +10680,7 @@
     }
 
     function setPayLaterFilter(filter) {
+      hasUserManuallySelectedPayLaterFilter = true;
       payLaterActiveFilter = (filter === "i_owe") ? "i_owe" : "owed_to_me";
       renderPayLaterUI();
     }
@@ -10696,8 +10775,24 @@
 
         const netBalance = totalOwedToMe - totalIOwe;
 
-        if (payLaterActiveFilter !== "i_owe") {
-          payLaterActiveFilter = "owed_to_me";
+        // Auto-select tab with active dues when opening section or if current tab is empty
+        if (!hasUserManuallySelectedPayLaterFilter) {
+          if (countOwedToMe === 0 && countIOwe > 0) {
+            payLaterActiveFilter = "i_owe";
+          } else if (countOwedToMe > 0 && countIOwe === 0) {
+            payLaterActiveFilter = "owed_to_me";
+          } else {
+            payLaterActiveFilter = "owed_to_me";
+          }
+        } else {
+          // If the manually selected tab is now empty, switch to the other if it has active dues
+          if (payLaterActiveFilter === "owed_to_me" && countOwedToMe === 0 && countIOwe > 0) {
+            payLaterActiveFilter = "i_owe";
+          } else if (payLaterActiveFilter === "i_owe" && countIOwe === 0 && countOwedToMe > 0) {
+            payLaterActiveFilter = "owed_to_me";
+          } else if (payLaterActiveFilter !== "i_owe") {
+            payLaterActiveFilter = "owed_to_me";
+          }
         }
 
         // Filter dues list - STRICT PRIVACY: ONLY visible to the one who gave (lender) and the one who took (borrower)
@@ -11857,9 +11952,13 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         }
       } catch (e) { }
 
+      hasUserManuallySelectedPayLaterFilter = false;
       updateUserProfileBtn();
       renderLiveStatusBanner();
       closeUserIdentityModal(false);
+      if (activeTab === "paylater") {
+        renderPayLaterUI();
+      }
       if (!getUserMess()) {
         setTimeout(openMessSelectorModal, 450);
       }
