@@ -1105,24 +1105,41 @@
     <!-- ===================================================================== -->
     <!-- USER IDENTITY ONBOARDING MODAL ("WHO ARE YOU?")                       -->
     <!-- ===================================================================== -->
-    <div id="userIdentityModal"
-      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+    <div id="userIdentityModal" onclick="handleIdentityBackdropClick(event)"
+      class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
       role="dialog" aria-modal="true" aria-labelledby="userIdentityModalTitle">
-      <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md shadow-2xl p-4 sm:p-5 space-y-3.5 my-auto animate-in fade-in zoom-in-95 duration-150">
+      <div id="userIdentityModalContent"
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md shadow-2xl p-4 sm:p-5 space-y-3.5 my-auto animate-in fade-in zoom-in-95 duration-150 transition-all">
         
         <!-- Header -->
-        <div class="text-center space-y-1">
+        <div class="text-center space-y-1 relative">
+          <!-- Close button ONLY available when user already has an existing profile and is just switching -->
+          <button id="identityModalCloseBtn" onclick="closeUserIdentityModal(false)" aria-label="Close Modal" title="Close"
+            class="hidden absolute right-0 top-0 w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition active:scale-95">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+
           <div
             class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white text-xl shadow-md mx-auto">
             👋
           </div>
+
+          <div id="identityModalBadge" class="pt-0.5">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300/80 dark:border-amber-800">
+              <i class="fa-solid fa-lock text-[9px]"></i> Required Setup
+            </span>
+          </div>
+
           <h3 id="userIdentityModalTitle" class="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100">
             Who are you?
           </h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-            Select your profile to personalize Campus Saathi. Stored locally on this device.
+          <p id="userIdentityModalDesc" class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+            Select your profile or enter your custom name below. Name setup is mandatory to access Campus Saathi.
           </p>
+
+          <div id="identityMandatoryNotice" class="hidden text-[11px] font-bold text-rose-600 dark:text-rose-400 pt-1">
+            <i class="fa-solid fa-circle-exclamation mr-1"></i>Please choose or enter a name to continue
+          </div>
         </div>
 
         <!-- Search Bar -->
@@ -1147,22 +1164,24 @@
           </label>
           <div class="flex items-center gap-1.5">
             <input type="text" id="customIdentityNameInput" placeholder="e.g. Rahul Sharma"
-              class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue" />
+              onkeydown="if(event.key==='Enter') saveCustomUserIdentity()"
+              class="flex-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue transition" />
             <button onclick="saveCustomUserIdentity()"
-              class="px-3.5 py-1.5 rounded-xl bg-brandBlue hover:bg-brandBlueHover text-white text-xs font-bold transition shadow-xs">
-              Save
+              class="px-3.5 py-2 rounded-xl bg-brandBlue hover:bg-brandBlueHover text-white text-xs font-bold transition shadow-xs shrink-0 flex items-center gap-1.5 active:scale-95">
+              <span>Continue</span>
+              <i class="fa-solid fa-arrow-right text-[10px]"></i>
             </button>
           </div>
         </div>
 
-        <!-- Footer / Skip Option -->
+        <!-- Footer / Security Note -->
         <div class="flex items-center justify-between pt-1 text-[11px]">
           <span class="text-slate-400 dark:text-slate-500">
-            <i class="fa-solid fa-lock text-[10px] mr-1"></i>Saved locally
+            <i class="fa-solid fa-shield-halved text-[10px] mr-1"></i>Saved locally on your device
           </span>
-          <button onclick="closeUserIdentityModal(true)"
-            class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold transition px-2 py-1">
-            Skip for now
+          <button id="identityCancelBtn" onclick="closeUserIdentityModal(false)"
+            class="hidden text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold transition px-2 py-1">
+            Cancel
           </button>
         </div>
 
@@ -6362,6 +6381,10 @@
      * ========================================================================
      */
     function switchTab(tabId) {
+      if (!getUserIdentity()) {
+        openUserIdentityModal(true);
+        return;
+      }
       if (typeof trackSectionUsage === "function") {
         trackSectionUsage(tabId);
       }
@@ -9646,6 +9669,10 @@
     }
 
     function openParcelRequestModal() {
+      if (!getUserIdentity()) {
+        openUserIdentityModal(true);
+        return;
+      }
       const modal = document.getElementById("parcelRequestModal");
       if (!modal) return;
 
@@ -10428,6 +10455,10 @@
     }
 
     function openPayLaterModal() {
+      if (!getUserIdentity()) {
+        openUserIdentityModal(true);
+        return;
+      }
       const modal = document.getElementById("payLaterModal");
       if (!modal) return;
 
@@ -12090,25 +12121,88 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       renderIdentityStudentsList(val);
     }
 
-    function openUserIdentityModal() {
+    function highlightIdentityRequirement() {
+      const modalContent = document.getElementById("userIdentityModalContent");
+      const notice = document.getElementById("identityMandatoryNotice");
+      if (notice) {
+        notice.classList.remove("hidden");
+        notice.classList.add("animate-pulse");
+        setTimeout(() => { if (notice) notice.classList.remove("animate-pulse"); }, 1200);
+      }
+      if (modalContent) {
+        modalContent.classList.add("ring-2", "ring-rose-500", "scale-[1.01]");
+        setTimeout(() => {
+          if (modalContent) modalContent.classList.remove("ring-2", "ring-rose-500", "scale-[1.01]");
+        }, 300);
+      }
+      const toast = document.getElementById("reviewToast");
+      const toastMsg = document.getElementById("reviewToastMsg");
+      if (toast && toastMsg) {
+        toastMsg.textContent = "Name setup is mandatory to access Campus Saathi!";
+        toast.classList.remove("hidden");
+        setTimeout(() => { if (toast) toast.classList.add("hidden"); }, 2500);
+      }
+    }
+
+    function handleIdentityBackdropClick(event) {
+      if (event && event.target && event.target.id === "userIdentityModal") {
+        const existing = getUserIdentity();
+        if (!existing) {
+          highlightIdentityRequirement();
+          return;
+        }
+        closeUserIdentityModal(false);
+      }
+    }
+
+    function openUserIdentityModal(isMandatory = false) {
       const modal = document.getElementById("userIdentityModal");
       if (!modal) return;
+      const existing = getUserIdentity();
+      const isRequired = isMandatory || !existing;
+
       renderIdentityStudentsList("");
       const searchInput = document.getElementById("identitySearchInput");
       if (searchInput) searchInput.value = "";
       const customInput = document.getElementById("customIdentityNameInput");
       if (customInput) customInput.value = "";
+
+      const titleEl = document.getElementById("userIdentityModalTitle");
+      const descEl = document.getElementById("userIdentityModalDesc");
+      const badgeEl = document.getElementById("identityModalBadge");
+      const closeBtn = document.getElementById("identityModalCloseBtn");
+      const cancelBtn = document.getElementById("identityCancelBtn");
+      const noticeEl = document.getElementById("identityMandatoryNotice");
+
+      if (noticeEl) noticeEl.classList.add("hidden");
+
+      if (isRequired) {
+        if (badgeEl) badgeEl.classList.remove("hidden");
+        if (titleEl) titleEl.textContent = "Who are you?";
+        if (descEl) descEl.textContent = "Select your profile or enter your custom name below. Name setup is mandatory to access Campus Saathi.";
+        if (closeBtn) closeBtn.classList.add("hidden");
+        if (cancelBtn) cancelBtn.classList.add("hidden");
+      } else {
+        if (badgeEl) badgeEl.classList.add("hidden");
+        if (titleEl) titleEl.textContent = "Switch Profile";
+        if (descEl) descEl.textContent = "Select another profile or enter a new custom name.";
+        if (closeBtn) closeBtn.classList.remove("hidden");
+        if (cancelBtn) cancelBtn.classList.remove("hidden");
+      }
+
+      document.body.classList.add("overflow-hidden");
       modal.classList.remove("hidden");
     }
 
-    function closeUserIdentityModal(isSkip = false) {
+    function closeUserIdentityModal(force = false) {
+      const existing = getUserIdentity();
+      if (!existing && !force) {
+        highlightIdentityRequirement();
+        return;
+      }
       const modal = document.getElementById("userIdentityModal");
       if (modal) modal.classList.add("hidden");
-      if (isSkip) {
-        try {
-          localStorage.setItem("vitb_identity_prompt_shown", "true");
-        } catch (e) { }
-      }
+      document.body.classList.remove("overflow-hidden");
     }
 
     function selectSquadUserIdentity(studentId) {
@@ -12128,8 +12222,14 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     function saveCustomUserIdentity() {
       const input = document.getElementById("customIdentityNameInput");
       const name = (input ? input.value : "").trim();
-      if (!name) {
-        alert("Please enter your name!");
+      if (!name || name.length < 2) {
+        const notice = document.getElementById("identityMandatoryNotice");
+        if (notice) {
+          notice.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1"></i>Please enter a valid name (at least 2 letters)!';
+          notice.classList.remove("hidden");
+        }
+        if (input) input.focus();
+        highlightIdentityRequirement();
         return;
       }
       const data = {
@@ -12161,7 +12261,8 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       }
       updateUserProfileBtn();
       renderLiveStatusBanner();
-      closeUserIdentityModal(false);
+      closeUserIdentityModal(true); // Force close since identity is now safely set!
+
       if (activeTab === "paylater") {
         renderPayLaterUI();
       }
@@ -12191,13 +12292,27 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     function checkUserIdentityPrompt() {
       updateUserProfileBtn();
       const existing = getUserIdentity();
-      const promptShown = localStorage.getItem("vitb_identity_prompt_shown");
-      if (!existing && !promptShown) {
-        // First time opening the app!
-        setTimeout(() => {
-          openUserIdentityModal();
-        }, 400);
+      if (!existing) {
+        // MANDATORY: Block and show modal immediately!
+        openUserIdentityModal(true);
       }
+    }
+
+    // Global listener: prevent closing via Escape key if no identity is set
+    if (typeof window !== "undefined") {
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          const modal = document.getElementById("userIdentityModal");
+          if (modal && !modal.classList.contains("hidden")) {
+            if (!getUserIdentity()) {
+              highlightIdentityRequirement();
+              e.preventDefault();
+              return;
+            }
+            closeUserIdentityModal(false);
+          }
+        }
+      });
     }
 
     /**
@@ -12879,6 +12994,10 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         applyRoute();
       } catch (e) {
         console.warn("Fast UI mount notice:", e);
+      }
+      // Mandatory Setup Check: if identity is not set, restrict access immediately
+      if (!getUserIdentity()) {
+        openUserIdentityModal(true);
       }
     }
 
