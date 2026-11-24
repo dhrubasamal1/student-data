@@ -858,13 +858,10 @@
               <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
                 Who took money from you? *
               </label>
-              <select id="payLaterBorrowerSelect" onchange="handleBorrowerSelectChange()"
+              <select id="payLaterBorrowerSelect"
                 class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-emerald-500">
                 <option value="">-- Choose a friend --</option>
               </select>
-              <!-- Custom borrower name input (hidden unless "Other" selected) -->
-              <input type="text" id="payLaterCustomBorrowerInput" placeholder="Enter friend's full name..."
-                class="hidden mt-2 w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-emerald-500" />
             </div>
 
             <!-- Amount -->
@@ -1286,11 +1283,11 @@
             Who are you?
           </h3>
           <p id="userIdentityModalDesc" class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-            Select your profile or enter your custom name below. Name setup is mandatory to access Campus Saathi.
+            Select your verified squad profile below. Access is restricted to preset students.
           </p>
 
           <div id="identityMandatoryNotice" class="hidden text-[11px] font-bold text-rose-600 dark:text-rose-400 pt-1">
-            <i class="fa-solid fa-circle-exclamation mr-1"></i>Please choose or enter a name to continue
+            <i class="fa-solid fa-circle-exclamation mr-1"></i>Please choose your name from the squad list to continue
           </div>
         </div>
 
@@ -1305,25 +1302,14 @@
         </div>
 
         <!-- Squad Grid -->
-        <div id="identityStudentsGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-56 overflow-y-auto no-scrollbar py-0.5">
+        <div id="identityStudentsGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto no-scrollbar py-0.5">
           <!-- Populated by JS -->
         </div>
 
-        <!-- Custom Name Input Option -->
-        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-            Not in the list? Enter custom name:
-          </label>
-          <div class="flex items-center gap-1.5">
-            <input type="text" id="customIdentityNameInput" placeholder="e.g. Rahul Sharma"
-              onkeydown="if(event.key==='Enter') saveCustomUserIdentity()"
-              class="flex-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue transition" />
-            <button onclick="saveCustomUserIdentity()"
-              class="px-3.5 py-2 rounded-xl bg-brandBlue hover:bg-brandBlueHover text-white text-xs font-bold transition shadow-xs shrink-0 flex items-center gap-1.5 active:scale-95">
-              <span>Continue</span>
-              <i class="fa-solid fa-arrow-right text-[10px]"></i>
-            </button>
-          </div>
+        <!-- Squad Only Notice -->
+        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
+          <i class="fa-solid fa-shield-halved text-brandBlue text-[10px]"></i>
+          <span>Only verified preset students can access Campus Saathi</span>
         </div>
 
         <!-- Footer / Security Note -->
@@ -11193,8 +11179,7 @@
           sortedSquad.map(s => {
             const isSelf = myId && s.id.toLowerCase() === myId;
             return '<option value="' + s.id + '" data-name="' + s.name + '" ' + (isSelf ? "disabled" : "") + '>' + s.name + (isSelf ? " (You)" : "") + '</option>';
-          }).join("") +
-          '<option value="__custom__">➕ Other / Custom Friend Name...</option>';
+          }).join("");
       }
 
       const amountInput = document.getElementById("payLaterAmountInput");
@@ -11205,11 +11190,6 @@
       if (multiPerInput) multiPerInput.value = "";
       const noteInput = document.getElementById("payLaterNoteInput");
       if (noteInput) noteInput.value = "";
-      const customBorrowerInput = document.getElementById("payLaterCustomBorrowerInput");
-      if (customBorrowerInput) {
-        customBorrowerInput.value = "";
-        customBorrowerInput.classList.add("hidden");
-      }
 
       const upiInput = document.getElementById("payLaterUpiInput");
       if (upiInput) {
@@ -11227,15 +11207,7 @@
     }
 
     function handleBorrowerSelectChange() {
-      const select = document.getElementById("payLaterBorrowerSelect");
-      const customInput = document.getElementById("payLaterCustomBorrowerInput");
-      if (!select || !customInput) return;
-      if (select.value === "__custom__") {
-        customInput.classList.remove("hidden");
-        customInput.focus();
-      } else {
-        customInput.classList.add("hidden");
-      }
+      // Only preset squad members allowed
     }
 
     function setQuickPayLaterAmount(val) {
@@ -11270,16 +11242,12 @@
 
       if (payLaterEntryMode === "single") {
         const borrowerSelect = document.getElementById("payLaterBorrowerSelect");
-        const customBorrowerInput = document.getElementById("payLaterCustomBorrowerInput");
         const amountInput = document.getElementById("payLaterAmountInput");
 
         let borrowerId = "";
         let borrowerName = "";
 
-        if (borrowerSelect && borrowerSelect.value === "__custom__") {
-          borrowerName = customBorrowerInput ? customBorrowerInput.value.trim() : "";
-          borrowerId = borrowerName.toLowerCase().replace(/\s+/g, "_");
-        } else if (borrowerSelect && borrowerSelect.value) {
+        if (borrowerSelect && borrowerSelect.value) {
           borrowerId = borrowerSelect.value;
           const selectedOpt = borrowerSelect.options[borrowerSelect.selectedIndex];
           borrowerName = selectedOpt ? selectedOpt.getAttribute("data-name") || selectedOpt.text : borrowerId;
@@ -12113,8 +12081,8 @@
                         </button>
                       ` : ''}
 
-                      <!-- Pay Now (UPI) Button -->
-                      ${!isPaid ? `
+                      <!-- Pay Now (UPI) Button (Only for Borrower who owes money) -->
+                      ${!isLender && !isPaid ? `
                         <button onclick="openPayNowModal('${item.id}')"
                           class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
                           title="Preset amount & launch UPI app">
@@ -12881,7 +12849,22 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     function getUserIdentity() {
       try {
         const raw = localStorage.getItem("vitb_user_identity") || localStorage.getItem("campus_user_identity");
-        return raw ? JSON.parse(raw) : null;
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.id || !parsed.name) return null;
+        // Strictly enforce: ONLY preset squad students from FRIENDS_DATA are allowed!
+        if (typeof FRIENDS_DATA !== "undefined" && Array.isArray(FRIENDS_DATA)) {
+          const isPreset = FRIENDS_DATA.some(s => s.id.toLowerCase() === parsed.id.toLowerCase() || s.name.toLowerCase() === parsed.name.toLowerCase());
+          if (!isPreset) {
+            // Invalidate legacy or custom names
+            localStorage.removeItem("vitb_user_identity");
+            localStorage.removeItem("campus_user_identity");
+            localStorage.removeItem("vitb_user_name");
+            localStorage.removeItem("vitb_user_id");
+            return null;
+          }
+        }
+        return parsed;
       } catch (e) {
         return null;
       }
@@ -12910,8 +12893,8 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
       if (filtered.length === 0) {
         grid.innerHTML = `
-          <div class="col-span-full py-4 text-center text-xs text-slate-400 dark:text-slate-500">
-            No squad member matched "${filterQuery}". Use the custom name box below!
+          <div class="col-span-full py-6 text-center text-xs text-slate-400 dark:text-slate-500">
+            No verified student matches "${filterQuery}". Only preset squad members are authorized.
           </div>
         `;
         return;
@@ -12981,8 +12964,6 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       renderIdentityStudentsList("");
       const searchInput = document.getElementById("identitySearchInput");
       if (searchInput) searchInput.value = "";
-      const customInput = document.getElementById("customIdentityNameInput");
-      if (customInput) customInput.value = "";
 
       const titleEl = document.getElementById("userIdentityModalTitle");
       const descEl = document.getElementById("userIdentityModalDesc");
@@ -12996,13 +12977,13 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       if (isRequired) {
         if (badgeEl) badgeEl.classList.remove("hidden");
         if (titleEl) titleEl.textContent = "Who are you?";
-        if (descEl) descEl.textContent = "Select your profile or enter your custom name below. Name setup is mandatory to access Campus Saathi.";
+        if (descEl) descEl.textContent = "Select your verified squad profile below. Access is restricted to preset students.";
         if (closeBtn) closeBtn.classList.add("hidden");
         if (cancelBtn) cancelBtn.classList.add("hidden");
       } else {
         if (badgeEl) badgeEl.classList.add("hidden");
         if (titleEl) titleEl.textContent = "Switch Profile";
-        if (descEl) descEl.textContent = "Select another profile or enter a new custom name.";
+        if (descEl) descEl.textContent = "Select another verified squad profile from the list.";
         if (closeBtn) closeBtn.classList.remove("hidden");
         if (cancelBtn) cancelBtn.classList.remove("hidden");
       }
@@ -13037,30 +13018,16 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     }
 
     function saveCustomUserIdentity() {
-      const input = document.getElementById("customIdentityNameInput");
-      const name = (input ? input.value : "").trim();
-      if (!name || name.length < 2) {
-        const notice = document.getElementById("identityMandatoryNotice");
-        if (notice) {
-          notice.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1"></i>Please enter a valid name (at least 2 letters)!';
-          notice.classList.remove("hidden");
-        }
-        if (input) input.focus();
-        highlightIdentityRequirement();
-        return;
-      }
-      const data = {
-        id: "custom_" + name.toLowerCase().replace(/[^a-z0-9]/g, "_"),
-        name: name,
-        color: "blue",
-        avatarBg: "from-blue-500 to-indigo-600",
-        isSquadMember: false,
-        savedAt: new Date().toISOString()
-      };
-      saveUserIdentityData(data);
+      alert("Custom names are disabled. Only preset squad students can access Campus Saathi.");
     }
 
     function saveUserIdentityData(identity) {
+      if (!identity || !identity.id) return;
+      const isPreset = FRIENDS_DATA.some(s => s.id.toLowerCase() === identity.id.toLowerCase() || s.name.toLowerCase() === identity.name.toLowerCase());
+      if (!isPreset) {
+        alert("Access restricted. Only preset squad students are allowed.");
+        return;
+      }
       try {
         localStorage.setItem("vitb_user_identity", JSON.stringify(identity));
         localStorage.setItem("campus_user_identity", JSON.stringify(identity));
@@ -13694,22 +13661,24 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
     async function manuallyAddAuthorizedDevice() {
       const idInput = document.getElementById("adminAddDeviceIdInput");
-      const nameInput = document.getElementById("adminAddDeviceNameInput");
+      const nameSelect = document.getElementById("adminAddDeviceNameInput");
       const deviceId = (idInput ? idInput.value : "").trim();
-      const studentName = (nameInput ? nameInput.value : "").trim();
+      const studentId = (nameSelect ? nameSelect.value : "").trim();
+      const selectedOpt = nameSelect && nameSelect.selectedIndex >= 0 ? nameSelect.options[nameSelect.selectedIndex] : null;
+      const studentName = selectedOpt ? selectedOpt.getAttribute("data-name") || selectedOpt.text : studentId;
 
       if (!deviceId) {
         alert("Please enter a valid Device ID.");
         return;
       }
-      if (!studentName) {
-        alert("Please enter or select a Student Name.");
+      if (!studentId) {
+        alert("Please select a preset student name from the list.");
         return;
       }
 
-      await approveBlockedDevice(deviceId, studentName, studentName.toLowerCase().replace(/[^a-z0-9]/g, ""));
+      await approveBlockedDevice(deviceId, studentName, studentId);
       if (idInput) idInput.value = "";
-      if (nameInput) nameInput.value = "";
+      if (nameSelect) nameSelect.value = "";
     }
 
     // High-Privilege Admin Purge Engine for Dhruba & Ajay
@@ -14540,8 +14509,11 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input type="text" id="adminAddDeviceIdInput" placeholder="Device ID (e.g. dev_a1b2c3...)"
                   class="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue transition" />
-                <input type="text" id="adminAddDeviceNameInput" placeholder="Student Name (e.g. Khushal)"
-                  class="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue transition" />
+                <select id="adminAddDeviceNameInput"
+                  class="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:border-brandBlue transition">
+                  <option value="">-- Choose Preset Student --</option>
+                  ${[...FRIENDS_DATA].sort((a,b)=>a.name.localeCompare(b.name)).map(s => `<option value="${s.id}" data-name="${s.name}">${s.name} (${s.id})</option>`).join('')}
+                </select>
               </div>
               <button onclick="manuallyAddAuthorizedDevice()"
                 class="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5">
