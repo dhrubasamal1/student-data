@@ -1388,6 +1388,78 @@
       </div>
     </div>
 
+    <!-- ===================================================================== -->
+    <!-- DEVICE ACCESS RESTRICTED MODAL (FIREBASE GATEKEEPER)                   -->
+    <!-- ===================================================================== -->
+    <div id="deviceAccessRestrictedModal"
+      class="hidden fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+      role="dialog" aria-modal="true" aria-labelledby="deviceAccessRestrictedTitle">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md shadow-2xl p-5 sm:p-6 space-y-4 my-auto animate-in fade-in zoom-in-95 duration-150 text-center">
+        
+        <!-- Icon & Status Badge -->
+        <div class="relative w-16 h-16 rounded-3xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center text-2xl mx-auto shadow-inner">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center font-black">
+            <i class="fa-solid fa-lock text-[8px]"></i>
+          </span>
+        </div>
+
+        <div class="space-y-1">
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50">
+            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span> Access Restricted
+          </div>
+          <h3 id="deviceAccessRestrictedTitle" class="text-lg font-black text-slate-900 dark:text-white pt-1">
+            Device Verification Required
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
+            Campus Saathi database access is currently restricted to authorized devices. New device registration is locked by the admin (Dhruba).
+          </p>
+        </div>
+
+        <!-- Device ID Box -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/70 text-left space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              Your Device ID
+            </span>
+            <span id="restrictedCopySuccess" class="hidden text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+              <i class="fa-solid fa-check mr-0.5"></i> Copied!
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <code id="restrictedDeviceIdText" class="flex-1 font-mono text-xs font-bold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-900 py-1.5 px-2.5 rounded-xl border border-slate-200 dark:border-slate-700 truncate select-all">
+              dev_loading...
+            </code>
+            <button onclick="copyRestrictedDeviceId()" aria-label="Copy Device ID"
+              class="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold transition active:scale-95 shrink-0 flex items-center gap-1">
+              <i class="fa-regular fa-copy text-xs"></i>
+              <span>Copy</span>
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-400 dark:text-slate-500 leading-normal">
+            Share this Device ID with Dhruba to get approved, or ask him to turn ON registration in his Admin Panel.
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-2 pt-1">
+          <button onclick="retryDeviceAuthorization()" id="restrictedRetryBtn"
+            class="w-full py-2.5 px-4 rounded-xl bg-brandBlue hover:bg-brandBlueHover text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-2 active:scale-98">
+            <i class="fa-solid fa-arrows-rotate text-xs"></i>
+            <span>Check Again / Retry</span>
+          </button>
+
+          <button onclick="promptAdminPasscodeUnlock()"
+            class="w-full py-2 px-3 rounded-xl bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-key text-[10px]"></i>
+            <span>Admin Unlock (Passcode)</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
     <!-- Review Success / Info Toast -->
     <div id="reviewToast"
       class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-lg border border-slate-700 text-xs font-bold flex items-center gap-2 pointer-events-none transition-all">
@@ -8830,6 +8902,7 @@
     }
 
     function initFirebaseReviews() {
+      if (typeof isCurrentDeviceAuthorized === "function" && !isCurrentDeviceAuthorized()) return;
       if (isFirebaseReviewsListenerActive) return;
 
       const firestore = getDb();
@@ -9186,6 +9259,11 @@
 
       if (!currentReview.lateEntry) {
         alert("Please select whether late class entry is allowed or not.");
+        return;
+      }
+
+      if (typeof isCurrentDeviceAuthorized === "function" && !isCurrentDeviceAuthorized()) {
+        if (typeof showDeviceAccessRestrictedModal === "function") showDeviceAccessRestrictedModal();
         return;
       }
 
@@ -9816,6 +9894,7 @@
     let parcelUsingFallback = false;
 
     function initFirebaseParcelRequests() {
+      if (typeof isCurrentDeviceAuthorized === "function" && !isCurrentDeviceAuthorized()) return;
       if (isFirebaseParcelListenerActive) return;
       const firestore = getDb();
       if (!firestore) return;
@@ -10005,6 +10084,11 @@
 
       if (!requesterName) {
         alert("Please select your name.");
+        return;
+      }
+
+      if (typeof isCurrentDeviceAuthorized === "function" && !isCurrentDeviceAuthorized()) {
+        if (typeof showDeviceAccessRestrictedModal === "function") showDeviceAccessRestrictedModal();
         return;
       }
 
@@ -10625,6 +10709,7 @@
     const PAY_ME_LATER_DOC_PATH = { collection: "teacher_reviews", doc: "pay_me_later_records" };
 
     function initFirebasePayLaterRequests() {
+      if (typeof isCurrentDeviceAuthorized === "function" && !isCurrentDeviceAuthorized()) return;
       if (isFirebasePayLaterListenerActive) return;
       const firestore = getDb();
       if (!firestore) return;
@@ -10687,13 +10772,19 @@
         localStorage.setItem("vitb_pay_me_later", JSON.stringify(recordsList));
       } catch (e) { }
 
+      if (typeof isCurrentDeviceAuthorized === "function" && !isCurrentDeviceAuthorized()) {
+        if (typeof showDeviceAccessRestrictedModal === "function") showDeviceAccessRestrictedModal();
+        return false;
+      }
+
       const firestore = getDb();
       if (!firestore) return false;
 
       try {
         await firestore.collection(PAY_ME_LATER_DOC_PATH.collection).doc(PAY_ME_LATER_DOC_PATH.doc).set({
           records: recordsList,
-          updatedAt: Date.now()
+          updatedAt: Date.now(),
+          deviceId: (typeof getOrCreateDeviceId === "function") ? getOrCreateDeviceId() : "dev_anon"
         }, { merge: true });
         return true;
       } catch (err) {
@@ -11894,14 +11985,6 @@
                       ${isLender && !isPaid ? `
                         <button onclick="sendPayLaterReminderWhatsApp('${item.id}')"
                           class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 hover:text-emerald-600 text-[11px] font-bold transition flex items-center gap-1">
-                          <i class="fa-brands fa-whatsapp text-emerald-500 text-xs"></i>
-                          <span>Remind</span>
-                        </button>
-                      ` : ''}
-
-                      <!-- Pay Now (UPI) Button -->
-                      ${!isPaid ? `
-                        <button onclick="openPayNowModal('${item.id}')"
                           class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
                           title="Preset amount & launch UPI app">
                           <i class="fa-solid fa-bolt text-amber-300 text-[10px]"></i>
@@ -12866,6 +12949,10 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       renderLiveStatusBanner();
       closeUserIdentityModal(true); // Force close since identity is now safely set!
 
+      if (typeof checkDeviceAccessAuthorization === "function") {
+        checkDeviceAccessAuthorization();
+      }
+
       if (activeTab === "paylater") {
         renderPayLaterUI();
       }
@@ -12982,6 +13069,25 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       }
     }
 
+    /**
+     * ========================================================================
+     * 14B. DEVICE ACCESS & FIREBASE AUTHORIZATION GATEWAY
+     * ========================================================================
+     */
+    const DEVICE_CONFIG_DOC_PATH = { collection: "teacher_reviews", doc: "device_access_config" };
+    const DEVICE_REGISTRY_DOC_PATH = { collection: "teacher_reviews", doc: "authorized_devices" };
+    const DEVICE_LOGS_DOC_PATH = { collection: "teacher_reviews", doc: "device_access_logs" };
+
+    let cachedDeviceConfig = null;
+    let cachedAuthorizedDevices = null;
+    let cachedDeviceLogs = null;
+    let isDeviceAuthChecking = false;
+    let userTrackerActiveView = "analytics"; // 'analytics' or 'security'
+    let deviceSecuritySearchQuery = "";
+    let lastLoggedBlockedDeviceId = "";
+    let lastLoggedBlockedAttemptTime = 0;
+    let lastDeviceSeenUpdateTime = 0;
+
     function getOrCreateDeviceId() {
       let id = "";
       try {
@@ -12994,6 +13100,409 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         id = "dev_anon";
       }
       return id;
+    }
+
+    function isCurrentDeviceAuthorized() {
+      if (isCurrentUserDhruba()) return true;
+      try {
+        return localStorage.getItem("vitb_device_authorized") === "true";
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function showDeviceAccessRestrictedModal() {
+      const modal = document.getElementById("deviceAccessRestrictedModal");
+      if (!modal) return;
+      const deviceIdText = document.getElementById("restrictedDeviceIdText");
+      if (deviceIdText) {
+        deviceIdText.textContent = getOrCreateDeviceId();
+      }
+      modal.classList.remove("hidden");
+      document.body.classList.add("overflow-hidden");
+    }
+
+    function hideDeviceAccessRestrictedModal() {
+      const modal = document.getElementById("deviceAccessRestrictedModal");
+      if (modal) {
+        modal.classList.add("hidden");
+        document.body.classList.remove("overflow-hidden");
+      }
+    }
+
+    function copyRestrictedDeviceId() {
+      const deviceId = getOrCreateDeviceId();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(deviceId).then(() => {
+          const success = document.getElementById("restrictedCopySuccess");
+          if (success) {
+            success.classList.remove("hidden");
+            setTimeout(() => { success.classList.add("hidden"); }, 2500);
+          }
+        }).catch(() => {
+          prompt("Copy your Device ID:", deviceId);
+        });
+      } else {
+        prompt("Copy your Device ID:", deviceId);
+      }
+    }
+
+    async function retryDeviceAuthorization() {
+      const btn = document.getElementById("restrictedRetryBtn");
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Checking Authorization...</span>`;
+      }
+      try {
+        const isAuth = await checkDeviceAccessAuthorization(true);
+        if (isAuth) {
+          showReviewToast("✅ Device verified and access granted! Welcome.");
+        } else {
+          showReviewToast("🔒 Device still restricted. Ask Dhruba to open registration or approve your device ID.");
+        }
+      } catch (e) {
+        showReviewToast("Error checking device: " + (e.message || "Network error"));
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-arrows-rotate text-xs"></i> <span>Check Again / Retry</span>`;
+        }
+      }
+    }
+
+    async function promptAdminPasscodeUnlock() {
+      const pass = prompt("Enter Dhruba Admin Passcode to unlock this device:");
+      if (!pass) return;
+      if (pass.trim().toLowerCase() === "dhruba" || pass.trim() === "2026") {
+        sessionStorage.setItem("vitb_admin_auth", "true");
+        localStorage.setItem("vitb_device_authorized", "true");
+        hideDeviceAccessRestrictedModal();
+        showReviewToast("🔓 Admin unlocked! Registering your admin device...");
+        await autoRegisterCurrentDevice("Dhruba", "dhruba");
+        startAuthorizedFirebaseListeners();
+        openUserTrackerModal();
+      } else {
+        alert("Incorrect admin passcode.");
+      }
+    }
+
+    async function checkDeviceAccessAuthorization(force = false) {
+      if (isCurrentUserDhruba()) {
+        try { localStorage.setItem("vitb_device_authorized", "true"); } catch (e) { }
+        hideDeviceAccessRestrictedModal();
+        autoRegisterCurrentDevice("Dhruba", "dhruba").catch(() => {});
+        startAuthorizedFirebaseListeners();
+        return true;
+      }
+
+      const deviceId = getOrCreateDeviceId();
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) {
+        return isCurrentDeviceAuthorized();
+      }
+
+      try {
+        isDeviceAuthChecking = true;
+        const [cfgSnap, devSnap] = await Promise.all([
+          firestore.collection(DEVICE_CONFIG_DOC_PATH.collection).doc(DEVICE_CONFIG_DOC_PATH.doc).get(),
+          firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).get()
+        ]);
+
+        const config = (cfgSnap && cfgSnap.exists) ? (cfgSnap.data() || {}) : { registrationOpen: false };
+        const registry = (devSnap && devSnap.exists) ? (devSnap.data() || {}) : { devices: {} };
+        cachedDeviceConfig = config;
+        cachedAuthorizedDevices = registry;
+
+        const isRegistered = registry.devices && registry.devices[deviceId] && registry.devices[deviceId].status === "active";
+
+        if (isRegistered) {
+          localStorage.setItem("vitb_device_authorized", "true");
+          hideDeviceAccessRestrictedModal();
+          throttleUpdateDeviceLastSeen(deviceId);
+          startAuthorizedFirebaseListeners();
+          return true;
+        }
+
+        // Not registered. Check if registration window is OPEN
+        if (config.registrationOpen === true) {
+          const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
+          if (identity && identity.name) {
+            await autoRegisterCurrentDevice(identity.name, identity.id || identity.name.toLowerCase());
+            localStorage.setItem("vitb_device_authorized", "true");
+            hideDeviceAccessRestrictedModal();
+            showReviewToast(`✨ Device verified for ${identity.name}!`);
+            startAuthorizedFirebaseListeners();
+            return true;
+          } else {
+            openUserIdentityModal(true);
+            return false;
+          }
+        }
+
+        // Registration is LOCKED and device is not registered
+        localStorage.setItem("vitb_device_authorized", "false");
+        showDeviceAccessRestrictedModal();
+        await logBlockedDeviceAttempt().catch(() => {});
+        return false;
+      } catch (err) {
+        console.warn("Device authorization check notice:", err);
+        if (localStorage.getItem("vitb_device_authorized") === "true") {
+          hideDeviceAccessRestrictedModal();
+          startAuthorizedFirebaseListeners();
+          return true;
+        }
+        return false;
+      } finally {
+        isDeviceAuthChecking = false;
+      }
+    }
+
+    async function autoRegisterCurrentDevice(studentName, studentId) {
+      const deviceId = getOrCreateDeviceId();
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+
+      try {
+        const devRef = firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc);
+        const snap = await devRef.get();
+        const data = (snap && snap.exists) ? (snap.data() || {}) : {};
+        data.devices = data.devices || {};
+        data.devices[deviceId] = {
+          deviceId: deviceId,
+          studentId: (studentId || "student").toLowerCase().trim(),
+          studentName: (studentName || "Student").trim(),
+          registeredAt: (data.devices[deviceId] && data.devices[deviceId].registeredAt) ? data.devices[deviceId].registeredAt : Date.now(),
+          lastSeen: Date.now(),
+          userAgent: (typeof navigator !== "undefined" && navigator.userAgent) ? navigator.userAgent.slice(0, 150) : "Web",
+          status: "active"
+        };
+        await devRef.set(data, { merge: true });
+        cachedAuthorizedDevices = data;
+        localStorage.setItem("vitb_device_authorized", "true");
+      } catch (e) {
+        console.warn("Notice in autoRegisterCurrentDevice:", e);
+      }
+    }
+
+    function throttleUpdateDeviceLastSeen(deviceId) {
+      const now = Date.now();
+      if (now - lastDeviceSeenUpdateTime < 300000) return; // 5 minute throttle
+      lastDeviceSeenUpdateTime = now;
+
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+
+      try {
+        const updateObj = {};
+        updateObj[`devices.${deviceId}.lastSeen`] = now;
+        firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).update(updateObj).catch(() => {});
+      } catch (e) { }
+    }
+
+    async function logBlockedDeviceAttempt() {
+      const deviceId = getOrCreateDeviceId();
+      const now = Date.now();
+      if (deviceId === lastLoggedBlockedDeviceId && (now - lastLoggedBlockedAttemptTime < 120000)) return; // 2 minute throttle per device
+      lastLoggedBlockedDeviceId = deviceId;
+      lastLoggedBlockedAttemptTime = now;
+
+      const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
+      const studentName = (identity && identity.name) || (typeof localStorage !== "undefined" ? localStorage.getItem("vitb_user_name") : "") || "Unregistered Visitor";
+      const studentId = (identity && identity.id) || (typeof localStorage !== "undefined" ? localStorage.getItem("vitb_user_id") : "") || "unknown";
+
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+
+      try {
+        const logRef = firestore.collection(DEVICE_LOGS_DOC_PATH.collection).doc(DEVICE_LOGS_DOC_PATH.doc);
+        const snap = await logRef.get();
+        const data = (snap && snap.exists) ? (snap.data() || {}) : {};
+        data.blockedAttempts = Array.isArray(data.blockedAttempts) ? data.blockedAttempts : [];
+
+        // Remove previous attempt from this device to avoid duplicates, prepend newest
+        data.blockedAttempts = data.blockedAttempts.filter(b => b.deviceId !== deviceId);
+        data.blockedAttempts.unshift({
+          deviceId: deviceId,
+          studentId: studentId,
+          studentName: studentName,
+          timestamp: now,
+          userAgent: (typeof navigator !== "undefined" && navigator.userAgent) ? navigator.userAgent.slice(0, 150) : "Web",
+          status: "blocked"
+        });
+
+        // Cap at 50 records
+        if (data.blockedAttempts.length > 50) {
+          data.blockedAttempts = data.blockedAttempts.slice(0, 50);
+        }
+
+        await logRef.set(data, { merge: true });
+        cachedDeviceLogs = data;
+      } catch (e) {
+        console.warn("Notice in logBlockedDeviceAttempt:", e);
+      }
+    }
+
+    function startAuthorizedFirebaseListeners() {
+      if (!isCurrentDeviceAuthorized()) return;
+      if (typeof initFirebasePayLaterRequests === "function") {
+        initFirebasePayLaterRequests();
+      }
+      if (typeof initFirebaseParcelRequests === "function" && localStorage.getItem("vitb_parcel_notifications_enabled") === "true") {
+        initFirebaseParcelRequests();
+      }
+      if (typeof initFirebaseReviews === "function" && activeTab === "teacher") {
+        initFirebaseReviews();
+      }
+    }
+
+    async function toggleDeviceRegistrationSetting(openState) {
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) {
+        alert("Firestore is currently not available.");
+        return;
+      }
+
+      try {
+        const newConfig = {
+          registrationOpen: !!openState,
+          updatedAt: Date.now(),
+          updatedBy: "Dhruba"
+        };
+        await firestore.collection(DEVICE_CONFIG_DOC_PATH.collection).doc(DEVICE_CONFIG_DOC_PATH.doc).set(newConfig, { merge: true });
+        cachedDeviceConfig = newConfig;
+        showReviewToast(openState ? "🔓 Device registration is now OPEN! New devices will auto-verify." : "🔒 Device registration LOCKED! New devices are restricted.");
+        renderUserTrackerUI();
+      } catch (err) {
+        alert("Error updating registration setting: " + err.message);
+      }
+    }
+
+    async function approveBlockedDevice(deviceId, studentName, studentId) {
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+
+      try {
+        cachedAuthorizedDevices = cachedAuthorizedDevices || { devices: {} };
+        cachedAuthorizedDevices.devices = cachedAuthorizedDevices.devices || {};
+        cachedAuthorizedDevices.devices[deviceId] = {
+          deviceId: deviceId,
+          studentId: (studentId || "student").toLowerCase().trim(),
+          studentName: (studentName || "Student").trim(),
+          registeredAt: Date.now(),
+          lastSeen: Date.now(),
+          approvedBy: "Dhruba Admin",
+          status: "active"
+        };
+        await firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).set(cachedAuthorizedDevices, { merge: true });
+
+        // Remove from blocked list
+        if (cachedDeviceLogs && Array.isArray(cachedDeviceLogs.blockedAttempts)) {
+          cachedDeviceLogs.blockedAttempts = cachedDeviceLogs.blockedAttempts.filter(b => b.deviceId !== deviceId);
+          await firestore.collection(DEVICE_LOGS_DOC_PATH.collection).doc(DEVICE_LOGS_DOC_PATH.doc).set(cachedDeviceLogs, { merge: true });
+        }
+
+        showReviewToast(`✅ Device ${deviceId} approved for ${studentName}!`);
+        renderUserTrackerUI();
+      } catch (err) {
+        alert("Error approving device: " + err.message);
+      }
+    }
+
+    async function dismissBlockedDeviceAttempt(deviceId) {
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+
+      try {
+        if (cachedDeviceLogs && Array.isArray(cachedDeviceLogs.blockedAttempts)) {
+          cachedDeviceLogs.blockedAttempts = cachedDeviceLogs.blockedAttempts.filter(b => b.deviceId !== deviceId);
+          await firestore.collection(DEVICE_LOGS_DOC_PATH.collection).doc(DEVICE_LOGS_DOC_PATH.doc).set(cachedDeviceLogs, { merge: true });
+          showReviewToast("Attempt dismissed.");
+          renderUserTrackerUI();
+        }
+      } catch (e) {
+        console.warn("Dismiss notice:", e);
+      }
+    }
+
+    async function clearBlockedDeviceLogs() {
+      if (!confirm("Clear all recorded blocked connection attempts?")) return;
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+
+      try {
+        cachedDeviceLogs = { blockedAttempts: [] };
+        await firestore.collection(DEVICE_LOGS_DOC_PATH.collection).doc(DEVICE_LOGS_DOC_PATH.doc).set(cachedDeviceLogs);
+        showReviewToast("Cleared blocked connection attempts.");
+        renderUserTrackerUI();
+      } catch (e) {
+        alert("Error clearing logs: " + e.message);
+      }
+    }
+
+    async function revokeAuthorizedDevice(deviceId) {
+      if (!confirm(`Are you sure you want to revoke access for device "${deviceId}"? This device will be blocked from accessing the database.`)) {
+        return;
+      }
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+
+      try {
+        if (cachedAuthorizedDevices && cachedAuthorizedDevices.devices && cachedAuthorizedDevices.devices[deviceId]) {
+          delete cachedAuthorizedDevices.devices[deviceId];
+          await firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).set(cachedAuthorizedDevices);
+          showReviewToast(`🚫 Access revoked for device ${deviceId}`);
+          renderUserTrackerUI();
+        }
+      } catch (err) {
+        alert("Error revoking device: " + err.message);
+      }
+    }
+
+    async function manuallyAddAuthorizedDevice() {
+      const idInput = document.getElementById("adminAddDeviceIdInput");
+      const nameInput = document.getElementById("adminAddDeviceNameInput");
+      const deviceId = (idInput ? idInput.value : "").trim();
+      const studentName = (nameInput ? nameInput.value : "").trim();
+
+      if (!deviceId) {
+        alert("Please enter a valid Device ID.");
+        return;
+      }
+      if (!studentName) {
+        alert("Please enter or select a Student Name.");
+        return;
+      }
+
+      await approveBlockedDevice(deviceId, studentName, studentName.toLowerCase().replace(/[^a-z0-9]/g, ""));
+      if (idInput) idInput.value = "";
+      if (nameInput) nameInput.value = "";
+    }
+
+    function setUserTrackerView(view) {
+      userTrackerActiveView = view;
+      renderUserTrackerUI();
+    }
+
+    function handleDeviceSecuritySearch(q) {
+      deviceSecuritySearchQuery = (q || "").trim().toLowerCase();
+      renderUserTrackerUI();
+    }
+
+    async function refreshDeviceSecurityData() {
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+      try {
+        const [cfgSnap, devSnap, logSnap] = await Promise.all([
+          firestore.collection(DEVICE_CONFIG_DOC_PATH.collection).doc(DEVICE_CONFIG_DOC_PATH.doc).get(),
+          firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).get(),
+          firestore.collection(DEVICE_LOGS_DOC_PATH.collection).doc(DEVICE_LOGS_DOC_PATH.doc).get()
+        ]);
+        cachedDeviceConfig = (cfgSnap && cfgSnap.exists) ? (cfgSnap.data() || {}) : { registrationOpen: false };
+        cachedAuthorizedDevices = (devSnap && devSnap.exists) ? (devSnap.data() || {}) : { devices: {} };
+        cachedDeviceLogs = (logSnap && logSnap.exists) ? (logSnap.data() || {}) : { blockedAttempts: [] };
+      } catch (e) {
+        console.warn("Failed to load device security data:", e);
+      }
     }
 
     function getCurrentTrackerUser() {
@@ -13083,6 +13592,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
     async function flushTrackerEventsToFirebase() {
       if (isTrackerFlushing) return;
+      if (typeof isCurrentDeviceAuthorized === "function" && !isCurrentDeviceAuthorized()) return;
       const firestore = (typeof getDb === "function") ? getDb() : null;
       if (!firestore) return;
 
@@ -13229,7 +13739,10 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         const firestore = (typeof getDb === "function") ? getDb() : null;
         if (firestore) {
           const docRef = firestore.collection(TRACKER_DOC_PATH.collection).doc(TRACKER_DOC_PATH.doc);
-          const snap = await docRef.get();
+          const [snap] = await Promise.all([
+            docRef.get(),
+            refreshDeviceSecurityData()
+          ]);
           if (snap && snap.exists) {
             const data = snap.data() || {};
             cachedTrackerData = data.users || {};
@@ -13286,6 +13799,293 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       const usersObj = cachedTrackerData || {};
       const userList = Object.values(usersObj);
 
+      const isRegOpen = cachedDeviceConfig && cachedDeviceConfig.registrationOpen === true;
+      const blockedAttempts = (cachedDeviceLogs && Array.isArray(cachedDeviceLogs.blockedAttempts)) ? cachedDeviceLogs.blockedAttempts : [];
+      const devicesMap = (cachedAuthorizedDevices && cachedAuthorizedDevices.devices) ? cachedAuthorizedDevices.devices : {};
+      const devicesList = Object.values(devicesMap);
+
+      let filteredDevices = devicesList;
+      if (deviceSecuritySearchQuery) {
+        filteredDevices = filteredDevices.filter(d => {
+          const name = (d.studentName || "").toLowerCase();
+          const sid = (d.studentId || "").toLowerCase();
+          const did = (d.deviceId || "").toLowerCase();
+          return name.includes(deviceSecuritySearchQuery) || sid.includes(deviceSecuritySearchQuery) || did.includes(deviceSecuritySearchQuery);
+        });
+      }
+      filteredDevices.sort((a, b) => (b.lastSeen || b.registeredAt || 0) - (a.lastSeen || a.registeredAt || 0));
+
+      const warningBannerHTML = isRegOpen ? `
+        <!-- High-Priority Warning Banner when Registration is OPEN -->
+        <div class="p-3.5 rounded-2xl bg-amber-500/15 border-2 border-amber-500/40 text-amber-900 dark:text-amber-200 flex items-center justify-between gap-3 shadow-xs animate-pulse">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="text-xs font-black text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                <span>DEVICE REGISTRATION IS OPEN</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              </div>
+              <div class="text-[11px] text-slate-600 dark:text-slate-300 truncate">
+                New student devices are auto-verifying. Turn OFF once done to secure database!
+              </div>
+            </div>
+          </div>
+          <button onclick="toggleDeviceRegistrationSetting(false)"
+            class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-95 text-white text-xs font-black shrink-0 transition shadow-xs flex items-center gap-1.5">
+            <i class="fa-solid fa-lock text-[10px]"></i>
+            <span>Lock Now</span>
+          </button>
+        </div>
+      ` : '';
+
+      const viewSwitcherHTML = `
+        <!-- Admin Panel View Switcher: Student Activity vs Device Security -->
+        <div class="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl shrink-0">
+          <button onclick="setUserTrackerView('analytics')"
+            class="flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${userTrackerActiveView === 'analytics'
+              ? 'bg-white dark:bg-slate-700 text-brandBlue dark:text-white shadow-2xs'
+              : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+            }">
+            <i class="fa-solid fa-chart-pie text-xs"></i>
+            <span>Student Activity</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-blue-100 dark:bg-blue-900/60 text-brandBlue dark:text-blue-300 font-black">${userList.length}</span>
+          </button>
+          <button onclick="setUserTrackerView('security')"
+            class="flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 relative ${userTrackerActiveView === 'security'
+              ? 'bg-white dark:bg-slate-700 text-brandBlue dark:text-white shadow-2xs'
+              : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+            }">
+            <i class="fa-solid fa-shield-halved text-xs"></i>
+            <span>Device Security</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full ${devicesList.length > 0 ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-600'} font-black">${devicesList.length}</span>
+            ${blockedAttempts.length > 0 ? `<span class="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-rose-500 text-white ml-0.5 animate-pulse" title="${blockedAttempts.length} blocked attempts">${blockedAttempts.length}</span>` : ''}
+          </button>
+        </div>
+      `;
+
+      if (userTrackerActiveView === 'security') {
+        // Render Device Security View
+        body.innerHTML = `
+          ${warningBannerHTML}
+          ${viewSwitcherHTML}
+
+          <!-- Gatekeeper Master Toggle Card -->
+          <div class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-2xl ${isRegOpen ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'} flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+                  <i class="fa-solid ${isRegOpen ? 'fa-lock-open' : 'fa-lock'}"></i>
+                </div>
+                <div>
+                  <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                    New Device Registration
+                  </div>
+                  <div class="text-[10px] text-slate-400">
+                    Database Gatekeeper Control
+                  </div>
+                </div>
+              </div>
+
+              <!-- Status pill -->
+              <div>
+                ${isRegOpen ? `
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Registration OPEN
+                  </span>
+                ` : `
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">
+                    <i class="fa-solid fa-lock text-[8px]"></i> Access LOCKED
+                  </span>
+                `}
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              ${isRegOpen
+                ? '<strong>Registration is currently ON.</strong> Any student device opening Campus Saathi right now is automatically verified and permanently tied to that student profile. Students can connect multiple devices (phone, laptop) while this remains open.'
+                : '<strong>Access is currently RESTRICTED.</strong> Only already verified devices can read and write to Firebase. Any unknown or new device will be blocked from database access.'}
+            </p>
+
+            <div>
+              ${isRegOpen ? `
+                <button onclick="toggleDeviceRegistrationSetting(false)"
+                  class="w-full py-2.5 px-4 rounded-xl font-black text-xs text-white bg-rose-600 hover:bg-rose-700 active:scale-98 transition shadow-xs flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-lock"></i>
+                  <span>Turn OFF & Lock Registration Now</span>
+                </button>
+              ` : `
+                <button onclick="toggleDeviceRegistrationSetting(true)"
+                  class="w-full py-2.5 px-4 rounded-xl font-black text-xs text-white bg-emerald-600 hover:bg-emerald-700 active:scale-98 transition shadow-xs flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-lock-open"></i>
+                  <span>Open Registration for New Devices</span>
+                </button>
+              `}
+            </div>
+          </div>
+
+          <!-- Blocked Connection Attempts Log -->
+          <div class="p-3.5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-slate-900 dark:text-white">
+                  Blocked Connection Attempts
+                </span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded-full ${blockedAttempts.length > 0 ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 font-black' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}">
+                  ${blockedAttempts.length}
+                </span>
+              </div>
+              ${blockedAttempts.length > 0 ? `
+                <button onclick="clearBlockedDeviceLogs()" class="text-[10px] font-bold text-slate-400 hover:text-rose-600 transition">
+                  Clear All
+                </button>
+              ` : ''}
+            </div>
+
+            ${blockedAttempts.length === 0 ? `
+              <div class="py-4 text-center space-y-1">
+                <i class="fa-solid fa-shield-check text-emerald-500 text-lg"></i>
+                <div class="text-xs font-bold text-slate-700 dark:text-slate-300">No Blocked Devices</div>
+                <p class="text-[10px] text-slate-400 max-w-xs mx-auto">
+                  When new devices try to connect while registration is locked, they will appear here with an instant [Approve] button.
+                </p>
+              </div>
+            ` : `
+              <div class="space-y-2 max-h-56 overflow-y-auto no-scrollbar">
+                ${blockedAttempts.map(att => `
+                  <div class="p-2.5 rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <strong class="text-xs font-black text-slate-900 dark:text-white truncate">
+                          ${att.studentName || 'Unknown Student'}
+                        </strong>
+                        <span class="text-[9px] px-1 py-0.2 rounded font-mono bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                          ${att.studentId || 'unknown'}
+                        </span>
+                      </div>
+                      <div class="text-[10px] font-mono text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                        ${att.deviceId}
+                      </div>
+                      <div class="text-[9px] text-slate-400 mt-0.5">
+                        ${formatTrackerTime(att.timestamp)} • ${att.userAgent ? att.userAgent.slice(0, 30) + '...' : 'Web'}
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-1 shrink-0">
+                      <button onclick="approveBlockedDevice('${att.deviceId}', '${(att.studentName || 'Student').replace(/'/g, "\\'")}', '${att.studentId || 'student'}')"
+                        class="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-[11px] font-black transition shadow-xs flex items-center gap-1">
+                        <i class="fa-solid fa-check text-[10px]"></i>
+                        <span>Approve</span>
+                      </button>
+                      <button onclick="dismissBlockedDeviceAttempt('${att.deviceId}')"
+                        class="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- Authorized Devices Registry -->
+          <div class="p-3.5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <span>Authorized Devices Registry</span>
+                  <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-black">
+                    ${devicesList.length}
+                  </span>
+                </div>
+                <div class="text-[10px] text-slate-400">
+                  Devices with active Firestore read/write permissions
+                </div>
+              </div>
+            </div>
+
+            <!-- Search devices -->
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+              <input type="text"
+                value="${deviceSecuritySearchQuery}"
+                oninput="handleDeviceSecuritySearch(this.value)"
+                placeholder="Search device ID or student name..."
+                class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue transition" />
+            </div>
+
+            <!-- Devices List -->
+            <div class="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
+              ${filteredDevices.length === 0 ? `
+                <div class="py-6 text-center text-xs text-slate-400">
+                  ${deviceSecuritySearchQuery ? 'No verified devices match your search.' : 'No devices registered yet. Turn ON registration to let students connect.'}
+                </div>
+              ` : filteredDevices.map(dev => {
+                const isAdmin = (dev.studentId === 'dhruba' || (dev.studentName || '').toLowerCase().includes('dhruba'));
+                return `
+                  <div class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2 hover:border-slate-300 dark:hover:border-slate-600 transition">
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <strong class="text-xs font-black text-slate-900 dark:text-white truncate">
+                          ${dev.studentName || 'Student'}
+                        </strong>
+                        <span class="text-[9px] px-1.5 py-0.2 rounded-md font-mono font-bold bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                          ${dev.studentId || 'student'}
+                        </span>
+                        ${isAdmin ? `
+                          <span class="text-[9px] px-1.5 py-0.2 rounded-full font-black bg-blue-100 dark:bg-blue-950/80 text-brandBlue dark:text-blue-300 border border-blue-200 dark:border-blue-900/50">
+                            Admin
+                          </span>
+                        ` : ''}
+                      </div>
+                      <div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-600 dark:text-slate-300 mt-0.5">
+                        <span class="truncate">${dev.deviceId}</span>
+                      </div>
+                      <div class="text-[9px] text-slate-400 mt-0.5">
+                        Active ${formatTrackerTime(dev.lastSeen || dev.registeredAt)} • Registered ${formatTrackerTime(dev.registeredAt)}
+                      </div>
+                    </div>
+
+                    <div class="shrink-0 flex items-center gap-1.5">
+                      <button onclick="prompt('Device ID:', '${dev.deviceId}')" class="w-7 h-7 rounded-xl bg-white dark:bg-slate-900 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition flex items-center justify-center text-xs" title="View / Copy Device ID">
+                        <i class="fa-regular fa-copy"></i>
+                      </button>
+                      ${!isAdmin ? `
+                        <button onclick="revokeAuthorizedDevice('${dev.deviceId}')"
+                          class="w-7 h-7 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 hover:text-rose-700 hover:bg-rose-100 transition flex items-center justify-center text-xs" title="Revoke Device Access">
+                          <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                      ` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Manually Add / Authorize Device Form -->
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+              <div class="text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                Manually Authorize a Device ID
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input type="text" id="adminAddDeviceIdInput" placeholder="Device ID (e.g. dev_a1b2c3...)"
+                  class="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue transition" />
+                <input type="text" id="adminAddDeviceNameInput" placeholder="Student Name (e.g. Khushal)"
+                  class="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue transition" />
+              </div>
+              <button onclick="manuallyAddAuthorizedDevice()"
+                class="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-plus text-[10px]"></i>
+                <span>Add to Authorized Registry</span>
+              </button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // Otherwise, render Analytics View
       const now = Date.now();
       let cutoff = 0;
       let timeframeLabel = "Last 7 Days";
@@ -13370,6 +14170,9 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       });
 
       body.innerHTML = `
+        ${warningBannerHTML}
+        ${viewSwitcherHTML}
+
         <!-- High-Level Metric Stat Cards -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <div class="p-2.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/70 dark:border-blue-900/50">
@@ -13550,13 +14353,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       `;
     }
 
-
-    /**
-     * ========================================================================
-     * INITIALIZATION (INSTANT RENDER + BACKGROUND ENHANCEMENTS)
-     * ========================================================================
-     */
-    // Route by URL hash (#delivery, #teacher-review) or query param (?tab=...)
+    
     function applyRoute() {
       try {
         const hash = (window.location.hash || "").toLowerCase().replace("#", "").trim();
@@ -13602,6 +14399,10 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       if (!getUserIdentity()) {
         openUserIdentityModal(true);
       }
+      // Check device authorization
+      if (typeof checkDeviceAccessAuthorization === "function") {
+        checkDeviceAccessAuthorization();
+      }
     }
 
     // Execute immediately since script is at the bottom of <body>
@@ -13640,12 +14441,22 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         });
       }
 
-      // Always listen for Pay Me Later squad dues & notifications
-      initFirebasePayLaterRequests();
-
-      // If parcel notifications are enabled, listen for incoming squad requests immediately
-      if (localStorage.getItem("vitb_parcel_notifications_enabled") === "true") {
-        initFirebaseParcelRequests();
+      // Verify device authorization before starting real-time listeners
+      if (typeof checkDeviceAccessAuthorization === "function") {
+        checkDeviceAccessAuthorization().then((auth) => {
+          if (auth) {
+            initFirebasePayLaterRequests();
+            if (localStorage.getItem("vitb_parcel_notifications_enabled") === "true") {
+              initFirebaseParcelRequests();
+            }
+          }
+        }).catch(() => {
+          if (typeof isCurrentDeviceAuthorized === "function" && isCurrentDeviceAuthorized()) {
+            initFirebasePayLaterRequests();
+          }
+        });
+      } else {
+        initFirebasePayLaterRequests();
       }
 
       setInterval(() => {

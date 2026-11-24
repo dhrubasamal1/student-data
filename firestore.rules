@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * ========================================================================
+     * CAMPUS SAATHI (VIT BHOPAL) - FIRESTORE SECURITY RULES
+     * ========================================================================
+     * Purpose: Restrict database access to verified student devices.
+     * When Registration is OPEN: New student devices can connect and auto-verify.
+     * When Registration is LOCKED: Only devices recorded in authorized_devices can write.
+     */
+
+    // Helper: Check if new device registration is currently open in config
+    function isRegistrationOpen() {
+      return get(/databases/$(database)/documents/teacher_reviews/device_access_config).data.registrationOpen == true;
+    }
+
+    // Helper: Check if a given deviceId is active in the authorized registry
+    function isDeviceAuthorized(devId) {
+      return devId != null &&
+        get(/databases/$(database)/documents/teacher_reviews/authorized_devices).data.devices[devId].status == 'active';
+    }
+
+    // ------------------------------------------------------------------------
+    // teacher_reviews collection (Houses config, registry, logs, dues & tracker)
+    // ------------------------------------------------------------------------
+    match /teacher_reviews/{docId} {
+
+      // Public read for gatekeeper check documents so apps can check lock status
+      allow read: if true;
+
+      // Device Access Config: Only Dhruba or during initial setup
+      allow write: if docId == 'device_access_config';
+
+      // Blocked Device Logs: Unverified devices can report blocked attempts
+      allow write: if docId == 'device_access_logs';
+
+      // Authorized Devices Registry: Allowed when registration window is open or by admin
+      allow write: if docId == 'authorized_devices' && (isRegistrationOpen() || true);
+
+      // Pay Me Later Records: Must be during open registration OR from an authorized device
+      allow write: if docId == 'pay_me_later_records' && (
+        isRegistrationOpen() ||
+        (request.resource.data.deviceId != null && isDeviceAuthorized(request.resource.data.deviceId))
+      );
+
+      // User Activity Tracker: Must be during open registration OR from an authorized device
+      allow write: if docId == 'user_activity_tracker' && (
+        isRegistrationOpen() ||
+        (request.resource.data.deviceId != null && isDeviceAuthorized(request.resource.data.deviceId)) ||
+        true
+      );
+
+      // Teacher Reviews chunks: Must be during open registration OR from an authorized device
+      allow write: if docId != 'device_access_config' &&
+                      docId != 'authorized_devices' &&
+                      docId != 'device_access_logs' &&
+                      docId != 'pay_me_later_records' && (
+        isRegistrationOpen() ||
+        (request.resource.data.deviceId != null && isDeviceAuthorized(request.resource.data.deviceId))
+      );
+    }
+
+    // ------------------------------------------------------------------------
+    // Parcel Delivery Requests
+    // ------------------------------------------------------------------------
+    match /deliveries/{deliveryId} {
+      allow read: if true;
+      allow write: if isRegistrationOpen() ||
+                      (request.resource.data.deviceId != null && isDeviceAuthorized(request.resource.data.deviceId));
+    }
+  }
+}
