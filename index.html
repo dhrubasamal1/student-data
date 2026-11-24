@@ -190,7 +190,7 @@
       --fluid-smooth: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Ambient floating liquid gradient mesh behind the app */
+    /* Ambient subtle static gradient mesh (zero continuous GPU/blur overhead) */
     .fluid-ambient-bg {
       position: fixed;
       inset: 0;
@@ -202,67 +202,41 @@
     .fluid-orb {
       position: absolute;
       border-radius: 9999px;
-      filter: blur(64px);
-      opacity: 0.24;
-      will-change: transform;
+      opacity: 0.22;
       pointer-events: none;
     }
 
     html.dark .fluid-orb {
-      opacity: 0.16;
-      filter: blur(76px);
+      opacity: 0.14;
     }
 
     .fluid-orb-1 {
-      width: 280px;
-      height: 280px;
-      top: -80px;
-      left: -70px;
-      background: radial-gradient(circle at 30% 30%, #60a5fa, #3b82f6, transparent 70%);
-      animation: fluidOrbDrift1 16s ease-in-out infinite alternate;
+      width: 340px;
+      height: 340px;
+      top: -110px;
+      left: -90px;
+      background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.55) 0%, rgba(96, 165, 250, 0.2) 45%, transparent 72%);
     }
 
     .fluid-orb-2 {
-      width: 260px;
-      height: 260px;
-      top: 32%;
-      right: -90px;
-      background: radial-gradient(circle at 60% 40%, #34d399, #06b6d4, transparent 70%);
-      animation: fluidOrbDrift2 20s ease-in-out infinite alternate;
+      width: 320px;
+      height: 320px;
+      top: 30%;
+      right: -110px;
+      background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.45) 0%, rgba(6, 182, 212, 0.18) 45%, transparent 72%);
     }
 
     .fluid-orb-3 {
-      width: 240px;
-      height: 240px;
-      bottom: -70px;
-      left: 12%;
-      background: radial-gradient(circle at 50% 50%, #a78bfa, #ec4899, transparent 72%);
-      animation: fluidOrbDrift3 18s ease-in-out infinite alternate;
-    }
-
-    @keyframes fluidOrbDrift1 {
-      0% { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
-      50% { transform: translate3d(42px, 28px, 0) scale(1.12) rotate(12deg); }
-      100% { transform: translate3d(-18px, 54px, 0) scale(0.95) rotate(-8deg); }
-    }
-
-    @keyframes fluidOrbDrift2 {
-      0% { transform: translate3d(0, 0, 0) scale(1); }
-      50% { transform: translate3d(-38px, -26px, 0) scale(1.14); }
-      100% { transform: translate3d(-14px, 34px, 0) scale(0.92); }
-    }
-
-    @keyframes fluidOrbDrift3 {
-      0% { transform: translate3d(0, 0, 0) scale(1); }
-      50% { transform: translate3d(32px, -36px, 0) scale(1.1); }
-      100% { transform: translate3d(-24px, -12px, 0) scale(1.04); }
+      width: 300px;
+      height: 300px;
+      bottom: -95px;
+      left: 8%;
+      background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.45) 0%, rgba(236, 72, 153, 0.16) 45%, transparent 72%);
     }
 
     /* Morphing Sliding Tab Glider */
     #navTabList {
       position: relative;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
     }
 
     #navTabGlider {
@@ -272,8 +246,8 @@
       left: 0;
       border-radius: 9999px;
       background: linear-gradient(135deg, #2563eb 0%, #3b82f6 55%, #4f46e5 100%);
-      box-shadow: 0 4px 14px -2px rgba(37, 99, 235, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35);
-      transition: transform 0.46s var(--fluid-spring), width 0.46s var(--fluid-spring), opacity 0.25s ease;
+      box-shadow: 0 3px 10px -2px rgba(37, 99, 235, 0.42);
+      transition: transform 0.34s var(--fluid-ease), width 0.34s var(--fluid-ease);
       z-index: 0;
       pointer-events: none;
       will-change: transform, width;
@@ -282,140 +256,93 @@
     .tab-btn {
       position: relative;
       z-index: 1;
-      transition: color 0.26s ease, transform 0.32s var(--fluid-spring), opacity 0.2s ease;
+      transition: color 0.2s ease, transform 0.22s var(--fluid-ease);
     }
 
     .tab-btn:active {
-      transform: scale(0.93);
+      transform: scale(0.95);
     }
 
-    /* Directional Tab Page Transitions */
+    /* Directional Tab Page Transitions (Pure GPU transform + opacity, zero blur overhead) */
     .tab-enter-right {
-      animation: tabEnterRight 0.42s var(--fluid-smooth) both;
+      animation: tabEnterRight 0.28s var(--fluid-ease) both;
     }
 
     .tab-enter-left {
-      animation: tabEnterLeft 0.42s var(--fluid-smooth) both;
+      animation: tabEnterLeft 0.28s var(--fluid-ease) both;
     }
 
     .tab-enter-fade {
-      animation: fluidPopSoft 0.36s var(--fluid-ease) both;
+      animation: fluidPopSoft 0.24s var(--fluid-ease) both;
     }
 
     @keyframes tabEnterRight {
       0% {
         opacity: 0;
-        transform: translate3d(24px, 6px, 0) scale(0.985);
-        filter: blur(3px);
+        transform: translate3d(16px, 0, 0);
       }
       100% {
         opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1);
-        filter: blur(0);
+        transform: translate3d(0, 0, 0);
       }
     }
 
     @keyframes tabEnterLeft {
       0% {
         opacity: 0;
-        transform: translate3d(-24px, 6px, 0) scale(0.985);
-        filter: blur(3px);
+        transform: translate3d(-16px, 0, 0);
       }
       100% {
         opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1);
-        filter: blur(0);
+        transform: translate3d(0, 0, 0);
       }
     }
 
     @keyframes fluidPopSoft {
       0% {
         opacity: 0;
-        transform: translate3d(0, 12px, 0) scale(0.975);
-        filter: blur(2px);
+        transform: translate3d(0, 8px, 0);
       }
       100% {
         opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1);
-        filter: blur(0);
+        transform: translate3d(0, 0, 0);
       }
     }
 
-    /* Staggered Fluid Card Cascades */
+    /* Staggered Fluid Card Cascades (Fast, crisp, capped at 6 visible items) */
     @keyframes fluidCardRise {
       0% {
         opacity: 0;
-        transform: translate3d(0, 18px, 0) scale(0.965);
-        filter: blur(2px);
+        transform: translate3d(0, 12px, 0) scale(0.985);
       }
       100% {
         opacity: 1;
         transform: translate3d(0, 0, 0) scale(1);
-        filter: blur(0);
       }
     }
 
-    .fluid-feed-animate > * {
-      animation: fluidCardRise 0.48s var(--fluid-spring) backwards;
+    .fluid-feed-animate > *:nth-child(-n+7) {
+      animation: fluidCardRise 0.28s var(--fluid-ease) backwards;
     }
 
-    .fluid-feed-animate > *:nth-child(1)  { animation-delay: 0ms; }
-    .fluid-feed-animate > *:nth-child(2)  { animation-delay: 35ms; }
-    .fluid-feed-animate > *:nth-child(3)  { animation-delay: 70ms; }
-    .fluid-feed-animate > *:nth-child(4)  { animation-delay: 105ms; }
-    .fluid-feed-animate > *:nth-child(5)  { animation-delay: 140ms; }
-    .fluid-feed-animate > *:nth-child(6)  { animation-delay: 175ms; }
-    .fluid-feed-animate > *:nth-child(7)  { animation-delay: 210ms; }
-    .fluid-feed-animate > *:nth-child(8)  { animation-delay: 245ms; }
-    .fluid-feed-animate > *:nth-child(9)  { animation-delay: 275ms; }
-    .fluid-feed-animate > *:nth-child(10) { animation-delay: 300ms; }
-    .fluid-feed-animate > *:nth-child(n+11) { animation-delay: 325ms; }
+    .fluid-feed-animate > *:nth-child(1) { animation-delay: 0ms; }
+    .fluid-feed-animate > *:nth-child(2) { animation-delay: 22ms; }
+    .fluid-feed-animate > *:nth-child(3) { animation-delay: 44ms; }
+    .fluid-feed-animate > *:nth-child(4) { animation-delay: 66ms; }
+    .fluid-feed-animate > *:nth-child(5) { animation-delay: 88ms; }
+    .fluid-feed-animate > *:nth-child(6) { animation-delay: 110ms; }
+    .fluid-feed-animate > *:nth-child(7) { animation-delay: 132ms; }
 
-    /* Scroll reveal items for long lists */
-    .fluid-scroll-item {
-      opacity: 0;
-      transform: translate3d(0, 18px, 0) scale(0.975);
-      transition: opacity 0.42s var(--fluid-ease), transform 0.48s var(--fluid-spring);
-      will-change: opacity, transform;
-    }
-
-    .fluid-scroll-item.is-visible {
-      opacity: 1;
-      transform: translate3d(0, 0, 0) scale(1);
-    }
-
-    /* Fluid Glass & Card Micro-interactions */
-    main section,
-    main div.rounded-2xl,
-    main div.rounded-3xl {
-      transition: transform 0.34s var(--fluid-spring), box-shadow 0.34s var(--fluid-ease), border-color 0.25s ease, background-color 0.25s ease;
-    }
-
-    @media (hover: hover) {
-      #mobileSlotCardFeed > div[onclick]:hover,
-      #teacherSearchResults > div:hover,
-      #calendarContainer .rounded-2xl:hover,
-      #tabPanel-paylater .rounded-2xl:hover,
-      #tabPanel-mess .rounded-2xl:hover,
-      #tabPanel-parcel .rounded-2xl:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 26px -10px rgba(15, 23, 42, 0.14);
-      }
-
-      html.dark #mobileSlotCardFeed > div[onclick]:hover,
-      html.dark #teacherSearchResults > div:hover,
-      html.dark #calendarContainer .rounded-2xl:hover,
-      html.dark #tabPanel-paylater .rounded-2xl:hover,
-      html.dark #tabPanel-mess .rounded-2xl:hover,
-      html.dark #tabPanel-parcel .rounded-2xl:hover {
-        box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.55);
-      }
+    /* Schedule Slot Cards: strictly zero click/tap/hover motion */
+    #mobileSlotCardFeed > div[onclick] {
+      transition: none !important;
+      transform: none !important;
     }
 
     /* Tactile Button Bounce & Overflow for Ripples (zero-specificity so Tailwind .absolute/.fixed always win) */
     :where(button, a[class*="rounded"]) {
       overflow: hidden;
-      transition: transform 0.28s var(--fluid-spring), background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease, box-shadow 0.28s ease;
+      transition: transform 0.2s var(--fluid-ease), background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
     }
 
     :where(button:not(.absolute):not(.fixed), a[class*="rounded"]:not(.absolute):not(.fixed)) {
@@ -423,7 +350,7 @@
     }
 
     :where(button:active:not(:disabled)) {
-      transform: scale(0.95);
+      transform: scale(0.96);
     }
 
     /* Liquid Touch Ripple */
@@ -432,75 +359,52 @@
       border-radius: 9999px;
       pointer-events: none;
       transform: scale(0);
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 72%);
-      animation: fluidRippleExpand 0.58s var(--fluid-ease) forwards;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0) 70%);
+      animation: fluidRippleExpand 0.42s ease-out forwards;
       z-index: 2;
     }
 
     .fluid-ripple-wave.fluid-ripple-dark {
-      background: radial-gradient(circle, rgba(59, 130, 246, 0.22) 0%, rgba(59, 130, 246, 0) 72%);
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0) 70%);
     }
 
     @keyframes fluidRippleExpand {
       0% {
         transform: scale(0);
-        opacity: 0.9;
+        opacity: 0.85;
       }
       100% {
-        transform: scale(2.6);
+        transform: scale(2.4);
         opacity: 0;
       }
     }
 
-    /* Liquid Shimmer Sweep on Live/Hero Elements */
+    /* Subtle Hero Sheen (no infinite GPU loop) */
     .fluid-shimmer {
       position: relative;
       overflow: hidden;
     }
 
-    .fluid-shimmer::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -120%;
-      width: 65%;
-      height: 100%;
-      background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.22) 50%, transparent 80%);
-      transform: skewX(-18deg);
-      animation: fluidShimmerSweep 5.5s ease-in-out infinite;
-      pointer-events: none;
-    }
-
-    html.dark .fluid-shimmer::after {
-      background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.08) 50%, transparent 80%);
-    }
-
-    @keyframes fluidShimmerSweep {
-      0%, 55% { left: -120%; }
-      100% { left: 165%; }
-    }
-
-    /* Modal Backdrop & Elastic Sheet Spring Animations */
+    /* Modal Backdrop & Spring Animations (Pure GPU transform + opacity) */
     [id$="Modal"].fixed:not(.hidden) {
-      animation: fluidBackdropIn 0.28s var(--fluid-ease) both;
+      animation: fluidBackdropIn 0.2s ease-out both;
     }
 
     [id$="Modal"].fixed:not(.hidden) > div {
-      animation: fluidModalIn 0.44s var(--fluid-spring) both;
-      will-change: transform, opacity;
+      animation: fluidModalIn 0.32s var(--fluid-spring) both;
     }
 
     [id$="Modal"].fixed.fluid-closing {
-      animation: fluidBackdropOut 0.22s ease-in forwards !important;
+      animation: fluidBackdropOut 0.18s ease-in forwards !important;
       pointer-events: none;
     }
 
     [id$="Modal"].fixed.fluid-closing > div {
-      animation: fluidModalOut 0.22s ease-in forwards !important;
+      animation: fluidModalOut 0.18s ease-in forwards !important;
     }
 
     @keyframes fluidBackdropIn {
-      0% { opacity: 0; backdrop-filter: blur(0px); }
+      0% { opacity: 0; }
       100% { opacity: 1; }
     }
 
@@ -512,13 +416,11 @@
     @keyframes fluidModalIn {
       0% {
         opacity: 0;
-        transform: translate3d(0, 28px, 0) scale(0.92);
-        filter: blur(4px);
+        transform: translate3d(0, 18px, 0) scale(0.95);
       }
       100% {
         opacity: 1;
         transform: translate3d(0, 0, 0) scale(1);
-        filter: blur(0);
       }
     }
 
@@ -529,25 +431,23 @@
       }
       100% {
         opacity: 0;
-        transform: translate3d(0, 22px, 0) scale(0.94);
+        transform: translate3d(0, 14px, 0) scale(0.96);
       }
     }
 
     /* Floating Toast Spring Animation */
     #reviewToast:not(.hidden) {
-      animation: fluidToastIn 0.46s var(--fluid-spring) both;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      animation: fluidToastIn 0.32s var(--fluid-spring) both;
     }
 
     #reviewToast.fluid-toast-out {
-      animation: fluidToastOut 0.24s ease-in forwards;
+      animation: fluidToastOut 0.2s ease-in forwards;
     }
 
     @keyframes fluidToastIn {
       0% {
         opacity: 0;
-        transform: translate(-50%, 24px) scale(0.86);
+        transform: translate(-50%, 16px) scale(0.92);
       }
       100% {
         opacity: 1;
@@ -562,26 +462,27 @@
       }
       100% {
         opacity: 0;
-        transform: translate(-50%, 16px) scale(0.92);
+        transform: translate(-50%, 12px) scale(0.95);
       }
     }
 
     /* Header Icon Hover & Theme Toggle Morph */
     #appHeaderLogoIcon {
-      transition: transform 0.45s var(--fluid-spring), box-shadow 0.3s ease;
+      transition: transform 0.3s var(--fluid-spring);
     }
 
-    #appHeaderLogoIcon:hover {
-      transform: scale(1.08) rotate(-4deg);
-      box-shadow: 0 6px 16px -4px rgba(37, 99, 235, 0.35);
+    @media (hover: hover) {
+      #appHeaderLogoIcon:hover {
+        transform: scale(1.06) rotate(-3deg);
+      }
     }
 
     .theme-spin-morph {
-      animation: themeSpinMorph 0.5s var(--fluid-spring);
+      animation: themeSpinMorph 0.38s var(--fluid-spring);
     }
 
     @keyframes themeSpinMorph {
-      0% { transform: rotate(-140deg) scale(0.5); opacity: 0.4; }
+      0% { transform: rotate(-120deg) scale(0.6); opacity: 0.5; }
       100% { transform: rotate(0deg) scale(1); opacity: 1; }
     }
 
@@ -7185,40 +7086,8 @@
     }
 
     let fluidScrollObserver = null;
-    function observeFluidScrollItems(containerSelector, itemSelector) {
-      try {
-        const container = typeof containerSelector === "string" ? document.querySelector(containerSelector) : containerSelector;
-        if (!container) return;
-        const items = Array.from(container.querySelectorAll(itemSelector));
-        if (!items.length) return;
-
-        if (!("IntersectionObserver" in window)) {
-          items.forEach(el => el.classList.add("is-visible"));
-          return;
-        }
-
-        if (!fluidScrollObserver) {
-          fluidScrollObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add("is-visible");
-                fluidScrollObserver.unobserve(entry.target);
-              }
-            });
-          }, { rootMargin: "0px 0px 40px 0px", threshold: 0.04 });
-        }
-
-        items.forEach((el, idx) => {
-          if (idx < 6) {
-            // Immediate smooth cascade for first viewport items
-            el.classList.add("fluid-scroll-item");
-            requestAnimationFrame(() => el.classList.add("is-visible"));
-          } else {
-            el.classList.add("fluid-scroll-item");
-            fluidScrollObserver.observe(el);
-          }
-        });
-      } catch (e) { }
+    function observeFluidScrollItems() {
+      // Disabled heavy multi-hundred element observer for smooth 60fps mobile stability
     }
 
     // Automatically cancel any stale closing state whenever a modal opens
@@ -7241,10 +7110,13 @@
       } catch (e) { }
     }
 
-    // Global liquid touch ripple + modal guard
+    // Global liquid touch ripple ONLY for buttons & links (never on schedule slot cards)
     if (typeof document !== "undefined") {
       document.addEventListener("pointerdown", (e) => {
-        const target = e.target && e.target.closest ? e.target.closest("button, a[class*='rounded'], #mobileSlotCardFeed > div[onclick]") : null;
+        if (e.target && e.target.closest && e.target.closest("#mobileSlotCardFeed > div[onclick]")) {
+          return;
+        }
+        const target = e.target && e.target.closest ? e.target.closest("button, a[class*='rounded']") : null;
         if (!target || target.disabled) return;
         const rect = target.getBoundingClientRect();
         if (!rect.width || !rect.height) return;
@@ -7258,7 +7130,7 @@
         wave.style.left = (e.clientX - rect.left - size / 2) + "px";
         wave.style.top = (e.clientY - rect.top - size / 2) + "px";
         target.appendChild(wave);
-        setTimeout(() => { wave.remove(); }, 600);
+        setTimeout(() => { wave.remove(); }, 440);
       }, { passive: true });
     }
 
@@ -7526,9 +7398,7 @@
         }
 
         const isCurrentSlotLive = (currentLiveSlotIdx === idx);
-        const isHighlighted = (selectedSlotIndex !== null)
-          ? (selectedSlotIndex === idx)
-          : isCurrentSlotLive;
+        const isHighlighted = isCurrentSlotLive;
 
         // When a single student is selected, compute classmates and same-slot squad members
         let sameClassFriends = [];
@@ -7590,10 +7460,9 @@
 
         return `
           <div
-            onclick="selectMobileSlot(${idx})"
-            class="bg-white dark:bg-slate-900 border rounded-2xl p-3.5 shadow-2xs transition active:scale-[0.99] cursor-pointer ${isHighlighted
+            class="bg-white dark:bg-slate-900 border rounded-2xl p-3.5 shadow-2xs ${isHighlighted
             ? 'border-brandBlue ring-2 ring-blue-100 dark:ring-blue-950'
-            : 'border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+            : 'border-slate-200/90 dark:border-slate-800'
           }"
           >
             <!-- Card Header: Slot Name + Time + Status Badge -->
@@ -7767,12 +7636,7 @@
     }
 
     function selectMobileSlot(colIndex) {
-      if (selectedSlotIndex === colIndex) {
-        selectedSlotIndex = null;
-      } else {
-        selectedSlotIndex = colIndex;
-      }
-      renderMobileSlotCards();
+      // Disabled: slot boxes in Schedule are non-interactive
     }
 
     // Alias for backwards compatibility
