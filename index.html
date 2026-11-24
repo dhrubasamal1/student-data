@@ -10833,7 +10833,12 @@
                   ...r,
                   amount: Number(r.amount || 0),
                   originalAmount: Number(r.originalAmount || r.amount || 0),
+                  shares: Number(r.shares || 1),
                   createdAt: Number(r.createdAt || Date.now()),
+                  status: String(r.status || (r.paymentClaimedAt ? "awaiting_confirmation" : (r.amount <= 0 ? "paid" : "unpaid"))),
+                  paymentClaimedAt: r.paymentClaimedAt ? Number(r.paymentClaimedAt) : null,
+                  paymentClaimedBy: r.paymentClaimedBy ? String(r.paymentClaimedBy) : null,
+                  paymentClaimedAmount: (r.paymentClaimedAmount != null && !isNaN(r.paymentClaimedAmount)) ? Number(r.paymentClaimedAmount) : null,
                   payments: Array.isArray(r.payments) ? r.payments : []
                 }));
               }
@@ -10868,9 +10873,38 @@
     }
 
     async function syncPayLaterRecordsToFirebase(recordsList) {
-      PAY_ME_LATER_LIST = recordsList;
+      if (typeof ensureAnonymousAuth === "function") {
+        try { await ensureAnonymousAuth(); } catch (e) { }
+      }
+
+      // Deep clean every record to ensure valid Firestore primitive types (NO undefined values allowed)
+      const cleanRecords = (recordsList || []).map(r => ({
+        id: String(r.id || ""),
+        lenderId: String(r.lenderId || "").toLowerCase(),
+        lenderName: String(r.lenderName || ""),
+        lenderUpi: String(r.lenderUpi || ""),
+        borrowerId: String(r.borrowerId || "").toLowerCase(),
+        borrowerName: String(r.borrowerName || ""),
+        amount: Number(r.amount || 0),
+        originalAmount: Number(r.originalAmount || r.amount || 0),
+        shares: Number(r.shares || 1),
+        note: String(r.note || ""),
+        createdAt: Number(r.createdAt || Date.now()),
+        status: String(r.status || (r.paymentClaimedAt ? "awaiting_confirmation" : "unpaid")),
+        paymentClaimedAt: r.paymentClaimedAt ? Number(r.paymentClaimedAt) : null,
+        paymentClaimedBy: r.paymentClaimedBy ? String(r.paymentClaimedBy) : null,
+        paymentClaimedAmount: (r.paymentClaimedAmount != null && !isNaN(r.paymentClaimedAmount)) ? Number(r.paymentClaimedAmount) : null,
+        payments: Array.isArray(r.payments) ? r.payments.map(p => ({
+          amount: Number(p.amount || 0),
+          paidAt: Number(p.paidAt || Date.now()),
+          payerName: String(p.payerName || ""),
+          type: String(p.type || "full")
+        })) : []
+      }));
+
+      PAY_ME_LATER_LIST = cleanRecords;
       try {
-        localStorage.setItem("vitb_pay_me_later", JSON.stringify(recordsList));
+        localStorage.setItem("vitb_pay_me_later", JSON.stringify(cleanRecords));
       } catch (e) { }
 
       if (typeof isCurrentDeviceAuthorized === "function" && !isCurrentDeviceAuthorized()) {
@@ -10883,7 +10917,7 @@
 
       try {
         await firestore.collection(PAY_ME_LATER_DOC_PATH.collection).doc(PAY_ME_LATER_DOC_PATH.doc).set({
-          records: recordsList,
+          records: cleanRecords,
           updatedAt: Date.now(),
           deviceId: (typeof getOrCreateDeviceId === "function") ? getOrCreateDeviceId() : "dev_anon"
         }, { merge: true });
@@ -10974,6 +11008,12 @@
       }
     }
 
+    function getFriendShares(id, name) {
+      const cleanId = (id || "").toLowerCase();
+      const cleanName = (name || "").toLowerCase();
+      return (cleanId === "judwe" || cleanName === "judwe") ? 2 : 1;
+    }
+
     function renderMultiPayFriendsList() {
       const container = document.getElementById("payLaterMultiFriendsList");
       if (!container) return;
@@ -10987,6 +11027,7 @@
       container.innerHTML = sortedSquad.map(s => {
         const isSelected = payLaterMultiSelectedFriends.has(s.id);
         const safeName = s.name.replace(/'/g, "\\'");
+        const isJudwe = s.id.toLowerCase() === "judwe" || s.name.toLowerCase() === "judwe";
         return `
           <button type="button" onclick="toggleMultiPayFriend('${s.id}', '${safeName}')"
             class="px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition flex items-center gap-1.5 shrink-0 ${
@@ -10996,6 +11037,7 @@
             }">
             <i class="fa-solid ${isSelected ? 'fa-square-check text-emerald-600 dark:text-emerald-400' : 'fa-square text-slate-300 dark:text-slate-600'} text-xs"></i>
             <span>${s.name}</span>
+            ${isJudwe ? `<span class="px-1 py-0.5 rounded text-[9px] font-black uppercase ${isSelected ? 'bg-emerald-600 text-white' : 'bg-fuchsia-100 dark:bg-fuchsia-950 text-fuchsia-700 dark:text-fuchsia-300 border border-fuchsia-300/60'}">2x Twins</span>` : ''}
           </button>
         `;
       }).join("");
@@ -11084,9 +11126,26 @@
       const friendsListPreview = document.getElementById("payLaterMultiPreviewFriendsList");
       const submitText = document.getElementById("submitPayLaterBtnText");
 
+      const identity = getUserIdentity();
+      const myId = identity && identity.id ? identity.id.toLowerCase() : "";
+      const myName = identity && identity.name ? identity.name : "";
+
       const friendsCount = payLaterMultiSelectedFriends.size;
+      let totalFriendShares = 0;
+      let hasJudweSelected = false;
+
+      payLaterMultiSelectedFriends.forEach(f => {
+        const shares = getFriendShares(f.id, f.name);
+        totalFriendShares += shares;
+        if (shares > 1) hasJudweSelected = true;
+      });
+
       if (countBadge) {
-        countBadge.textContent = `${friendsCount} friend${friendsCount === 1 ? '' : 's'} selected`;
+        if (hasJudweSelected) {
+          countBadge.textContent = `${friendsCount} friends (${totalFriendShares} shares • Judwe counts as 2) selected`;
+        } else {
+          countBadge.textContent = `${friendsCount} friend${friendsCount === 1 ? '' : 's'} selected`;
+        }
       }
 
       let perPerson = 0;
@@ -11094,42 +11153,52 @@
       let myShare = 0;
       const includeSelfEl = document.getElementById("payLaterMultiIncludeSelf");
       const includeSelf = includeSelfEl ? includeSelfEl.checked : true;
+      const selfShares = includeSelf ? getFriendShares(myId, myName) : 0;
+      const totalDivisor = totalFriendShares + selfShares;
 
       if (payLaterMultiSplitType === "total") {
         const totalInput = document.getElementById("payLaterMultiTotalAmountInput");
         const total = parseFloat(totalInput ? totalInput.value : 0) || 0;
-        const divisor = includeSelf ? (friendsCount + 1) : friendsCount;
-        if (divisor > 0 && total > 0) {
-          perPerson = Math.round((total / divisor) * 100) / 100;
-          totalCollect = Math.round((perPerson * friendsCount) * 100) / 100;
-          myShare = includeSelf ? Math.round((total - totalCollect) * 100) / 100 : 0;
+        if (totalDivisor > 0 && total > 0) {
+          perPerson = Math.round((total / totalDivisor) * 100) / 100;
+          totalCollect = Math.round((perPerson * totalFriendShares) * 100) / 100;
+          myShare = includeSelf ? Math.round((perPerson * selfShares) * 100) / 100 : 0;
         }
       } else {
         const perInput = document.getElementById("payLaterMultiPerPersonAmountInput");
         perPerson = parseFloat(perInput ? perInput.value : 0) || 0;
-        totalCollect = Math.round((perPerson * friendsCount) * 100) / 100;
-        myShare = 0;
+        totalCollect = Math.round((perPerson * totalFriendShares) * 100) / 100;
+        myShare = includeSelf ? Math.round((perPerson * selfShares) * 100) / 100 : 0;
       }
 
-      if (eachPersonEl) eachPersonEl.textContent = "₹" + perPerson;
+      if (eachPersonEl) {
+        if (hasJudweSelected) {
+          eachPersonEl.innerHTML = `₹${perPerson} <span class="text-[10px] text-slate-500 font-medium">(Judwe: ₹${Math.round(perPerson * 2 * 100) / 100})</span>`;
+        } else {
+          eachPersonEl.textContent = "₹" + perPerson;
+        }
+      }
       if (totalCollectEl) totalCollectEl.textContent = "₹" + totalCollect;
       if (myShareEl) {
-        if (includeSelf && payLaterMultiSplitType === "total") {
+        if (includeSelf) {
           myShareEl.parentElement.classList.remove("hidden");
-          myShareEl.textContent = "₹" + myShare;
+          myShareEl.textContent = "₹" + myShare + (selfShares > 1 ? " (2 shares for Judwe)" : "");
         } else {
           myShareEl.parentElement.classList.add("hidden");
         }
       }
 
       if (friendsListPreview) {
-        const names = Array.from(payLaterMultiSelectedFriends.values()).map(f => f.name);
+        const names = Array.from(payLaterMultiSelectedFriends.values()).map(f => {
+          const shares = getFriendShares(f.id, f.name);
+          return shares > 1 ? `${f.name} (2x = ₹${Math.round(perPerson * shares * 100) / 100})` : `${f.name} (₹${perPerson})`;
+        });
         friendsListPreview.textContent = names.length > 0 ? names.join(", ") : "No friends selected";
       }
 
       if (submitText && payLaterEntryMode === "multi") {
         submitText.innerHTML = friendsCount > 0
-          ? `<i class="fa-solid fa-users mr-1.5"></i>Request ₹${perPerson} each (${friendsCount} friends)`
+          ? `<i class="fa-solid fa-users mr-1.5"></i>Request Total ₹${totalCollect} (${totalFriendShares} shares)`
           : `<i class="fa-solid fa-users mr-1.5"></i>Select Friends to Split`;
       }
     }
@@ -11137,8 +11206,8 @@
     function shareGroupSplitWhatsApp(summary) {
       let text = "Hey everyone! 👋 Here is the split for \"" + (summary.note || "our expense") + "\":\n\n" +
         "💰 Total Bill: ₹" + summary.totalBill + "\n" +
-        "👤 Each Owes: ₹" + summary.perPerson + "\n" +
-        "👥 Split with: " + summary.names.join(", ") + "\n\n";
+        "👤 Per Individual Share: ₹" + summary.perPerson + "\n" +
+        "👥 Split Breakdown:\n • " + summary.names.join("\n • ") + "\n\n";
 
       if (summary.upiId) {
         text += "📲 Pay directly via UPI: " + summary.upiId + "\n(or open Campus Saathi Pay Me Later)\n\n";
@@ -11173,7 +11242,8 @@
         borrowerSelect.innerHTML = '<option value="">-- Choose a friend --</option>' +
           sortedSquad.map(s => {
             const isSelf = myId && s.id.toLowerCase() === myId;
-            return '<option value="' + s.id + '" data-name="' + s.name + '" ' + (isSelf ? "disabled" : "") + '>' + s.name + (isSelf ? " (You)" : "") + '</option>';
+            const isJudwe = s.id.toLowerCase() === "judwe" || s.name.toLowerCase() === "judwe";
+            return '<option value="' + s.id + '" data-name="' + s.name + '" ' + (isSelf ? "disabled" : "") + '>' + s.name + (isJudwe ? " (Twins • 2x)" : "") + (isSelf ? " (You)" : "") + '</option>';
           }).join("");
       }
 
@@ -11299,6 +11369,13 @@
         const friendsCount = payLaterMultiSelectedFriends.size;
         const includeSelfEl = document.getElementById("payLaterMultiIncludeSelf");
         const includeSelf = includeSelfEl ? includeSelfEl.checked : true;
+        const selfShares = includeSelf ? getFriendShares(myId, myName) : 0;
+
+        let totalFriendShares = 0;
+        payLaterMultiSelectedFriends.forEach(f => {
+          totalFriendShares += getFriendShares(f.id, f.name);
+        });
+        const totalDivisor = totalFriendShares + selfShares;
 
         let perPerson = 0;
         let totalBill = 0;
@@ -11306,12 +11383,11 @@
         if (payLaterMultiSplitType === "total") {
           const totalInput = document.getElementById("payLaterMultiTotalAmountInput");
           totalBill = parseFloat(totalInput ? totalInput.value : 0) || 0;
-          const divisor = includeSelf ? (friendsCount + 1) : friendsCount;
-          if (totalBill <= 0 || divisor <= 0) {
+          if (totalBill <= 0 || totalDivisor <= 0) {
             alert("Please enter a valid total bill amount.");
             return;
           }
-          perPerson = Math.round((totalBill / divisor) * 100) / 100;
+          perPerson = Math.round((totalBill / totalDivisor) * 100) / 100;
         } else {
           const perInput = document.getElementById("payLaterMultiPerPersonAmountInput");
           perPerson = parseFloat(perInput ? perInput.value : 0) || 0;
@@ -11319,7 +11395,7 @@
             alert("Please enter a valid per-person amount.");
             return;
           }
-          totalBill = perPerson * (includeSelf ? (friendsCount + 1) : friendsCount);
+          totalBill = Math.round((perPerson * totalDivisor) * 100) / 100;
         }
 
         if (perPerson <= 0) {
@@ -11331,36 +11407,46 @@
         if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving to Firebase...';
 
         const friendsArray = Array.from(payLaterMultiSelectedFriends.values());
-        const newEntries = friendsArray.map((friend, idx) => ({
-          id: "pml_" + (Date.now() + idx) + "_" + Math.random().toString(36).substr(2, 6),
-          lenderId: myId,
-          lenderName: myName,
-          lenderUpi: upiId || localStorage.getItem("vitb_user_upi_id") || "",
-          borrowerId: friend.id,
-          borrowerName: friend.name,
-          amount: perPerson,
-          originalAmount: perPerson,
-          note: (note ? (note + " (Split)") : "Split expense").trim(),
-          createdAt: Date.now() + idx,
-          status: "unpaid",
-          payments: []
-        }));
+        const newEntries = friendsArray.map((friend, idx) => {
+          const shares = getFriendShares(friend.id, friend.name);
+          const friendAmount = Math.round((perPerson * shares) * 100) / 100;
+          const noteSuffix = shares > 1 ? " (Split • 2 individuals)" : " (Split)";
+          return {
+            id: "pml_" + (Date.now() + idx) + "_" + Math.random().toString(36).substr(2, 6),
+            lenderId: myId,
+            lenderName: myName,
+            lenderUpi: upiId || localStorage.getItem("vitb_user_upi_id") || "",
+            borrowerId: friend.id,
+            borrowerName: friend.name,
+            amount: friendAmount,
+            originalAmount: friendAmount,
+            shares: shares,
+            note: (note ? (note + noteSuffix) : (shares > 1 ? "Split expense (2 individuals)" : "Split expense")).trim(),
+            createdAt: Date.now() + idx,
+            status: "unpaid",
+            payments: []
+          };
+        });
 
         try {
           const updatedList = [...newEntries, ...PAY_ME_LATER_LIST];
           await syncPayLaterRecordsToFirebase(updatedList);
           closePayLaterModal();
-          showReviewToast(`✅ Added ${newEntries.length} split requests of ₹${perPerson} each!`);
+          showReviewToast(`✅ Added ${newEntries.length} split requests (${totalFriendShares} shares) totaling ₹${Math.round(perPerson * totalFriendShares * 100) / 100}!`);
           renderPayLaterUI();
 
           // Offer quick WhatsApp summary share
           setTimeout(() => {
-            if (confirm(`🎉 Created split for ${newEntries.length} friends (₹${perPerson} each)!\n\nDo you want to share the split summary on WhatsApp?`)) {
+            const splitSummaryNames = friendsArray.map(f => {
+              const shares = getFriendShares(f.id, f.name);
+              return shares > 1 ? `${f.name} (2x Twins = ₹${Math.round(perPerson * shares * 100) / 100})` : `${f.name} (₹${perPerson})`;
+            });
+            if (confirm(`🎉 Created split for ${newEntries.length} friends (${totalFriendShares} shares)!\n\nDo you want to share the split summary on WhatsApp?`)) {
               shareGroupSplitWhatsApp({
                 note: note || "Split expense",
                 totalBill: totalBill,
                 perPerson: perPerson,
-                names: friendsArray.map(f => f.name),
+                names: splitSummaryNames,
                 upiId: upiId || localStorage.getItem("vitb_user_upi_id") || ""
               });
             }
@@ -11378,6 +11464,11 @@
     async function requestPaymentConfirmation(docId) {
       const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
       if (!record) return;
+
+      if (record.status === "awaiting_confirmation" || !!record.paymentClaimedAt) {
+        alert("Payment confirmation has already been sent to " + (record.lenderName || "lender") + "! Waiting for them to confirm receipt.");
+        return;
+      }
 
       const identity = getUserIdentity();
       const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "You";
@@ -11403,8 +11494,10 @@
         type: "full_request"
       });
 
-      await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
-      showReviewToast("📨 Payment confirmation sent to " + targetLender + "! Due will close once they confirm receipt.");
+      const success = await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      if (success) {
+        showReviewToast("📨 Payment confirmation sent to " + targetLender + "! Due will close once they confirm receipt.");
+      }
       renderPayLaterUI();
     }
 
@@ -11551,6 +11644,11 @@
     function openPayNowModal(docId) {
       const record = PAY_ME_LATER_LIST.find(x => x.id === docId);
       if (!record) return;
+
+      if (record.status === "awaiting_confirmation" || !!record.paymentClaimedAt) {
+        alert("Payment confirmation has already been sent to " + (record.lenderName || "lender") + "! Waiting for them to confirm receipt.");
+        return;
+      }
 
       // If lender hasn't added UPI ID, prompt borrower to enter it
       if (!record.lenderUpi) {
@@ -11739,22 +11837,43 @@
 
       const identity = getUserIdentity();
       const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "Friend";
+      const targetId = activePayNowRecord.id;
 
-      // Do NOT unilaterally mark as paid or delete! Set to awaiting confirmation so lender verifies receipt
-      activePayNowRecord.status = "awaiting_confirmation";
-      activePayNowRecord.paymentClaimedAt = Date.now();
-      activePayNowRecord.paymentClaimedBy = myName;
-      activePayNowRecord.paymentClaimedAmount = amount;
-      activePayNowRecord.payments = activePayNowRecord.payments || [];
-      activePayNowRecord.payments.push({
+      // Locate the exact record in the master PAY_ME_LATER_LIST (prevents detached reference after app switch)
+      let targetRecord = PAY_ME_LATER_LIST.find(item => item.id === targetId);
+      if (!targetRecord) {
+        targetRecord = activePayNowRecord;
+        PAY_ME_LATER_LIST.unshift(targetRecord);
+      }
+
+      // Explicitly mark as awaiting confirmation
+      targetRecord.status = "awaiting_confirmation";
+      targetRecord.paymentClaimedAt = Date.now();
+      targetRecord.paymentClaimedBy = myName;
+      targetRecord.paymentClaimedAmount = amount;
+      targetRecord.payments = targetRecord.payments || [];
+      targetRecord.payments.push({
         amount: amount,
         paidAt: Date.now(),
         payerName: myName,
-        type: (amount >= activePayNowRecord.amount) ? "full" : "partial"
+        type: (amount >= targetRecord.amount) ? "full" : "partial"
       });
 
-      await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
-      showReviewToast("📨 Payment confirmation sent to " + (activePayNowRecord.lenderName || "friend") + "! Due will close once they confirm receipt.");
+      // Synchronize activePayNowRecord reference
+      activePayNowRecord.status = targetRecord.status;
+      activePayNowRecord.paymentClaimedAt = targetRecord.paymentClaimedAt;
+      activePayNowRecord.paymentClaimedBy = targetRecord.paymentClaimedBy;
+      activePayNowRecord.paymentClaimedAmount = targetRecord.paymentClaimedAmount;
+
+      const completedBtnText = document.getElementById("payNowCompletedBtnText");
+      if (completedBtnText) {
+        completedBtnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving to Firebase...';
+      }
+
+      const success = await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      if (success) {
+        showReviewToast("📨 Payment confirmation sent to " + (targetRecord.lenderName || "friend") + "! Due will close once they confirm receipt.");
+      }
 
       closePayNowModal();
       renderPayLaterUI();
@@ -12105,6 +12224,11 @@
                           <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
                             ${displayFriendName}
                           </span>
+                          ${(displayFriendName && displayFriendName.toLowerCase() === 'judwe') || item.shares === 2 ? `
+                            <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-fuchsia-100 dark:bg-fuchsia-950/60 text-fuchsia-700 dark:text-fuchsia-300 border border-fuchsia-200 dark:border-fuchsia-800/60">
+                              Twins (2x)
+                            </span>
+                          ` : ''}
                           ${isAwaitingConfirmation ? `
                             <span class="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold ${isLender ? 'bg-amber-500 text-white animate-pulse' : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300/60'}">
                               <i class="fa-solid ${isLender ? 'fa-bell' : 'fa-clock'} mr-0.5"></i>
