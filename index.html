@@ -7210,13 +7210,15 @@
       } else if (tabId === "calendar") {
         renderCalendar();
         triggerFluidCascade("calendarContainer");
-        observeFluidScrollItems("#calendarContainer", ".rounded-2xl");
       } else if (tabId === "teacher") {
-        // Teacher reviews are lazy-loaded ONLY when Teacher Finder is opened
-        initFirebaseReviews();
+        // Render first viewport chunk immediately for silky 60fps tab slide; defer network listener slightly
         renderTeacherFinder();
         triggerFluidCascade("teacherSearchResults");
-        observeFluidScrollItems("#teacherSearchResults", ".rounded-2xl");
+        if (!isFirebaseReviewsListenerActive) {
+          setTimeout(() => { initFirebaseReviews(); }, 300);
+        } else {
+          initFirebaseReviews();
+        }
       } else if (tabId === "parcel") {
         initFirebaseParcelRequests();
         renderParcelHelper();
@@ -8692,7 +8694,9 @@
       return bestScore >= 80 ? best : null;
     }
 
+    let _cachedTeacherDirectory = null;
     function getTeacherDirectory() {
+      if (_cachedTeacherDirectory) return _cachedTeacherDirectory;
       const teacherMap = new Map();
       const claimedFaculty = new Set();
 
@@ -8814,7 +8818,8 @@
         });
       }
 
-      return Array.from(teacherMap.values()).sort((a, b) => a.teacherName.localeCompare(b.teacherName));
+      _cachedTeacherDirectory = Array.from(teacherMap.values()).sort((a, b) => a.teacherName.localeCompare(b.teacherName));
+      return _cachedTeacherDirectory;
     }
 
     function handleTeacherSearchInput(val) {
@@ -9024,12 +9029,21 @@
       return { isMatch: false, score: 0 };
     }
 
+    let _teacherRenderToken = 0;
+    let _teacherChunkTimer = null;
+
     function renderTeacherFinder() {
       const allTeachers = getTeacherDirectory();
       const resultsContainer = document.getElementById("teacherSearchResults");
       const countBadge = document.getElementById("teacherCountBadge");
 
       if (!resultsContainer) return;
+
+      if (_teacherChunkTimer) {
+        clearTimeout(_teacherChunkTimer);
+        _teacherChunkTimer = null;
+      }
+      _teacherRenderToken++;
 
       const q = teacherSearchQuery.toLowerCase().trim();
 
@@ -9105,7 +9119,7 @@
         return;
       }
 
-      resultsContainer.innerHTML = matchingTeachers.map(t => {
+      function renderTeacherCardHtml(t) {
         const studentRecords = Object.values(t.studentRecords).sort((a, b) => a.friend.name.localeCompare(b.friend.name));
         const isExtraOnly = t.isExtraFaculty && studentRecords.length === 0;
 
@@ -9403,7 +9417,35 @@
             </div>
           </div>
         `;
-      }).join("");
+      }
+
+      const token = _teacherRenderToken;
+
+      const INITIAL_CHUNK = 14;
+      if (matchingTeachers.length <= INITIAL_CHUNK) {
+        resultsContainer.innerHTML = matchingTeachers.map(renderTeacherCardHtml).join("");
+        return;
+      }
+
+      // Mount only first viewport batch synchronously so tab slide animation stays locked at 60fps
+      resultsContainer.innerHTML = matchingTeachers.slice(0, INITIAL_CHUNK).map(renderTeacherCardHtml).join("");
+
+      let offset = INITIAL_CHUNK;
+      const BATCH_SIZE = 40;
+      function appendNextBatch() {
+        if (token !== _teacherRenderToken) return;
+        const nextSlice = matchingTeachers.slice(offset, offset + BATCH_SIZE);
+        if (!nextSlice.length) return;
+        resultsContainer.insertAdjacentHTML("beforeend", nextSlice.map(renderTeacherCardHtml).join(""));
+        offset += BATCH_SIZE;
+        if (offset < matchingTeachers.length) {
+          requestAnimationFrame(appendNextBatch);
+        }
+      }
+
+      _teacherChunkTimer = setTimeout(() => {
+        requestAnimationFrame(appendNextBatch);
+      }, 300);
     }
 
     /**
