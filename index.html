@@ -845,7 +845,7 @@
             <button type="button" id="payLaterModeMultiBtn" onclick="setPayLaterEntryMode('multi')"
               class="py-1.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
               <i class="fa-solid fa-users text-[11px]"></i>
-              <span>Split / Multi Contri</span>
+              <span>Split</span>
             </button>
           </div>
 
@@ -888,7 +888,7 @@
           </div>
 
           <!-- ============================================== -->
-          <!-- MODE 2: MULTI-PERSON SPLIT / CONTRIBUTION FORM -->
+          <!-- MODE 2: MULTI-PERSON SPLIT FORM                -->
           <!-- ============================================== -->
           <div id="payLaterMultiSection" class="hidden space-y-3.5">
             <!-- Friends Multi-Selection Box -->
@@ -995,7 +995,7 @@
               </div>
             </div>
 
-            <!-- Dynamic Live Split Contribution Preview Box -->
+            <!-- Dynamic Live Split Preview Box -->
             <div class="p-3 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 space-y-1.5">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-emerald-950 dark:text-emerald-200">Each Person Owes:</span>
@@ -11140,20 +11140,21 @@
       }
     }
 
-    function shareGroupContriWhatsApp(summary) {
-      let text = "Hey everyone! 👋 Here is the contri split for \"" + (summary.note || "our expense") + "\":\n\n" +
+    function shareGroupSplitWhatsApp(summary) {
+      let text = "Hey everyone! 👋 Here is the split for \"" + (summary.note || "our expense") + "\":\n\n" +
         "💰 Total Bill: ₹" + summary.totalBill + "\n" +
         "👤 Each Owes: ₹" + summary.perPerson + "\n" +
-        "👥 Contri from: " + summary.names.join(", ") + "\n\n";
+        "👥 Split with: " + summary.names.join(", ") + "\n\n";
 
       if (summary.upiId) {
         text += "📲 Pay directly via UPI: " + summary.upiId + "\n(or open Campus Saathi Pay Me Later)\n\n";
       }
-      text += "Please clear your contri when possible. Thank you! 😊";
+      text += "Please clear your share when possible. Thank you! 😊";
 
       const url = "https://wa.me/?text=" + encodeURIComponent(text);
       window.open(url, "_blank");
     }
+    const shareGroupContriWhatsApp = shareGroupSplitWhatsApp;
 
     function openPayLaterModal(mode = "single") {
       if (!getUserIdentity()) {
@@ -11295,7 +11296,7 @@
           if (btnText) btnText.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Save &amp; Notify Friend';
         }
       } else {
-        // Multi-Person Split Contribution
+        // Multi-Person Split
         if (payLaterMultiSelectedFriends.size === 0) {
           alert("Please select at least one friend to split with.");
           return;
@@ -11321,7 +11322,7 @@
           const perInput = document.getElementById("payLaterMultiPerPersonAmountInput");
           perPerson = parseFloat(perInput ? perInput.value : 0) || 0;
           if (perPerson <= 0) {
-            alert("Please enter a valid per-person contribution amount.");
+            alert("Please enter a valid per-person amount.");
             return;
           }
           totalBill = perPerson * (includeSelf ? (friendsCount + 1) : friendsCount);
@@ -11345,7 +11346,7 @@
           borrowerName: friend.name,
           amount: perPerson,
           originalAmount: perPerson,
-          note: (note ? (note + (includeSelf ? " (Split)" : " (Contri)")) : "Split contribution").trim(),
+          note: (note ? (note + " (Split)") : "Split expense").trim(),
           createdAt: Date.now() + idx,
           status: "unpaid",
           payments: []
@@ -11355,13 +11356,13 @@
           const updatedList = [...newEntries, ...PAY_ME_LATER_LIST];
           await syncPayLaterRecordsToFirebase(updatedList);
           closePayLaterModal();
-          showReviewToast(`✅ Added ${newEntries.length} contri requests of ₹${perPerson} each!`);
+          showReviewToast(`✅ Added ${newEntries.length} split requests of ₹${perPerson} each!`);
           renderPayLaterUI();
 
           // Offer quick WhatsApp summary share
           setTimeout(() => {
-            if (confirm(`🎉 Created split for ${newEntries.length} friends (₹${perPerson} each)!\n\nDo you want to share the split contribution summary on WhatsApp?`)) {
-              shareGroupContriWhatsApp({
+            if (confirm(`🎉 Created split for ${newEntries.length} friends (₹${perPerson} each)!\n\nDo you want to share the split summary on WhatsApp?`)) {
+              shareGroupSplitWhatsApp({
                 note: note || "Split expense",
                 totalBill: totalBill,
                 perPerson: perPerson,
@@ -12102,7 +12103,7 @@
                   </button>
                   ${myName ? `
                   <button onclick="openPayLaterModal('multi')" class="px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition shadow-xs">
-                    <i class="fa-solid fa-users mr-1"></i> Split Contri
+                    <i class="fa-solid fa-users mr-1"></i> Split
                   </button>` : ''}
                 </div>
               </div>
@@ -12289,7 +12290,7 @@
                 </button>
                 <button onclick="openPayLaterModal('multi')" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 active:scale-95">
                   <i class="fa-solid fa-users text-[11px]"></i>
-                  <span>Split Contri</span>
+                  <span>Split</span>
                 </button>
               </div>
             `}
