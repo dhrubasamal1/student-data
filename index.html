@@ -1178,11 +1178,11 @@
             </div>
 
             <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Amount is pre-filled when scanned with GPay, PhonePe, Paytm, or BHIM!
+              Scan with any UPI app to send <strong class="text-emerald-600 dark:text-emerald-400 font-bold" id="payNowQrAmountHint">₹0</strong> to your friend.
             </p>
           </div>
 
-          <!-- Direct UPI Launch Button (WITHOUT amount for non-merchant accounts) -->
+          <!-- Direct UPI Launch Button (Clean P2P for non-merchant accounts) -->
           <div class="pt-0.5 space-y-1.5">
             <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1">
               Or open directly in UPI app:
@@ -1193,7 +1193,7 @@
               <span id="payNowLaunchBtnText">Open in UPI App</span>
             </a>
             <p class="text-[10px] text-slate-400 dark:text-slate-500 text-center">
-              Direct app links cannot preset amount on personal (non-merchant) UPI IDs. Please enter <strong class="text-slate-700 dark:text-slate-300" id="payNowLinkAmountHint">₹0</strong> in the app if prompted, or scan the QR code above.
+              Personal UPI links open directly to your friend's profile. Enter <strong class="text-slate-700 dark:text-slate-300" id="payNowLinkAmountHint">₹0</strong> in the app to pay.
             </p>
           </div>
 
@@ -11707,6 +11707,10 @@
       if (linkAmountHint) {
         linkAmountHint.textContent = displayAmountStr;
       }
+      const qrAmountHint = document.getElementById("payNowQrAmountHint");
+      if (qrAmountHint) {
+        qrAmountHint.textContent = displayAmountStr;
+      }
 
       if (preview) {
         if (activePayNowMode === "custom") {
@@ -11722,25 +11726,26 @@
         }
       }
 
-      // 1. Direct UPI Deep Link: STRICTLY WITHOUT AMOUNT (for non-merchant P2P accounts)
-      const upiDeepLink = "upi://pay?pa=" + encodeURIComponent(activePayNowRecord.lenderUpi || "") +
-        "&pn=" + encodeURIComponent(activePayNowRecord.lenderName || "Friend") +
-        "&cu=INR&tn=" + encodeURIComponent("PayMeLater: " + (activePayNowRecord.note || "Dues"));
+      // Non-merchant (P2P) URI:
+      // In NPCI UPI spec for Peer-to-Peer / personal payments, only pa (UPI ID), pn (Payee Name),
+      // and cu (Currency) are permitted. Merchant-only parameters like tn (transaction note),
+      // am (dynamic amount in deep link), mc (MCC), and tr (reference ID) trigger PSP fraud/merchant
+      // verification blocks ("Payment failed / Unverified merchant") on personal bank accounts.
+      const cleanUpi = (activePayNowRecord.lenderUpi || "").trim();
+      const cleanName = (activePayNowRecord.lenderName || "Friend").replace(/[^a-zA-Z0-9 ]/g, "").trim() || "Friend";
+
+      const upiNonMerchantUri = "upi://pay?pa=" + encodeURIComponent(cleanUpi) +
+        "&pn=" + encodeURIComponent(cleanName) +
+        "&cu=INR";
 
       if (launchLink) {
-        launchLink.href = upiDeepLink;
+        launchLink.href = upiNonMerchantUri;
       }
       if (launchBtnText) {
         launchBtnText.textContent = "Open in UPI App";
       }
 
-      // 2. QR Code URI: WITH AMOUNT PRESET!
-      const upiQrUri = "upi://pay?pa=" + encodeURIComponent(activePayNowRecord.lenderUpi || "") +
-        "&pn=" + encodeURIComponent(activePayNowRecord.lenderName || "Friend") +
-        "&am=" + (amount > 0 ? amount.toFixed(2) : "0.00") +
-        "&cu=INR&tn=" + encodeURIComponent("PayMeLater: " + (activePayNowRecord.note || "Dues"));
-
-      renderPayNowQrCode(upiQrUri);
+      renderPayNowQrCode(upiNonMerchantUri);
     }
 
     function handleLaunchUpiApp() {
