@@ -278,17 +278,17 @@
           class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
           Teachers
         </button>
-        <button onclick="switchTab('parcel')" id="tabBtn-parcel"
+        <button onclick="switchTab('mess')" id="tabBtn-mess"
           class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
-          Parcels
+          Mess Menu
         </button>
         <button onclick="switchTab('paylater')" id="tabBtn-paylater"
           class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
           Pay Me Later
         </button>
-        <button onclick="switchTab('mess')" id="tabBtn-mess"
+        <button onclick="switchTab('parcel')" id="tabBtn-parcel"
           class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
-          Mess Menu
+          Parcels
         </button>
         <button onclick="switchTab('individual')" id="tabBtn-individual" class="hidden"></button>
       </div>
@@ -6396,7 +6396,7 @@
         }
       }
       activeTab = tabId;
-      const tabs = ["master", "calendar", "teacher", "parcel", "paylater", "mess"];
+      const tabs = ["master", "calendar", "teacher", "mess", "paylater", "parcel"];
 
       tabs.forEach(t => {
         const panel = document.getElementById(`tabPanel-${t}`);
