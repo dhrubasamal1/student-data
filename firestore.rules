@@ -4,71 +4,52 @@ service cloud.firestore {
 
     /**
      * ========================================================================
-     * CAMPUS SAATHI (VIT BHOPAL) - FIRESTORE SECURITY RULES
+     * CAMPUS SAATHI (VIT BHOPAL) - STRICT FIRESTORE SECURITY RULES
      * ========================================================================
-     * Purpose: Restrict database access to verified student devices.
-     * When Registration is OPEN: New student devices can connect and auto-verify.
-     * When Registration is LOCKED: Only devices recorded in authorized_devices can write.
+     * Cryptographic Google Firebase Anonymous Authentication enforced.
+     * All sensitive squad data requires request.auth != null AND active registration.
      */
 
-    // Helper: Check if new device registration is currently open in config
+    // Helper: Check if new device registration window is open in config
     function isRegistrationOpen() {
       return get(/databases/$(database)/documents/teacher_reviews/device_access_config).data.registrationOpen == true;
     }
 
-    // Helper: Check if a given deviceId is active in the authorized registry
-    function isDeviceAuthorized(devId) {
-      return devId != null &&
-        get(/databases/$(database)/documents/teacher_reviews/authorized_devices).data.devices[devId].status == 'active';
+    // Helper: Check if caller possesses a valid Anonymous Auth UID active in registry
+    function isAuthorizedStudent() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/teacher_reviews/authorized_devices).data.devices[request.auth.uid].status == 'active';
     }
 
-    // ------------------------------------------------------------------------
-    // teacher_reviews collection (Houses config, registry, logs, dues & tracker)
-    // ------------------------------------------------------------------------
     match /teacher_reviews/{docId} {
 
-      // Public read for gatekeeper check documents so apps can check lock status
-      allow read: if true;
+      // Public status check: allows client to check if registration is currently open
+      match /device_access_config {
+        allow read: if true;
+        allow write: if isRegistrationOpen() || isAuthorizedStudent();
+      }
 
-      // Device Access Config: Only Dhruba or during initial setup
-      allow write: if docId == 'device_access_config';
+      // Blocked logs: allows any authenticated device to log blocked attempts; readable by authorized students
+      match /device_access_logs {
+        allow read: if isAuthorizedStudent();
+        allow write: if request.auth != null;
+      }
 
-      // Blocked Device Logs: Unverified devices can report blocked attempts
-      allow write: if docId == 'device_access_logs';
+      // Authorized devices registry: readable and writable during open registration or by authorized students
+      match /authorized_devices {
+        allow read: if isRegistrationOpen() || isAuthorizedStudent();
+        allow write: if isRegistrationOpen() || isAuthorizedStudent();
+      }
 
-      // Authorized Devices Registry: Allowed when registration window is open or by admin
-      allow write: if docId == 'authorized_devices' && (isRegistrationOpen() || true);
-
-      // Pay Me Later Records: Must be during open registration OR from an authorized device
-      allow write: if docId == 'pay_me_later_records' && (
-        isRegistrationOpen() ||
-        (request.resource.data.deviceId != null && isDeviceAuthorized(request.resource.data.deviceId))
-      );
-
-      // User Activity Tracker: Must be during open registration OR from an authorized device
-      allow write: if docId == 'user_activity_tracker' && (
-        isRegistrationOpen() ||
-        (request.resource.data.deviceId != null && isDeviceAuthorized(request.resource.data.deviceId)) ||
-        true
-      );
-
-      // Teacher Reviews chunks: Must be during open registration OR from an authorized device
-      allow write: if docId != 'device_access_config' &&
-                      docId != 'authorized_devices' &&
-                      docId != 'device_access_logs' &&
-                      docId != 'pay_me_later_records' && (
-        isRegistrationOpen() ||
-        (request.resource.data.deviceId != null && isDeviceAuthorized(request.resource.data.deviceId))
-      );
+      // PRIVATE SQUAD DATA (Pay Me Later, Activity Tracker, Reviews):
+      // Completely BLOCKED to outside intruders. Requires valid authorized Google Auth UID!
+      allow read: if isAuthorizedStudent();
+      allow write: if isAuthorizedStudent();
     }
 
-    // ------------------------------------------------------------------------
-    // Parcel Delivery Requests
-    // ------------------------------------------------------------------------
+    // Deliveries: Accessible only by verified authorized students
     match /deliveries/{deliveryId} {
-      allow read: if true;
-      allow write: if isRegistrationOpen() ||
-                      (request.resource.data.deviceId != null && isDeviceAuthorized(request.resource.data.deviceId));
+      allow read, write: if isAuthorizedStudent();
     }
   }
 }

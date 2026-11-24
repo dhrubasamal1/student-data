@@ -36,8 +36,9 @@
     href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
     rel="stylesheet">
 
-  <!-- Firebase App & Firestore (Compat for seamless browser integration) -->
+  <!-- Firebase App, Auth & Firestore (Compat for seamless browser integration) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <!-- Client-side Fast QR Code Generator -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -1507,8 +1508,47 @@
       return null;
     }
 
+    // Silent background anonymous authentication (0ms, zero UI)
+    let currentAuthUid = null;
+    let isAuthSigningIn = false;
+
+    async function ensureAnonymousAuth() {
+      if (currentAuthUid) return currentAuthUid;
+      try {
+        if (typeof firebase !== "undefined" && firebase.auth) {
+          if (!firebase.apps || !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          const auth = firebase.auth();
+          if (auth.currentUser) {
+            currentAuthUid = auth.currentUser.uid;
+            return currentAuthUid;
+          }
+          if (isAuthSigningIn) {
+            for (let i = 0; i < 15; i++) {
+              await new Promise(r => setTimeout(r, 100));
+              if (auth.currentUser) {
+                currentAuthUid = auth.currentUser.uid;
+                return currentAuthUid;
+              }
+            }
+          }
+          isAuthSigningIn = true;
+          const cred = await auth.signInAnonymously();
+          currentAuthUid = cred.user.uid;
+          isAuthSigningIn = false;
+          return currentAuthUid;
+        }
+      } catch (e) {
+        console.warn("Silent anonymous auth notice:", e);
+        isAuthSigningIn = false;
+      }
+      return null;
+    }
+
     // Initialize Firebase early if script tag is loaded
     getDb();
+    ensureAnonymousAuth().catch(() => {});
 
     /**
      * ========================================================================
@@ -13186,6 +13226,49 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       }
     }
 
+    // 7-Day Inactivity Auto-Prune Engine
+    const SEVEN_DAYS_INACTIVITY_MS = 7 * 24 * 60 * 60 * 1000;
+
+    function pruneExpiredDevices(devicesMap) {
+      if (!devicesMap || typeof devicesMap !== "object") return { pruned: false, count: 0, cleaned: devicesMap || {} };
+      const now = Date.now();
+      let count = 0;
+      const cleaned = {};
+      for (const [key, dev] of Object.entries(devicesMap)) {
+        if (!dev) continue;
+        const isAdmin = (dev.studentId === "dhruba" || (dev.studentName || "").toLowerCase().includes("dhruba") || dev.isAdmin === true);
+        const lastActive = Number(dev.lastSeen || dev.registeredAt || 0);
+        const isExpired = !isAdmin && (now - lastActive > SEVEN_DAYS_INACTIVITY_MS);
+        if (isExpired) {
+          count++;
+        } else {
+          cleaned[key] = dev;
+        }
+      }
+      return { pruned: count > 0, count, cleaned };
+    }
+
+    async function manuallySweepExpiredDevices() {
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+      try {
+        const devSnap = await firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).get();
+        const data = (devSnap && devSnap.exists) ? (devSnap.data() || {}) : { devices: {} };
+        const pruneResult = pruneExpiredDevices(data.devices || {});
+        if (pruneResult.pruned) {
+          data.devices = pruneResult.cleaned;
+          await firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).set(data);
+          cachedAuthorizedDevices = data;
+          showReviewToast(`🧹 Removed ${pruneResult.count} inactive device(s) (>7 days)!`);
+          renderUserTrackerUI();
+        } else {
+          showReviewToast("✨ All devices are active within the last 7 days!");
+        }
+      } catch (e) {
+        alert("Error pruning inactive devices: " + e.message);
+      }
+    }
+
     async function checkDeviceAccessAuthorization(force = false) {
       if (isCurrentUserDhruba()) {
         try { localStorage.setItem("vitb_device_authorized", "true"); } catch (e) { }
@@ -13196,6 +13279,8 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       }
 
       const deviceId = getOrCreateDeviceId();
+      const authUid = (typeof ensureAnonymousAuth === "function") ? (await ensureAnonymousAuth()) : null;
+
       const firestore = (typeof getDb === "function") ? getDb() : null;
       if (!firestore) {
         return isCurrentDeviceAuthorized();
@@ -13213,12 +13298,39 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         cachedDeviceConfig = config;
         cachedAuthorizedDevices = registry;
 
-        const isRegistered = registry.devices && registry.devices[deviceId] && registry.devices[deviceId].status === "active";
+        // Auto-prune devices inactive for >7 days
+        if (registry.devices) {
+          const pruneCheck = pruneExpiredDevices(registry.devices);
+          if (pruneCheck.pruned) {
+            registry.devices = pruneCheck.cleaned;
+            cachedAuthorizedDevices = registry;
+            firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).set(registry).catch(() => {});
+          }
+        }
+
+        const devRecord = (registry.devices && (
+          (authUid && registry.devices[authUid] && registry.devices[authUid].status === "active" ? registry.devices[authUid] : null) ||
+          (deviceId && registry.devices[deviceId] && registry.devices[deviceId].status === "active" ? registry.devices[deviceId] : null)
+        ));
+
+        const isRegistered = !!devRecord;
 
         if (isRegistered) {
+          // Check 7-day expiration
+          const now = Date.now();
+          const lastActive = Number(devRecord.lastSeen || devRecord.registeredAt || 0);
+          const isExpired = (now - lastActive > SEVEN_DAYS_INACTIVITY_MS);
+
+          if (isExpired) {
+            localStorage.setItem("vitb_device_authorized", "false");
+            showDeviceAccessRestrictedModal();
+            await logBlockedDeviceAttempt("Expired after >7 days inactivity").catch(() => {});
+            return false;
+          }
+
           localStorage.setItem("vitb_device_authorized", "true");
           hideDeviceAccessRestrictedModal();
-          throttleUpdateDeviceLastSeen(deviceId);
+          throttleUpdateDeviceLastSeen(authUid || deviceId);
           startAuthorizedFirebaseListeners();
           return true;
         }
@@ -13259,6 +13371,9 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
     async function autoRegisterCurrentDevice(studentName, studentId) {
       const deviceId = getOrCreateDeviceId();
+      const authUid = (typeof ensureAnonymousAuth === "function") ? (await ensureAnonymousAuth()) : null;
+      const primaryKey = authUid || deviceId;
+
       const firestore = (typeof getDb === "function") ? getDb() : null;
       if (!firestore) return;
 
@@ -13267,15 +13382,25 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         const snap = await devRef.get();
         const data = (snap && snap.exists) ? (snap.data() || {}) : {};
         data.devices = data.devices || {};
-        data.devices[deviceId] = {
+
+        const existing = data.devices[primaryKey] || data.devices[deviceId] || {};
+        const devRecord = {
+          uid: authUid || primaryKey,
           deviceId: deviceId,
           studentId: (studentId || "student").toLowerCase().trim(),
           studentName: (studentName || "Student").trim(),
-          registeredAt: (data.devices[deviceId] && data.devices[deviceId].registeredAt) ? data.devices[deviceId].registeredAt : Date.now(),
+          registeredAt: existing.registeredAt || Date.now(),
           lastSeen: Date.now(),
           userAgent: (typeof navigator !== "undefined" && navigator.userAgent) ? navigator.userAgent.slice(0, 150) : "Web",
           status: "active"
         };
+
+        // Key by primaryKey (UID) so Firestore rules evaluate request.auth.uid directly
+        data.devices[primaryKey] = devRecord;
+        if (deviceId && deviceId !== primaryKey) {
+          data.devices[deviceId] = devRecord;
+        }
+
         await devRef.set(data, { merge: true });
         cachedAuthorizedDevices = data;
         localStorage.setItem("vitb_device_authorized", "true");
@@ -13284,7 +13409,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       }
     }
 
-    function throttleUpdateDeviceLastSeen(deviceId) {
+    function throttleUpdateDeviceLastSeen(devKey) {
       const now = Date.now();
       if (now - lastDeviceSeenUpdateTime < 300000) return; // 5 minute throttle
       lastDeviceSeenUpdateTime = now;
@@ -13294,7 +13419,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
       try {
         const updateObj = {};
-        updateObj[`devices.${deviceId}.lastSeen`] = now;
+        updateObj[`devices.${devKey}.lastSeen`] = now;
         firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).update(updateObj).catch(() => {});
       } catch (e) { }
     }
@@ -13500,6 +13625,15 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         cachedDeviceConfig = (cfgSnap && cfgSnap.exists) ? (cfgSnap.data() || {}) : { registrationOpen: false };
         cachedAuthorizedDevices = (devSnap && devSnap.exists) ? (devSnap.data() || {}) : { devices: {} };
         cachedDeviceLogs = (logSnap && logSnap.exists) ? (logSnap.data() || {}) : { blockedAttempts: [] };
+
+        // Auto-prune devices inactive for > 7 days
+        if (cachedAuthorizedDevices && cachedAuthorizedDevices.devices) {
+          const pruneResult = pruneExpiredDevices(cachedAuthorizedDevices.devices);
+          if (pruneResult.pruned) {
+            cachedAuthorizedDevices.devices = pruneResult.cleaned;
+            firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).set(cachedAuthorizedDevices).catch(() => {});
+          }
+        }
       } catch (e) {
         console.warn("Failed to load device security data:", e);
       }
@@ -13802,7 +13936,19 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       const isRegOpen = cachedDeviceConfig && cachedDeviceConfig.registrationOpen === true;
       const blockedAttempts = (cachedDeviceLogs && Array.isArray(cachedDeviceLogs.blockedAttempts)) ? cachedDeviceLogs.blockedAttempts : [];
       const devicesMap = (cachedAuthorizedDevices && cachedAuthorizedDevices.devices) ? cachedAuthorizedDevices.devices : {};
-      const devicesList = Object.values(devicesMap);
+      const rawDevicesList = Object.values(devicesMap);
+      
+      // Deduplicate devices by deviceId or uid
+      const seenDevKeys = new Set();
+      const devicesList = [];
+      for (const dev of rawDevicesList) {
+        if (!dev) continue;
+        const key = dev.deviceId || dev.uid || JSON.stringify(dev);
+        if (!seenDevKeys.has(key)) {
+          seenDevKeys.add(key);
+          devicesList.push(dev);
+        }
+      }
 
       let filteredDevices = devicesList;
       if (deviceSecuritySearchQuery) {
@@ -13991,18 +14137,27 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
           <!-- Authorized Devices Registry -->
           <div class="p-3.5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-2">
               <div>
-                <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5 flex-wrap">
                   <span>Authorized Devices Registry</span>
                   <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-black">
                     ${devicesList.length}
+                  </span>
+                  <span class="inline-flex items-center gap-1 text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded-md">
+                    <i class="fa-solid fa-clock-rotate-left text-[8px]"></i> 7d Auto-Prune Active
                   </span>
                 </div>
                 <div class="text-[10px] text-slate-400">
                   Devices with active Firestore read/write permissions
                 </div>
               </div>
+
+              <button onclick="manuallySweepExpiredDevices()" title="Clean devices inactive for > 7 days"
+                class="px-2 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition flex items-center gap-1 shrink-0 shadow-2xs">
+                <i class="fa-solid fa-broom text-[9px]"></i>
+                <span class="hidden sm:inline">Clean Inactive</span>
+              </button>
             </div>
 
             <!-- Search devices -->
@@ -14022,7 +14177,13 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
                   ${deviceSecuritySearchQuery ? 'No verified devices match your search.' : 'No devices registered yet. Turn ON registration to let students connect.'}
                 </div>
               ` : filteredDevices.map(dev => {
-                const isAdmin = (dev.studentId === 'dhruba' || (dev.studentName || '').toLowerCase().includes('dhruba'));
+                const isAdmin = (dev.studentId === 'dhruba' || (dev.studentName || '').toLowerCase().includes('dhruba') || dev.isAdmin === true);
+                const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+                const lastActive = Number(dev.lastSeen || dev.registeredAt || 0);
+                const elapsed = Date.now() - lastActive;
+                const msLeft = Math.max(0, SEVEN_DAYS_MS - elapsed);
+                const daysLeft = Math.ceil(msLeft / (24 * 60 * 60 * 1000));
+
                 return `
                   <div class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2 hover:border-slate-300 dark:hover:border-slate-600 transition">
                     <div class="min-w-0">
@@ -14040,10 +14201,20 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
                         ` : ''}
                       </div>
                       <div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-600 dark:text-slate-300 mt-0.5">
-                        <span class="truncate">${dev.deviceId}</span>
+                        <span class="truncate">${dev.deviceId || dev.uid}</span>
                       </div>
-                      <div class="text-[9px] text-slate-400 mt-0.5">
-                        Active ${formatTrackerTime(dev.lastSeen || dev.registeredAt)} • Registered ${formatTrackerTime(dev.registeredAt)}
+                      <div class="text-[9px] text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                        <span>Active ${formatTrackerTime(dev.lastSeen || dev.registeredAt)}</span>
+                        <span>•</span>
+                        <span>Reg ${formatTrackerTime(dev.registeredAt)}</span>
+                        <span>•</span>
+                        ${isAdmin ? `
+                          <span class="text-[9px] px-1 py-0.2 rounded font-black bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-300">Permanent</span>
+                        ` : (daysLeft <= 2 ? `
+                          <span class="text-[9px] px-1 py-0.2 rounded font-black bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700 animate-pulse">Expires in ${daysLeft}d</span>
+                        ` : `
+                          <span class="text-[9px] text-slate-500 dark:text-slate-400 font-medium">Expires in ${daysLeft}d</span>
+                        `)}
                       </div>
                     </div>
 
