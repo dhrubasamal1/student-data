@@ -7090,14 +7090,15 @@
       // Disabled heavy multi-hundred element observer for smooth 60fps mobile stability
     }
 
-    // Automatically cancel any stale closing state whenever a modal opens
+    // Automatically cancel any stale closing state ONLY when transitioning from hidden -> visible
     if (typeof document !== "undefined" && typeof MutationObserver !== "undefined") {
       try {
         const modalClassObserver = new MutationObserver((mutations) => {
           mutations.forEach(m => {
             if (m.type === "attributes" && m.attributeName === "class") {
               const el = m.target;
-              if (!el.classList.contains("hidden") && el.classList.contains("fluid-closing")) {
+              const wasHidden = (m.oldValue || "").split(/\s+/).includes("hidden");
+              if (wasHidden && !el.classList.contains("hidden") && el.classList.contains("fluid-closing")) {
                 el.classList.remove("fluid-closing");
                 delete el.dataset.closingToken;
               }
@@ -7105,7 +7106,7 @@
           });
         });
         document.querySelectorAll('[id$="Modal"]').forEach(modal => {
-          modalClassObserver.observe(modal, { attributes: true, attributeFilter: ["class"] });
+          modalClassObserver.observe(modal, { attributes: true, attributeFilter: ["class"], attributeOldValue: true });
         });
       } catch (e) { }
     }
