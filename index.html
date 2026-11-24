@@ -1361,7 +1361,7 @@
                   User Activity Tracker
                 </h3>
                 <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-100 dark:bg-blue-950/80 text-brandBlue dark:text-blue-300 border border-blue-200 dark:border-blue-900/50 shrink-0">
-                  Dhruba Admin
+                  Admin Panel (Dhruba & Ajay)
                 </span>
               </div>
               <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
@@ -1414,7 +1414,7 @@
             Device Verification Required
           </h3>
           <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
-            Campus Saathi database access is currently restricted to authorized devices. New device registration is locked by the admin (Dhruba).
+            Campus Saathi database access is currently restricted to authorized devices. New device registration is locked by admin (Dhruba / Ajay).
           </p>
         </div>
 
@@ -1439,7 +1439,7 @@
             </button>
           </div>
           <p class="text-[10px] text-slate-400 dark:text-slate-500 leading-normal">
-            Share this Device ID with Dhruba to get approved, or ask him to turn ON registration in his Admin Panel.
+            Share this Device ID with Dhruba or Ajay to get approved, or ask them to turn ON registration in the Admin Panel.
           </p>
         </div>
 
@@ -1458,6 +1458,87 @@
           </button>
         </div>
 
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- FIREBASE AUTH CLEANUP GUIDE MODAL (FOR DHRUBA & AJAY)                 -->
+    <!-- ===================================================================== -->
+    <div id="firebaseAuthCleanupGuideModal"
+      class="hidden fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      role="dialog" aria-modal="true" aria-labelledby="firebaseAuthCleanupTitle">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl p-5 sm:p-6 space-y-4 my-auto animate-in fade-in zoom-in-95 duration-150 text-left">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-base shrink-0">
+              <i class="fa-solid fa-fire"></i>
+            </div>
+            <div>
+              <h3 id="firebaseAuthCleanupTitle" class="text-sm font-black text-slate-900 dark:text-white">
+                Delete Anonymous Users from Firebase Auth
+              </h3>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                Purging auth accounts from Google Firebase servers
+              </p>
+            </div>
+          </div>
+          <button onclick="closeFirebaseAuthCleanupGuideModal()" aria-label="Close"
+            class="w-7 h-7 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs text-slate-600 dark:text-slate-300">
+          <div class="p-3 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 leading-relaxed text-[11px]">
+            <strong class="text-blue-900 dark:text-blue-200">How Firebase Auth Deletion Works:</strong><br/>
+            Google Firebase client-side SDKs intentionally prevent browsers from deleting <em>other</em> students' Auth accounts for security. Your Firestore database records are already deleted by clicking <strong>"Delete Anonymous Users"</strong> in the Admin Panel. To delete the underlying anonymous Auth user accounts in Google Firebase servers, choose either method below:
+          </div>
+
+          <!-- Method 1: Firebase Console (Fastest - 2 Clicks) -->
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/70 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-pointer text-brandBlue"></i> Method 1: Firebase Console (1-Click)
+              </span>
+              <span class="text-[9px] px-1.5 py-0.2 rounded font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">Recommended</span>
+            </div>
+            <ol class="list-decimal pl-4 space-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+              <li>Open <strong>Firebase Console &rarr; Authentication &rarr; Users</strong>.</li>
+              <li>Filter by Provider: select <strong>"Anonymous"</strong>.</li>
+              <li>Check the top checkbox to <strong>Select all</strong> users.</li>
+              <li>Click <strong>Delete accounts</strong>.</li>
+            </ol>
+            <a href="https://console.firebase.google.com/project/student-data-b1244/authentication/users" target="_blank" rel="noopener noreferrer"
+              class="w-full mt-2 py-2 px-3 rounded-xl bg-brandBlue hover:bg-brandBlueHover text-white text-xs font-bold transition flex items-center justify-center gap-2 active:scale-98">
+              <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+              <span>Open Firebase Auth Users Console</span>
+            </a>
+          </div>
+
+          <!-- Method 2: Node.js Automated Script -->
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/70 space-y-2">
+            <div class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-terminal text-amber-500"></i> Method 2: Automated Script
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">
+              We have generated an automated cleanup script in your project at <code class="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono text-[10px]">scripts/delete-anonymous-users.js</code>. Run:
+            </p>
+            <div class="p-2 rounded-xl bg-slate-900 text-slate-100 font-mono text-[11px] flex items-center justify-between">
+              <code>node scripts/delete-anonymous-users.js</code>
+              <button onclick="navigator.clipboard.writeText('node scripts/delete-anonymous-users.js'); showReviewToast('📋 Command copied!');"
+                class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 font-sans">
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="closeFirebaseAuthCleanupGuideModal()"
+          class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition">
+          Done
+        </button>
       </div>
     </div>
 
@@ -12022,9 +12103,19 @@
                     </div>
 
                     <div class="flex items-center gap-1.5 shrink-0">
+                      <!-- Remind Button (Lender WhatsApp Reminder) -->
                       ${isLender && !isPaid ? `
                         <button onclick="sendPayLaterReminderWhatsApp('${item.id}')"
-                          class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 hover:text-emerald-600 text-[11px] font-bold transition flex items-center gap-1">
+                          class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 hover:text-emerald-600 text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
+                          title="Send friendly reminder on WhatsApp">
+                          <i class="fa-brands fa-whatsapp text-emerald-500 text-xs"></i>
+                          <span>Remind</span>
+                        </button>
+                      ` : ''}
+
+                      <!-- Pay Now (UPI) Button -->
+                      ${!isPaid ? `
+                        <button onclick="openPayNowModal('${item.id}')"
                           class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
                           title="Preset amount & launch UPI app">
                           <i class="fa-solid fa-bolt text-amber-300 text-[10px]"></i>
@@ -12037,7 +12128,7 @@
                         class="px-2.5 py-1 rounded-lg ${isPaid ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white'} text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
                         title="Confirm payment received and permanently delete this record from Firebase">
                         <i class="fa-solid fa-circle-check text-[10px]"></i>
-                        <span>${isPaid ? 'Confirm & Settle' : 'Mark Paid'}</span>
+                        <span>${isPaid ? 'Confirm & Settle' : isLender ? 'Mark Received' : 'Mark Paid'}</span>
                       </button>
                     </div>
                   </div>
@@ -13070,7 +13161,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       calendar: { name: "Academic Calendar", icon: "fa-calendar-days", color: "indigo" }
     };
 
-    function isCurrentUserDhruba() {
+    function isCurrentUserAdmin() {
       try {
         if (typeof sessionStorage !== "undefined" && sessionStorage.getItem("vitb_admin_auth") === "true") {
           return true;
@@ -13078,20 +13169,23 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
         const name = (identity && identity.name) || (typeof localStorage !== "undefined" ? localStorage.getItem("vitb_user_name") : "") || "";
         const id = (identity && identity.id) || (typeof localStorage !== "undefined" ? localStorage.getItem("vitb_user_id") : "") || "";
-        return id.toLowerCase() === "dhruba" || name.toLowerCase().includes("dhruba");
+        const lowerId = id.toLowerCase();
+        const lowerName = name.toLowerCase();
+        return lowerId === "dhruba" || lowerName.includes("dhruba") || lowerId === "ajay" || lowerName.includes("ajay");
       } catch (e) {
         return false;
       }
     }
+    const isCurrentUserDhruba = isCurrentUserAdmin;
 
     function handleHeaderLogoClick() {
-      // 1. If currently active profile is Dhruba, open directly on a single click!
-      if (isCurrentUserDhruba()) {
+      // 1. If currently active profile is an Admin (Dhruba or Ajay), open directly on a single click!
+      if (isCurrentUserAdmin()) {
         openUserTrackerModal();
         return;
       }
 
-      // 2. Secret backdoor for Dhruba if on a fresh device without identity set yet:
+      // 2. Secret backdoor for Admins (Dhruba / Ajay) if on a fresh device without identity set yet:
       // Triple-tap the logo within 1.5s to trigger admin passcode prompt
       headerLogoClickCount++;
       if (headerLogoClickTimer) clearTimeout(headerLogoClickTimer);
@@ -13101,8 +13195,8 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
       if (headerLogoClickCount >= 3) {
         headerLogoClickCount = 0;
-        const pass = prompt("Dhruba Admin Passcode:");
-        if (pass && (pass.trim().toLowerCase() === "dhruba" || pass.trim() === "2026")) {
+        const pass = prompt("Admin Passcode (Dhruba / Ajay):");
+        if (pass && (pass.trim().toLowerCase() === "dhruba" || pass.trim().toLowerCase() === "ajay" || pass.trim() === "2026")) {
           sessionStorage.setItem("vitb_admin_auth", "true");
           openUserTrackerModal();
         }
@@ -13198,7 +13292,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         if (isAuth) {
           showReviewToast("✅ Device verified and access granted! Welcome.");
         } else {
-          showReviewToast("🔒 Device still restricted. Ask Dhruba to open registration or approve your device ID.");
+          showReviewToast("🔒 Device still restricted. Ask Dhruba or Ajay to open registration or approve your device ID.");
         }
       } catch (e) {
         showReviewToast("Error checking device: " + (e.message || "Network error"));
@@ -13211,14 +13305,18 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     }
 
     async function promptAdminPasscodeUnlock() {
-      const pass = prompt("Enter Dhruba Admin Passcode to unlock this device:");
+      const pass = prompt("Enter Admin Passcode (Dhruba / Ajay) to unlock this device:");
       if (!pass) return;
-      if (pass.trim().toLowerCase() === "dhruba" || pass.trim() === "2026") {
+      const cleanPass = pass.trim().toLowerCase();
+      if (cleanPass === "dhruba" || cleanPass === "ajay" || cleanPass === "2026") {
         sessionStorage.setItem("vitb_admin_auth", "true");
         localStorage.setItem("vitb_device_authorized", "true");
         hideDeviceAccessRestrictedModal();
         showReviewToast("🔓 Admin unlocked! Registering your admin device...");
-        await autoRegisterCurrentDevice("Dhruba", "dhruba");
+        const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
+        const adminId = (identity && identity.id) || (cleanPass === "ajay" ? "ajay" : "dhruba");
+        const adminName = (identity && identity.name) || (cleanPass === "ajay" ? "Ajay" : "Dhruba");
+        await autoRegisterCurrentDevice(adminName, adminId);
         startAuthorizedFirebaseListeners();
         openUserTrackerModal();
       } else {
@@ -13236,7 +13334,9 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       const cleaned = {};
       for (const [key, dev] of Object.entries(devicesMap)) {
         if (!dev) continue;
-        const isAdmin = (dev.studentId === "dhruba" || (dev.studentName || "").toLowerCase().includes("dhruba") || dev.isAdmin === true);
+        const lowerSid = (dev.studentId || "").toLowerCase();
+        const lowerSname = (dev.studentName || "").toLowerCase();
+        const isAdmin = (lowerSid === "dhruba" || lowerSname.includes("dhruba") || lowerSid === "ajay" || lowerSname.includes("ajay") || dev.isAdmin === true);
         const lastActive = Number(dev.lastSeen || dev.registeredAt || 0);
         const isExpired = !isAdmin && (now - lastActive > SEVEN_DAYS_INACTIVITY_MS);
         if (isExpired) {
@@ -13270,10 +13370,13 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     }
 
     async function checkDeviceAccessAuthorization(force = false) {
-      if (isCurrentUserDhruba()) {
+      if (isCurrentUserAdmin()) {
         try { localStorage.setItem("vitb_device_authorized", "true"); } catch (e) { }
         hideDeviceAccessRestrictedModal();
-        autoRegisterCurrentDevice("Dhruba", "dhruba").catch(() => {});
+        const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
+        const adminId = (identity && identity.id) || "dhruba";
+        const adminName = (identity && identity.name) || "Dhruba";
+        autoRegisterCurrentDevice(adminName, adminId).catch(() => {});
         startAuthorizedFirebaseListeners();
         return true;
       }
@@ -13384,7 +13487,9 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         data.devices = data.devices || {};
 
         const existing = data.devices[primaryKey] || data.devices[deviceId] || {};
-        const isAdmin = (studentId || "").toLowerCase() === "dhruba" || (studentName || "").toLowerCase().includes("dhruba");
+        const lowerSid = (studentId || "").toLowerCase();
+        const lowerSname = (studentName || "").toLowerCase();
+        const isAdmin = lowerSid === "dhruba" || lowerSname.includes("dhruba") || lowerSid === "ajay" || lowerSname.includes("ajay");
         const devRecord = {
           uid: authUid || primaryKey,
           deviceId: deviceId,
@@ -13490,10 +13595,12 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       }
 
       try {
+        const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
+        const currentAdminName = (identity && identity.name) || "Admin (Dhruba / Ajay)";
         const newConfig = {
           registrationOpen: !!openState,
           updatedAt: Date.now(),
-          updatedBy: "Dhruba"
+          updatedBy: currentAdminName
         };
         await firestore.collection(DEVICE_CONFIG_DOC_PATH.collection).doc(DEVICE_CONFIG_DOC_PATH.doc).set(newConfig, { merge: true });
         cachedDeviceConfig = newConfig;
@@ -13517,7 +13624,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
           studentName: (studentName || "Student").trim(),
           registeredAt: Date.now(),
           lastSeen: Date.now(),
-          approvedBy: "Dhruba Admin",
+          approvedBy: ((typeof getUserIdentity === "function" && getUserIdentity() && getUserIdentity().name) || "Admin") + " (Admin)",
           status: "active"
         };
         await firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).set(cachedAuthorizedDevices, { merge: true });
@@ -13603,6 +13710,162 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       await approveBlockedDevice(deviceId, studentName, studentName.toLowerCase().replace(/[^a-z0-9]/g, ""));
       if (idInput) idInput.value = "";
       if (nameInput) nameInput.value = "";
+    }
+
+    // High-Privilege Admin Purge Engine for Dhruba & Ajay
+    async function purgeAllRegisteredDevices() {
+      if (!isCurrentUserAdmin()) {
+        alert("Only Dhruba or Ajay can perform this admin action.");
+        return;
+      }
+      const confirmation = prompt(
+        "⚠️ DANGER: DELETE ALL REGISTERED USERS & DEVICES\n\n" +
+        "This will permanently delete ALL registered student devices from Firestore.\n" +
+        "Every student (except Dhruba and Ajay) will immediately lose database access and be blocked until re-registered.\n\n" +
+        "Type 'DELETE' to confirm:"
+      );
+      if (!confirmation || confirmation.trim().toUpperCase() !== "DELETE") {
+        showReviewToast("Operation cancelled.");
+        return;
+      }
+
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+
+      try {
+        const snap = await firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).get();
+        const data = (snap && snap.exists) ? (snap.data() || {}) : { devices: {} };
+        const oldDevices = data.devices || {};
+        const newDevices = {};
+        let deletedCount = 0;
+
+        for (const [key, dev] of Object.entries(oldDevices)) {
+          if (!dev) continue;
+          const lowerSid = (dev.studentId || "").toLowerCase();
+          const lowerSname = (dev.studentName || "").toLowerCase();
+          const isAdmin = (lowerSid === "dhruba" || lowerSname.includes("dhruba") || lowerSid === "ajay" || lowerSname.includes("ajay") || dev.isAdmin === true);
+
+          if (isAdmin) {
+            newDevices[key] = dev;
+          } else {
+            deletedCount++;
+          }
+        }
+
+        data.devices = newDevices;
+        await firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).set(data);
+        cachedAuthorizedDevices = data;
+
+        showReviewToast(`🗑️ Deleted ${deletedCount} registered student device(s). Admin access preserved!`);
+        renderUserTrackerUI();
+      } catch (err) {
+        alert("Error deleting registered devices: " + err.message);
+      }
+    }
+
+    async function purgeAllAnonymousAndVisitorRecords() {
+      if (!isCurrentUserAdmin()) {
+        alert("Only Dhruba or Ajay can perform this admin action.");
+        return;
+      }
+      if (!confirm("Delete all anonymous visitor records, unassigned UIDs, and blocked connection attempts from Firebase?")) {
+        return;
+      }
+
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+
+      try {
+        let cleanedCount = 0;
+
+        // 1. Clean authorized_devices of anonymous/unassigned entries
+        const snap = await firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).get();
+        if (snap && snap.exists) {
+          const data = snap.data() || {};
+          const devices = data.devices || {};
+          const filtered = {};
+          for (const [key, dev] of Object.entries(devices)) {
+            if (!dev) continue;
+            const lowerSid = (dev.studentId || "").toLowerCase();
+            const lowerSname = (dev.studentName || "").toLowerCase();
+            const isAdmin = (lowerSid === "dhruba" || lowerSname.includes("dhruba") || lowerSid === "ajay" || lowerSname.includes("ajay") || dev.isAdmin === true);
+            const isAnon = !isAdmin && (
+              lowerSid === "unknown" || lowerSid === "student" || lowerSid.startsWith("dev_anon") ||
+              lowerSname.includes("visitor") || lowerSname.includes("unknown") || !dev.studentName
+            );
+            if (isAnon) {
+              cleanedCount++;
+            } else {
+              filtered[key] = dev;
+            }
+          }
+          data.devices = filtered;
+          await firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).set(data);
+          cachedAuthorizedDevices = data;
+        }
+
+        // 2. Clear blocked attempts logs
+        cachedDeviceLogs = { blockedAttempts: [] };
+        await firestore.collection(DEVICE_LOGS_DOC_PATH.collection).doc(DEVICE_LOGS_DOC_PATH.doc).set(cachedDeviceLogs).catch(() => {});
+
+        // 3. Clear anonymous visitors from user_activity_tracker
+        const trkSnap = await firestore.collection(TRACKER_DOC_PATH.collection).doc(TRACKER_DOC_PATH.doc).get();
+        if (trkSnap && trkSnap.exists) {
+          const trkData = trkSnap.data() || {};
+          const users = trkData.users || {};
+          const cleanUsers = {};
+          for (const [uid, u] of Object.entries(users)) {
+            if (!u) continue;
+            const uName = (u.name || "").toLowerCase();
+            const uId = (u.id || "").toLowerCase();
+            if (uName.includes("visitor") || uName.includes("unknown") || uId === "unknown" || uId.startsWith("anon")) {
+              cleanedCount++;
+            } else {
+              cleanUsers[uid] = u;
+            }
+          }
+          trkData.users = cleanUsers;
+          await firestore.collection(TRACKER_DOC_PATH.collection).doc(TRACKER_DOC_PATH.doc).set(trkData).catch(() => {});
+          cachedTrackerData = cleanUsers;
+        }
+
+        showReviewToast(`🧹 Cleaned ${cleanedCount} anonymous / visitor records from Firebase!`);
+        renderUserTrackerUI();
+      } catch (err) {
+        alert("Error cleaning anonymous records: " + err.message);
+      }
+    }
+
+    async function purgeAllTrackedUsers() {
+      if (!isCurrentUserAdmin()) {
+        alert("Only Dhruba or Ajay can perform this admin action.");
+        return;
+      }
+      if (!confirm("⚠️ Reset Student Activity Analytics?\n\nThis will clear all logged student app open counts and section usage history.")) {
+        return;
+      }
+
+      const firestore = (typeof getDb === "function") ? getDb() : null;
+      if (!firestore) return;
+
+      try {
+        await firestore.collection(TRACKER_DOC_PATH.collection).doc(TRACKER_DOC_PATH.doc).set({ users: {} });
+        cachedTrackerData = {};
+        showReviewToast("📊 Student Activity tracking history has been reset.");
+        renderUserTrackerUI();
+      } catch (e) {
+        alert("Error resetting tracker data: " + e.message);
+      }
+    }
+
+    function openFirebaseAuthCleanupGuideModal() {
+      const modal = document.getElementById("firebaseAuthCleanupGuideModal");
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function closeFirebaseAuthCleanupGuideModal() {
+      const modal = document.getElementById("firebaseAuthCleanupGuideModal");
+      if (modal) modal.classList.add("hidden");
     }
 
     function setUserTrackerView(view) {
@@ -13845,7 +14108,10 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       document.body.classList.add("overflow-hidden");
 
       if (typeof autoRegisterCurrentDevice === "function") {
-        autoRegisterCurrentDevice("Dhruba", "dhruba").catch(() => {});
+        const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
+        const adminId = (identity && identity.id) || "dhruba";
+        const adminName = (identity && identity.name) || "Dhruba";
+        autoRegisterCurrentDevice(adminName, adminId).catch(() => {});
       }
 
       const body = document.getElementById("userTrackerModalBody");
@@ -14023,7 +14289,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
           ${warningBannerHTML}
           ${viewSwitcherHTML}
 
-          <!-- Dhruba Master Admin Status Card -->
+          <!-- Master Admin Status Card -->
           <div class="p-3 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 flex items-center justify-between gap-2 shadow-2xs">
             <div class="flex items-center gap-2.5 min-w-0">
               <div class="w-8 h-8 rounded-xl bg-brandBlue text-white flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
@@ -14031,13 +14297,13 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
               </div>
               <div class="min-w-0">
                 <div class="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5 flex-wrap">
-                  <span>Dhruba Admin Control</span>
+                  <span>Admin Control (Dhruba & Ajay)</span>
                   <span class="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-800">
                     Master Access Active
                   </span>
                 </div>
                 <div class="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                  You have full administrative privileges. Your devices are permanently authorized.
+                  Dhruba and Ajay have full administrative privileges. Your devices are permanently authorized.
                 </div>
               </div>
             </div>
@@ -14206,7 +14472,10 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
                   ${deviceSecuritySearchQuery ? 'No verified devices match your search.' : 'No devices registered yet. Turn ON registration to let students connect.'}
                 </div>
               ` : filteredDevices.map(dev => {
-                const isAdmin = (dev.studentId === 'dhruba' || (dev.studentName || '').toLowerCase().includes('dhruba') || dev.isAdmin === true);
+                const lowerDevSid = (dev.studentId || '').toLowerCase();
+                const lowerDevName = (dev.studentName || '').toLowerCase();
+                const isAdmin = (lowerDevSid === 'dhruba' || lowerDevName.includes('dhruba') ||
+                                 lowerDevSid === 'ajay' || lowerDevName.includes('ajay') || dev.isAdmin === true);
                 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
                 const lastActive = Number(dev.lastSeen || dev.registeredAt || 0);
                 const elapsed = Date.now() - lastActive;
@@ -14278,6 +14547,71 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
                 class="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5">
                 <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>Add to Authorized Registry</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Admin Danger Zone & Purge Controls (Dhruba & Ajay Only) -->
+          <div class="p-3.5 rounded-3xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/50 space-y-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-xl bg-rose-500 text-white flex items-center justify-center text-xs shadow-xs shrink-0">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="text-xs font-black text-rose-900 dark:text-rose-200">
+                  Admin Purge & Reset Controls (Dhruba & Ajay Only)
+                </h4>
+                <p class="text-[10px] text-rose-700/80 dark:text-rose-400 truncate">
+                  Master actions to purge registered users, devices and anonymous data
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <!-- Action 1: Delete All Registered Users & Devices -->
+              <button onclick="purgeAllRegisteredDevices()"
+                class="p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-800/80 hover:bg-rose-600 hover:text-white dark:hover:bg-rose-600 dark:hover:text-white text-rose-700 dark:text-rose-300 text-left transition group shadow-2xs active:scale-98">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-black flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-xmark text-rose-500 group-hover:text-white text-xs"></i>
+                    Delete All Registered Users
+                  </span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 group-hover:bg-white/20 group-hover:text-white">
+                    Wipe Registry
+                  </span>
+                </div>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 group-hover:text-white/90 leading-tight">
+                  Removes all registered student devices. Locks out everyone except Dhruba & Ajay until re-registered.
+                </p>
+              </button>
+
+              <!-- Action 2: Delete Anonymous Users & Visitors -->
+              <button onclick="purgeAllAnonymousAndVisitorRecords()"
+                class="p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-800/80 hover:bg-amber-600 hover:text-white dark:hover:bg-amber-600 dark:hover:text-white text-amber-700 dark:text-amber-300 text-left transition group shadow-2xs active:scale-98">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-black flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-secret text-amber-500 group-hover:text-white text-xs"></i>
+                    Delete Anonymous Users
+                  </span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 group-hover:bg-white/20 group-hover:text-white">
+                    Clean Visitors
+                  </span>
+                </div>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 group-hover:text-white/90 leading-tight">
+                  Cleans all anonymous session UIDs, unregistered visitor records, and blocked attempts.
+                </p>
+              </button>
+            </div>
+
+            <!-- Action 3: Firebase Auth Anonymous Users Guide & Script Link -->
+            <div class="pt-2 border-t border-rose-200/60 dark:border-rose-900/40 flex items-center justify-between gap-2 flex-wrap">
+              <div class="text-[10px] text-slate-500 dark:text-slate-400">
+                Need to delete anonymous accounts from <strong>Firebase Auth Console</strong> too?
+              </div>
+              <button onclick="openFirebaseAuthCleanupGuideModal()"
+                class="px-2.5 py-1 rounded-xl bg-rose-100 dark:bg-rose-950/80 hover:bg-rose-200 dark:hover:bg-rose-900 text-rose-800 dark:text-rose-200 text-[10px] font-bold transition flex items-center gap-1">
+                <i class="fa-solid fa-fire text-amber-500"></i>
+                <span>Firebase Auth Guide & Script</span>
               </button>
             </div>
           </div>
@@ -14432,6 +14766,11 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }">
               All Time
+            </button>
+            <button onclick="purgeAllTrackedUsers()" title="Reset all student activity tracking metrics"
+              class="ml-auto px-2.5 py-1 rounded-full text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-900 transition shrink-0 flex items-center gap-1">
+              <i class="fa-solid fa-trash-can text-[10px]"></i>
+              <span>Reset Analytics</span>
             </button>
           </div>
 
