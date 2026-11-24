@@ -798,12 +798,12 @@
     </div>
 
     <!-- ===================================================================== -->
-    <!-- PAY ME LATER ENTRY MODAL                                              -->
+    <!-- PAY ME LATER ENTRY & MULTI-PAY SPLIT MODAL                            -->
     <!-- ===================================================================== -->
     <div id="payLaterModal"
       class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-4 animate-fadeIn">
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto no-scrollbar">
         
         <!-- Modal Header -->
         <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -814,7 +814,7 @@
             </div>
             <div>
               <h3 class="text-sm font-bold text-slate-900 dark:text-white">Pay Me Later</h3>
-              <p class="text-[10px] text-slate-500 dark:text-slate-400">Record money borrowed by a friend</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Record money lent or split an expense</p>
             </div>
           </div>
           <button onclick="closePayLaterModal()" aria-label="Close Modal"
@@ -824,52 +824,203 @@
         </div>
 
         <form id="payLaterForm" onsubmit="event.preventDefault(); submitPayLaterEntry();" class="space-y-3.5">
-          <!-- Lender (Who lent the money - default identified student) -->
+          <!-- Lender (Who lent/paid the money - default identified student) -->
           <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 flex items-center justify-between">
             <div class="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-              Lent by: <span id="payLaterLenderLabel" class="font-bold text-slate-900 dark:text-white">You</span>
+              Paid by: <span id="payLaterLenderLabel" class="font-bold text-slate-900 dark:text-white">You</span>
             </div>
             <button type="button" onclick="openUserIdentityModal()" class="text-[10px] font-bold text-brandBlue dark:text-blue-400 hover:underline">
               Switch
             </button>
           </div>
 
-          <!-- Borrower selection -->
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-              Who took money from you? *
-            </label>
-            <select id="payLaterBorrowerSelect" onchange="handleBorrowerSelectChange()" required
-              class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-emerald-500">
-              <option value="">-- Choose a friend --</option>
-            </select>
-            <!-- Custom borrower name input (hidden unless "Other" selected) -->
-            <input type="text" id="payLaterCustomBorrowerInput" placeholder="Enter friend's full name..."
-              class="hidden mt-2 w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-emerald-500" />
+          <!-- Mode Selector Switch: Single Friend vs Multi-Person Split -->
+          <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold">
+            <button type="button" id="payLaterModeSingleBtn" onclick="setPayLaterEntryMode('single')"
+              class="py-1.5 px-3 rounded-xl transition shadow-2xs flex items-center justify-center gap-1.5 bg-white dark:bg-slate-700 text-slate-900 dark:text-white">
+              <i class="fa-solid fa-user text-[11px]"></i>
+              <span>Single Friend</span>
+            </button>
+            <button type="button" id="payLaterModeMultiBtn" onclick="setPayLaterEntryMode('multi')"
+              class="py-1.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+              <i class="fa-solid fa-users text-[11px]"></i>
+              <span>Split / Multi Contri</span>
+            </button>
           </div>
 
-          <!-- Amount -->
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-              Amount (₹) *
-            </label>
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none font-bold text-emerald-600 dark:text-emerald-400 text-sm">
-                ₹
-              </span>
-              <input type="number" id="payLaterAmountInput" required min="1" step="any" placeholder="0"
-                class="w-full pl-8 pr-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-base font-bold focus:outline-none focus:border-emerald-500" />
+          <!-- ============================================== -->
+          <!-- MODE 1: SINGLE FRIEND FORM                     -->
+          <!-- ============================================== -->
+          <div id="payLaterSingleSection" class="space-y-3.5">
+            <!-- Borrower selection -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                Who took money from you? *
+              </label>
+              <select id="payLaterBorrowerSelect" onchange="handleBorrowerSelectChange()"
+                class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-emerald-500">
+                <option value="">-- Choose a friend --</option>
+              </select>
+              <!-- Custom borrower name input (hidden unless "Other" selected) -->
+              <input type="text" id="payLaterCustomBorrowerInput" placeholder="Enter friend's full name..."
+                class="hidden mt-2 w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-emerald-500" />
             </div>
-            <!-- Quick preset amounts -->
-            <div class="flex items-center gap-1.5 mt-2 overflow-x-auto no-scrollbar">
-              <button type="button" onclick="setQuickPayLaterAmount(20)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹20</button>
-              <button type="button" onclick="setQuickPayLaterAmount(50)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹50</button>
-              <button type="button" onclick="setQuickPayLaterAmount(100)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹100</button>
-              <button type="button" onclick="setQuickPayLaterAmount(200)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹200</button>
-              <button type="button" onclick="setQuickPayLaterAmount(500)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹500</button>
+
+            <!-- Amount -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                Amount (₹) *
+              </label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                  ₹
+                </span>
+                <input type="number" id="payLaterAmountInput" min="1" step="any" placeholder="0"
+                  class="w-full pl-8 pr-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-base font-bold focus:outline-none focus:border-emerald-500" />
+              </div>
+              <!-- Quick preset amounts -->
+              <div class="flex items-center gap-1.5 mt-2 overflow-x-auto no-scrollbar">
+                <button type="button" onclick="setQuickPayLaterAmount(20)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹20</button>
+                <button type="button" onclick="setQuickPayLaterAmount(50)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹50</button>
+                <button type="button" onclick="setQuickPayLaterAmount(100)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹100</button>
+                <button type="button" onclick="setQuickPayLaterAmount(200)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹200</button>
+                <button type="button" onclick="setQuickPayLaterAmount(500)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹500</button>
+              </div>
             </div>
           </div>
 
+          <!-- ============================================== -->
+          <!-- MODE 2: MULTI-PERSON SPLIT / CONTRIBUTION FORM -->
+          <!-- ============================================== -->
+          <div id="payLaterMultiSection" class="hidden space-y-3.5">
+            <!-- Friends Multi-Selection Box -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                  Select Friends to Split With *
+                </label>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="selectAllMultiBorrowers()" class="text-[10px] font-bold text-brandBlue dark:text-blue-400 hover:underline">Select All</button>
+                  <span class="text-slate-300 dark:text-slate-700 text-xs">·</span>
+                  <button type="button" onclick="clearAllMultiBorrowers()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:underline">Clear</button>
+                </div>
+              </div>
+
+              <!-- Scrollable Chips of Friends -->
+              <div id="payLaterMultiFriendsList" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 no-scrollbar">
+                <!-- Dynamically rendered by renderMultiPayFriendsList() -->
+              </div>
+
+              <!-- Add custom friend input for split -->
+              <div class="flex items-center gap-1.5 mt-2">
+                <input type="text" id="payLaterMultiCustomFriendInput" placeholder="Add other friend name..."
+                  class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-emerald-500" />
+                <button type="button" onclick="addCustomMultiBorrower()"
+                  class="px-2.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200 text-xs font-bold transition">
+                  + Add
+                </button>
+              </div>
+
+              <div class="mt-1 flex items-center justify-between">
+                <span id="payLaterMultiSelectedCountBadge" class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                  0 friends selected
+                </span>
+                <span class="text-[10px] text-slate-400">Tap friends to toggle</span>
+              </div>
+            </div>
+
+            <!-- Split Calculation Type -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                How to split?
+              </label>
+              <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl text-xs font-semibold">
+                <button type="button" id="payLaterSplitTypeTotalBtn" onclick="setMultiPaySplitType('total')"
+                  class="py-1 px-2.5 rounded-lg text-xs font-bold transition bg-emerald-600 text-white shadow-2xs">
+                  Total Bill (Split Equally)
+                </button>
+                <button type="button" id="payLaterSplitTypePerBtn" onclick="setMultiPaySplitType('per_person')"
+                  class="py-1 px-2.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900">
+                  Exact Per Person
+                </button>
+              </div>
+            </div>
+
+            <!-- Multi Amount Inputs: Total Bill -->
+            <div id="payLaterMultiTotalSection" class="space-y-2">
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                Total Bill Amount (₹) *
+              </label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                  ₹
+                </span>
+                <input type="number" id="payLaterMultiTotalAmountInput" min="1" step="any" placeholder="0" oninput="updateMultiPayPreview()"
+                  class="w-full pl-8 pr-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-base font-bold focus:outline-none focus:border-emerald-500" />
+              </div>
+              <!-- Presets for total bill -->
+              <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                <button type="button" onclick="setQuickMultiTotalAmount(50)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 border border-slate-200 dark:border-slate-700">+₹50</button>
+                <button type="button" onclick="setQuickMultiTotalAmount(100)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 border border-slate-200 dark:border-slate-700">+₹100</button>
+                <button type="button" onclick="setQuickMultiTotalAmount(200)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 border border-slate-200 dark:border-slate-700">+₹200</button>
+                <button type="button" onclick="setQuickMultiTotalAmount(500)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 border border-slate-200 dark:border-slate-700">+₹500</button>
+                <button type="button" onclick="setQuickMultiTotalAmount(1000)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 border border-slate-200 dark:border-slate-700">+₹1000</button>
+              </div>
+
+              <!-- Include Myself Checkbox -->
+              <label class="flex items-center gap-2 cursor-pointer pt-1">
+                <input type="checkbox" id="payLaterMultiIncludeSelf" checked onchange="updateMultiPayPreview()"
+                  class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600" />
+                <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">
+                  Include myself in split <span class="text-[10px] text-slate-400">(I consumed too)</span>
+                </span>
+              </label>
+            </div>
+
+            <!-- Multi Amount Inputs: Fixed Per Person -->
+            <div id="payLaterMultiPerSection" class="hidden space-y-2">
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                Amount Each Person Owes (₹) *
+              </label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                  ₹
+                </span>
+                <input type="number" id="payLaterMultiPerPersonAmountInput" min="1" step="any" placeholder="0" oninput="updateMultiPayPreview()"
+                  class="w-full pl-8 pr-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-base font-bold focus:outline-none focus:border-emerald-500" />
+              </div>
+              <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                <button type="button" onclick="setQuickMultiPerAmount(20)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 border border-slate-200 dark:border-slate-700">+₹20</button>
+                <button type="button" onclick="setQuickMultiPerAmount(50)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 border border-slate-200 dark:border-slate-700">+₹50</button>
+                <button type="button" onclick="setQuickMultiPerAmount(100)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 border border-slate-200 dark:border-slate-700">+₹100</button>
+                <button type="button" onclick="setQuickMultiPerAmount(200)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 border border-slate-200 dark:border-slate-700">+₹200</button>
+              </div>
+            </div>
+
+            <!-- Dynamic Live Split Contribution Preview Box -->
+            <div class="p-3 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-emerald-950 dark:text-emerald-200">Each Person Owes:</span>
+                <span id="payLaterMultiPreviewEachPerson" class="text-base font-black text-emerald-700 dark:text-emerald-400">₹0</span>
+              </div>
+              <div class="text-[11px] text-emerald-800 dark:text-emerald-300/80 flex items-center justify-between">
+                <span>Total to Collect:</span>
+                <span id="payLaterMultiPreviewTotalCollect" class="font-bold">₹0</span>
+              </div>
+              <div class="text-[11px] text-slate-600 dark:text-slate-400 flex items-center justify-between">
+                <span>Your share (paid by you):</span>
+                <span id="payLaterMultiPreviewMyShare" class="font-bold">₹0</span>
+              </div>
+              <div class="pt-1 border-t border-emerald-200/60 dark:border-emerald-800/50 text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                <span class="font-bold text-slate-700 dark:text-slate-300">Splitting with:</span>
+                <span id="payLaterMultiPreviewFriendsList">No friends selected</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- COMMON INPUTS: NOTE & UPI ID                   -->
+          <!-- ============================================== -->
           <!-- Note / Description -->
           <div>
             <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
@@ -10596,7 +10747,217 @@
       }
     }
 
-    function openPayLaterModal() {
+    let payLaterEntryMode = "single"; // 'single' or 'multi'
+    let payLaterMultiSelectedFriends = new Map(); // id -> { id, name }
+    let payLaterMultiSplitType = "total"; // 'total' or 'per_person'
+
+    function setPayLaterEntryMode(mode) {
+      payLaterEntryMode = mode;
+      const singleBtn = document.getElementById("payLaterModeSingleBtn");
+      const multiBtn = document.getElementById("payLaterModeMultiBtn");
+      const singleSec = document.getElementById("payLaterSingleSection");
+      const multiSec = document.getElementById("payLaterMultiSection");
+      const submitText = document.getElementById("submitPayLaterBtnText");
+
+      if (mode === "single") {
+        if (singleBtn) {
+          singleBtn.className = "py-1.5 px-3 rounded-xl transition shadow-2xs flex items-center justify-center gap-1.5 bg-white dark:bg-slate-700 text-slate-900 dark:text-white";
+        }
+        if (multiBtn) {
+          multiBtn.className = "py-1.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+        }
+        if (singleSec) singleSec.classList.remove("hidden");
+        if (multiSec) multiSec.classList.add("hidden");
+        if (submitText) submitText.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Save &amp; Notify Friend';
+      } else {
+        if (singleBtn) {
+          singleBtn.className = "py-1.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+        }
+        if (multiBtn) {
+          multiBtn.className = "py-1.5 px-3 rounded-xl transition shadow-2xs flex items-center justify-center gap-1.5 bg-white dark:bg-slate-700 text-slate-900 dark:text-white";
+        }
+        if (singleSec) singleSec.classList.add("hidden");
+        if (multiSec) multiSec.classList.remove("hidden");
+        updateMultiPayPreview();
+      }
+    }
+
+    function renderMultiPayFriendsList() {
+      const container = document.getElementById("payLaterMultiFriendsList");
+      if (!container) return;
+
+      const identity = getUserIdentity();
+      const myId = identity && identity.id ? identity.id.toLowerCase() : "";
+      const sortedSquad = [...FRIENDS_DATA]
+        .filter(s => !myId || s.id.toLowerCase() !== myId)
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      container.innerHTML = sortedSquad.map(s => {
+        const isSelected = payLaterMultiSelectedFriends.has(s.id);
+        const safeName = s.name.replace(/'/g, "\\'");
+        return `
+          <button type="button" onclick="toggleMultiPayFriend('${s.id}', '${safeName}')"
+            class="px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition flex items-center gap-1.5 shrink-0 ${
+              isSelected
+                ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 shadow-2xs font-bold'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+            }">
+            <i class="fa-solid ${isSelected ? 'fa-square-check text-emerald-600 dark:text-emerald-400' : 'fa-square text-slate-300 dark:text-slate-600'} text-xs"></i>
+            <span>${s.name}</span>
+          </button>
+        `;
+      }).join("");
+
+      updateMultiPayPreview();
+    }
+
+    function toggleMultiPayFriend(id, name) {
+      if (payLaterMultiSelectedFriends.has(id)) {
+        payLaterMultiSelectedFriends.delete(id);
+      } else {
+        payLaterMultiSelectedFriends.set(id, { id, name });
+      }
+      renderMultiPayFriendsList();
+    }
+
+    function selectAllMultiBorrowers() {
+      const identity = getUserIdentity();
+      const myId = identity && identity.id ? identity.id.toLowerCase() : "";
+      FRIENDS_DATA.forEach(s => {
+        if (!myId || s.id.toLowerCase() !== myId) {
+          payLaterMultiSelectedFriends.set(s.id, { id: s.id, name: s.name });
+        }
+      });
+      renderMultiPayFriendsList();
+    }
+
+    function clearAllMultiBorrowers() {
+      payLaterMultiSelectedFriends.clear();
+      renderMultiPayFriendsList();
+    }
+
+    function addCustomMultiBorrower() {
+      const input = document.getElementById("payLaterMultiCustomFriendInput");
+      if (!input) return;
+      const name = input.value.trim();
+      if (!name) return;
+      const id = "custom_" + name.toLowerCase().replace(/[^a-z0-9]/g, "_");
+      payLaterMultiSelectedFriends.set(id, { id, name });
+      input.value = "";
+      renderMultiPayFriendsList();
+    }
+
+    function setMultiPaySplitType(type) {
+      payLaterMultiSplitType = type;
+      const totalBtn = document.getElementById("payLaterSplitTypeTotalBtn");
+      const perBtn = document.getElementById("payLaterSplitTypePerBtn");
+      const totalSec = document.getElementById("payLaterMultiTotalSection");
+      const perSec = document.getElementById("payLaterMultiPerSection");
+
+      if (type === "total") {
+        if (totalBtn) totalBtn.className = "py-1 px-2.5 rounded-lg text-xs font-bold transition bg-emerald-600 text-white shadow-2xs";
+        if (perBtn) perBtn.className = "py-1 px-2.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900";
+        if (totalSec) totalSec.classList.remove("hidden");
+        if (perSec) perSec.classList.add("hidden");
+      } else {
+        if (totalBtn) totalBtn.className = "py-1 px-2.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900";
+        if (perBtn) perBtn.className = "py-1 px-2.5 rounded-lg text-xs font-bold transition bg-emerald-600 text-white shadow-2xs";
+        if (totalSec) totalSec.classList.add("hidden");
+        if (perSec) perSec.classList.remove("hidden");
+      }
+      updateMultiPayPreview();
+    }
+
+    function setQuickMultiTotalAmount(val) {
+      const input = document.getElementById("payLaterMultiTotalAmountInput");
+      if (!input) return;
+      const cur = parseFloat(input.value) || 0;
+      input.value = cur + val;
+      updateMultiPayPreview();
+    }
+
+    function setQuickMultiPerAmount(val) {
+      const input = document.getElementById("payLaterMultiPerPersonAmountInput");
+      if (!input) return;
+      const cur = parseFloat(input.value) || 0;
+      input.value = cur + val;
+      updateMultiPayPreview();
+    }
+
+    function updateMultiPayPreview() {
+      const countBadge = document.getElementById("payLaterMultiSelectedCountBadge");
+      const eachPersonEl = document.getElementById("payLaterMultiPreviewEachPerson");
+      const totalCollectEl = document.getElementById("payLaterMultiPreviewTotalCollect");
+      const myShareEl = document.getElementById("payLaterMultiPreviewMyShare");
+      const friendsListPreview = document.getElementById("payLaterMultiPreviewFriendsList");
+      const submitText = document.getElementById("submitPayLaterBtnText");
+
+      const friendsCount = payLaterMultiSelectedFriends.size;
+      if (countBadge) {
+        countBadge.textContent = `${friendsCount} friend${friendsCount === 1 ? '' : 's'} selected`;
+      }
+
+      let perPerson = 0;
+      let totalCollect = 0;
+      let myShare = 0;
+      const includeSelfEl = document.getElementById("payLaterMultiIncludeSelf");
+      const includeSelf = includeSelfEl ? includeSelfEl.checked : true;
+
+      if (payLaterMultiSplitType === "total") {
+        const totalInput = document.getElementById("payLaterMultiTotalAmountInput");
+        const total = parseFloat(totalInput ? totalInput.value : 0) || 0;
+        const divisor = includeSelf ? (friendsCount + 1) : friendsCount;
+        if (divisor > 0 && total > 0) {
+          perPerson = Math.round((total / divisor) * 100) / 100;
+          totalCollect = Math.round((perPerson * friendsCount) * 100) / 100;
+          myShare = includeSelf ? Math.round((total - totalCollect) * 100) / 100 : 0;
+        }
+      } else {
+        const perInput = document.getElementById("payLaterMultiPerPersonAmountInput");
+        perPerson = parseFloat(perInput ? perInput.value : 0) || 0;
+        totalCollect = Math.round((perPerson * friendsCount) * 100) / 100;
+        myShare = 0;
+      }
+
+      if (eachPersonEl) eachPersonEl.textContent = "₹" + perPerson;
+      if (totalCollectEl) totalCollectEl.textContent = "₹" + totalCollect;
+      if (myShareEl) {
+        if (includeSelf && payLaterMultiSplitType === "total") {
+          myShareEl.parentElement.classList.remove("hidden");
+          myShareEl.textContent = "₹" + myShare;
+        } else {
+          myShareEl.parentElement.classList.add("hidden");
+        }
+      }
+
+      if (friendsListPreview) {
+        const names = Array.from(payLaterMultiSelectedFriends.values()).map(f => f.name);
+        friendsListPreview.textContent = names.length > 0 ? names.join(", ") : "No friends selected";
+      }
+
+      if (submitText && payLaterEntryMode === "multi") {
+        submitText.innerHTML = friendsCount > 0
+          ? `<i class="fa-solid fa-users mr-1.5"></i>Request ₹${perPerson} each (${friendsCount} friends)`
+          : `<i class="fa-solid fa-users mr-1.5"></i>Select Friends to Split`;
+      }
+    }
+
+    function shareGroupContriWhatsApp(summary) {
+      let text = "Hey everyone! 👋 Here is the contri split for \"" + (summary.note || "our expense") + "\":\n\n" +
+        "💰 Total Bill: ₹" + summary.totalBill + "\n" +
+        "👤 Each Owes: ₹" + summary.perPerson + "\n" +
+        "👥 Contri from: " + summary.names.join(", ") + "\n\n";
+
+      if (summary.upiId) {
+        text += "📲 Pay directly via UPI: " + summary.upiId + "\n(or open Campus Saathi Pay Me Later)\n\n";
+      }
+      text += "Please clear your contri when possible. Thank you! 😊";
+
+      const url = "https://wa.me/?text=" + encodeURIComponent(text);
+      window.open(url, "_blank");
+    }
+
+    function openPayLaterModal(mode = "single") {
       if (!getUserIdentity()) {
         openUserIdentityModal(true);
         return;
@@ -10626,6 +10987,10 @@
 
       const amountInput = document.getElementById("payLaterAmountInput");
       if (amountInput) amountInput.value = "";
+      const multiTotalInput = document.getElementById("payLaterMultiTotalAmountInput");
+      if (multiTotalInput) multiTotalInput.value = "";
+      const multiPerInput = document.getElementById("payLaterMultiPerPersonAmountInput");
+      if (multiPerInput) multiPerInput.value = "";
       const noteInput = document.getElementById("payLaterNoteInput");
       if (noteInput) noteInput.value = "";
       const customBorrowerInput = document.getElementById("payLaterCustomBorrowerInput");
@@ -10639,6 +11004,8 @@
         upiInput.value = localStorage.getItem("vitb_user_upi_id") || "";
       }
 
+      renderMultiPayFriendsList();
+      setPayLaterEntryMode(mode || "single");
       modal.classList.remove("hidden");
     }
 
@@ -10673,40 +11040,13 @@
     }
 
     async function submitPayLaterEntry() {
-      const borrowerSelect = document.getElementById("payLaterBorrowerSelect");
-      const customBorrowerInput = document.getElementById("payLaterCustomBorrowerInput");
-      const amountInput = document.getElementById("payLaterAmountInput");
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "Dhruba";
+      const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "dhruba";
       const noteInput = document.getElementById("payLaterNoteInput");
       const upiInput = document.getElementById("payLaterUpiInput");
       const submitBtn = document.getElementById("submitPayLaterBtn");
       const btnText = document.getElementById("submitPayLaterBtnText");
-
-      const identity = getUserIdentity();
-      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "Dhruba";
-      const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "dhruba";
-
-      let borrowerId = "";
-      let borrowerName = "";
-
-      if (borrowerSelect && borrowerSelect.value === "__custom__") {
-        borrowerName = customBorrowerInput ? customBorrowerInput.value.trim() : "";
-        borrowerId = borrowerName.toLowerCase().replace(/\s+/g, "_");
-      } else if (borrowerSelect && borrowerSelect.value) {
-        borrowerId = borrowerSelect.value;
-        const selectedOpt = borrowerSelect.options[borrowerSelect.selectedIndex];
-        borrowerName = selectedOpt ? selectedOpt.getAttribute("data-name") || selectedOpt.text : borrowerId;
-      }
-
-      if (!borrowerName) {
-        alert("Please choose who took money from you.");
-        return;
-      }
-
-      const amount = parseFloat(amountInput ? amountInput.value : 0);
-      if (!amount || amount <= 0) {
-        alert("Please enter a valid amount in ₹.");
-        return;
-      }
 
       const note = noteInput ? noteInput.value.trim() : "";
       const upiId = upiInput ? upiInput.value.trim() : "";
@@ -10716,35 +11056,147 @@
         } catch (e) { }
       }
 
-      if (submitBtn) submitBtn.disabled = true;
-      if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving to Firebase...';
+      if (payLaterEntryMode === "single") {
+        const borrowerSelect = document.getElementById("payLaterBorrowerSelect");
+        const customBorrowerInput = document.getElementById("payLaterCustomBorrowerInput");
+        const amountInput = document.getElementById("payLaterAmountInput");
 
-      const entry = {
-        id: "pml_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6),
-        lenderId: myId,
-        lenderName: myName,
-        lenderUpi: upiId || localStorage.getItem("vitb_user_upi_id") || "",
-        borrowerId: borrowerId,
-        borrowerName: borrowerName,
-        amount: amount,
-        originalAmount: amount,
-        note: note || "Money borrowed",
-        createdAt: Date.now(),
-        status: "unpaid",
-        payments: []
-      };
+        let borrowerId = "";
+        let borrowerName = "";
 
-      try {
-        const updatedList = [entry, ...PAY_ME_LATER_LIST];
-        await syncPayLaterRecordsToFirebase(updatedList);
-        closePayLaterModal();
-        showReviewToast("✅ Added! ₹" + amount + " with " + borrowerName + " saved to Firebase.");
-        renderPayLaterUI();
-      } catch (err) {
-        console.warn("Exception saving Pay Me Later entry:", err);
-      } finally {
-        if (submitBtn) submitBtn.disabled = false;
-        if (btnText) btnText.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Save &amp; Notify Friend';
+        if (borrowerSelect && borrowerSelect.value === "__custom__") {
+          borrowerName = customBorrowerInput ? customBorrowerInput.value.trim() : "";
+          borrowerId = borrowerName.toLowerCase().replace(/\s+/g, "_");
+        } else if (borrowerSelect && borrowerSelect.value) {
+          borrowerId = borrowerSelect.value;
+          const selectedOpt = borrowerSelect.options[borrowerSelect.selectedIndex];
+          borrowerName = selectedOpt ? selectedOpt.getAttribute("data-name") || selectedOpt.text : borrowerId;
+        }
+
+        if (!borrowerName) {
+          alert("Please choose who took money from you.");
+          return;
+        }
+
+        const amount = parseFloat(amountInput ? amountInput.value : 0);
+        if (!amount || amount <= 0) {
+          alert("Please enter a valid amount in ₹.");
+          return;
+        }
+
+        if (submitBtn) submitBtn.disabled = true;
+        if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving to Firebase...';
+
+        const entry = {
+          id: "pml_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6),
+          lenderId: myId,
+          lenderName: myName,
+          lenderUpi: upiId || localStorage.getItem("vitb_user_upi_id") || "",
+          borrowerId: borrowerId,
+          borrowerName: borrowerName,
+          amount: amount,
+          originalAmount: amount,
+          note: note || "Money borrowed",
+          createdAt: Date.now(),
+          status: "unpaid",
+          payments: []
+        };
+
+        try {
+          const updatedList = [entry, ...PAY_ME_LATER_LIST];
+          await syncPayLaterRecordsToFirebase(updatedList);
+          closePayLaterModal();
+          showReviewToast("✅ Added! ₹" + amount + " with " + borrowerName + " saved to Firebase.");
+          renderPayLaterUI();
+        } catch (err) {
+          console.warn("Exception saving Pay Me Later entry:", err);
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+          if (btnText) btnText.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Save &amp; Notify Friend';
+        }
+      } else {
+        // Multi-Person Split Contribution
+        if (payLaterMultiSelectedFriends.size === 0) {
+          alert("Please select at least one friend to split with.");
+          return;
+        }
+
+        const friendsCount = payLaterMultiSelectedFriends.size;
+        const includeSelfEl = document.getElementById("payLaterMultiIncludeSelf");
+        const includeSelf = includeSelfEl ? includeSelfEl.checked : true;
+
+        let perPerson = 0;
+        let totalBill = 0;
+
+        if (payLaterMultiSplitType === "total") {
+          const totalInput = document.getElementById("payLaterMultiTotalAmountInput");
+          totalBill = parseFloat(totalInput ? totalInput.value : 0) || 0;
+          const divisor = includeSelf ? (friendsCount + 1) : friendsCount;
+          if (totalBill <= 0 || divisor <= 0) {
+            alert("Please enter a valid total bill amount.");
+            return;
+          }
+          perPerson = Math.round((totalBill / divisor) * 100) / 100;
+        } else {
+          const perInput = document.getElementById("payLaterMultiPerPersonAmountInput");
+          perPerson = parseFloat(perInput ? perInput.value : 0) || 0;
+          if (perPerson <= 0) {
+            alert("Please enter a valid per-person contribution amount.");
+            return;
+          }
+          totalBill = perPerson * (includeSelf ? (friendsCount + 1) : friendsCount);
+        }
+
+        if (perPerson <= 0) {
+          alert("Calculated amount per person is invalid.");
+          return;
+        }
+
+        if (submitBtn) submitBtn.disabled = true;
+        if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving to Firebase...';
+
+        const friendsArray = Array.from(payLaterMultiSelectedFriends.values());
+        const newEntries = friendsArray.map((friend, idx) => ({
+          id: "pml_" + (Date.now() + idx) + "_" + Math.random().toString(36).substr(2, 6),
+          lenderId: myId,
+          lenderName: myName,
+          lenderUpi: upiId || localStorage.getItem("vitb_user_upi_id") || "",
+          borrowerId: friend.id,
+          borrowerName: friend.name,
+          amount: perPerson,
+          originalAmount: perPerson,
+          note: (note ? (note + (includeSelf ? " (Split)" : " (Contri)")) : "Split contribution").trim(),
+          createdAt: Date.now() + idx,
+          status: "unpaid",
+          payments: []
+        }));
+
+        try {
+          const updatedList = [...newEntries, ...PAY_ME_LATER_LIST];
+          await syncPayLaterRecordsToFirebase(updatedList);
+          closePayLaterModal();
+          showReviewToast(`✅ Added ${newEntries.length} contri requests of ₹${perPerson} each!`);
+          renderPayLaterUI();
+
+          // Offer quick WhatsApp summary share
+          setTimeout(() => {
+            if (confirm(`🎉 Created split for ${newEntries.length} friends (₹${perPerson} each)!\n\nDo you want to share the split contribution summary on WhatsApp?`)) {
+              shareGroupContriWhatsApp({
+                note: note || "Split expense",
+                totalBill: totalBill,
+                perPerson: perPerson,
+                names: friendsArray.map(f => f.name),
+                upiId: upiId || localStorage.getItem("vitb_user_upi_id") || ""
+              });
+            }
+          }, 350);
+
+        } catch (err) {
+          console.warn("Exception saving Multi Pay Me Later entries:", err);
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+          if (btnText) btnText.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Save &amp; Notify Friend';
+        }
       }
     }
 
@@ -11220,12 +11672,6 @@
                   <i class="fa-solid fa-qrcode text-amber-500 text-xs"></i>
                   <span class="max-w-[85px] sm:max-w-none truncate">${myUpi ? myUpi : 'Set UPI'}</span>
                 </button>
-
-                <button onclick="openPayLaterModal()"
-                  class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 active:scale-95">
-                  <i class="fa-solid fa-plus text-[10px]"></i>
-                  <span>Add Due</span>
-                </button>
               </div>
             </div>
           </div>
@@ -11358,10 +11804,14 @@
                     ${!myName ? 'Dues are strictly private and only visible between the student who gave and the student who took.' : payLaterSearchQuery ? 'Try searching for a different friend or reason.' : 'You have no pending dues. Dues are private and only visible to you and the other person involved.'}
                   </p>
                 </div>
-                <div>
-                  <button onclick="${!myName ? 'openUserIdentityModal()' : 'openPayLaterModal()'}" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs">
-                    <i class="fa-solid ${!myName ? 'fa-user-check' : 'fa-plus'} mr-1"></i> ${!myName ? 'Select Your Name' : 'Add New Due'}
+                <div class="flex items-center justify-center gap-2 flex-wrap">
+                  <button onclick="${!myName ? 'openUserIdentityModal()' : "openPayLaterModal('single')"}" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs">
+                    <i class="fa-solid ${!myName ? 'fa-user-check' : 'fa-plus'} mr-1"></i> ${!myName ? 'Select Your Name' : 'Add Due'}
                   </button>
+                  ${myName ? `
+                  <button onclick="openPayLaterModal('multi')" class="px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition shadow-xs">
+                    <i class="fa-solid fa-users mr-1"></i> Split Contri
+                  </button>` : ''}
                 </div>
               </div>
             ` : displayList.map(item => {
@@ -11470,7 +11920,18 @@
                   </div>
                 </div>
               `;
-            }).join("")}
+            }).join("") + `
+              <div class="pt-3 pb-6 flex items-center justify-center gap-2 flex-wrap">
+                <button onclick="openPayLaterModal('single')" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 active:scale-95">
+                  <i class="fa-solid fa-plus text-[10px]"></i>
+                  <span>Add Due</span>
+                </button>
+                <button onclick="openPayLaterModal('multi')" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 active:scale-95">
+                  <i class="fa-solid fa-users text-[11px]"></i>
+                  <span>Split Contri</span>
+                </button>
+              </div>
+            `}
           </div>
         `;
       } catch (err) {
