@@ -180,337 +180,11 @@
     #inlineSquadToggles:empty {
       display: none;
     }
-
-    /* ===================================================================== */
-    /* FLUID LIQUID MOTION ENGINE                                            */
-    /* ===================================================================== */
-    :root {
-      --fluid-ease: cubic-bezier(0.22, 1, 0.36, 1);
-      --fluid-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-      --fluid-smooth: cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* Ambient subtle static gradient mesh (zero continuous GPU/blur overhead) */
-    .fluid-ambient-bg {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    .fluid-orb {
-      position: absolute;
-      border-radius: 9999px;
-      opacity: 0.22;
-      pointer-events: none;
-    }
-
-    html.dark .fluid-orb {
-      opacity: 0.14;
-    }
-
-    .fluid-orb-1 {
-      width: 340px;
-      height: 340px;
-      top: -110px;
-      left: -90px;
-      background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.55) 0%, rgba(96, 165, 250, 0.2) 45%, transparent 72%);
-    }
-
-    .fluid-orb-2 {
-      width: 320px;
-      height: 320px;
-      top: 30%;
-      right: -110px;
-      background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.45) 0%, rgba(6, 182, 212, 0.18) 45%, transparent 72%);
-    }
-
-    .fluid-orb-3 {
-      width: 300px;
-      height: 300px;
-      bottom: -95px;
-      left: 8%;
-      background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.45) 0%, rgba(236, 72, 153, 0.16) 45%, transparent 72%);
-    }
-
-    /* Morphing Sliding Tab Glider */
-    #navTabList {
-      position: relative;
-    }
-
-    #navTabGlider {
-      position: absolute;
-      top: 4px;
-      bottom: 4px;
-      left: 0;
-      border-radius: 9999px;
-      background: linear-gradient(135deg, #2563eb 0%, #3b82f6 55%, #4f46e5 100%);
-      box-shadow: 0 3px 10px -2px rgba(37, 99, 235, 0.42);
-      transition: transform 0.34s var(--fluid-ease), width 0.34s var(--fluid-ease);
-      z-index: 0;
-      pointer-events: none;
-      will-change: transform, width;
-    }
-
-    .tab-btn {
-      position: relative;
-      z-index: 1;
-      transition: color 0.2s ease, transform 0.22s var(--fluid-ease);
-    }
-
-    .tab-btn:active {
-      transform: scale(0.95);
-    }
-
-    /* Directional Tab Page Transitions (Pure GPU transform + opacity, zero blur overhead) */
-    .tab-enter-right {
-      animation: tabEnterRight 0.28s var(--fluid-ease) both;
-    }
-
-    .tab-enter-left {
-      animation: tabEnterLeft 0.28s var(--fluid-ease) both;
-    }
-
-    .tab-enter-fade {
-      animation: fluidPopSoft 0.24s var(--fluid-ease) both;
-    }
-
-    @keyframes tabEnterRight {
-      0% {
-        opacity: 0;
-        transform: translate3d(16px, 0, 0);
-      }
-      100% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0);
-      }
-    }
-
-    @keyframes tabEnterLeft {
-      0% {
-        opacity: 0;
-        transform: translate3d(-16px, 0, 0);
-      }
-      100% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0);
-      }
-    }
-
-    @keyframes fluidPopSoft {
-      0% {
-        opacity: 0;
-        transform: translate3d(0, 8px, 0);
-      }
-      100% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0);
-      }
-    }
-
-    /* Staggered Fluid Card Cascades (Fast, crisp, capped at 6 visible items) */
-    @keyframes fluidCardRise {
-      0% {
-        opacity: 0;
-        transform: translate3d(0, 12px, 0) scale(0.985);
-      }
-      100% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1);
-      }
-    }
-
-    .fluid-feed-animate > *:nth-child(-n+7) {
-      animation: fluidCardRise 0.28s var(--fluid-ease) backwards;
-    }
-
-    .fluid-feed-animate > *:nth-child(1) { animation-delay: 0ms; }
-    .fluid-feed-animate > *:nth-child(2) { animation-delay: 22ms; }
-    .fluid-feed-animate > *:nth-child(3) { animation-delay: 44ms; }
-    .fluid-feed-animate > *:nth-child(4) { animation-delay: 66ms; }
-    .fluid-feed-animate > *:nth-child(5) { animation-delay: 88ms; }
-    .fluid-feed-animate > *:nth-child(6) { animation-delay: 110ms; }
-    .fluid-feed-animate > *:nth-child(7) { animation-delay: 132ms; }
-
-    /* Schedule Slot Cards: strictly zero click/tap/hover motion */
-    #mobileSlotCardFeed > div[onclick] {
-      transition: none !important;
-      transform: none !important;
-    }
-
-    /* Tactile Button Bounce & Overflow for Ripples (zero-specificity so Tailwind .absolute/.fixed always win) */
-    :where(button, a[class*="rounded"]) {
-      overflow: hidden;
-      transition: transform 0.2s var(--fluid-ease), background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
-    }
-
-    :where(button:not(.absolute):not(.fixed), a[class*="rounded"]:not(.absolute):not(.fixed)) {
-      position: relative;
-    }
-
-    :where(button:active:not(:disabled)) {
-      transform: scale(0.96);
-    }
-
-    /* Liquid Touch Ripple */
-    .fluid-ripple-wave {
-      position: absolute;
-      border-radius: 9999px;
-      pointer-events: none;
-      transform: scale(0);
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0) 70%);
-      animation: fluidRippleExpand 0.42s ease-out forwards;
-      z-index: 2;
-    }
-
-    .fluid-ripple-wave.fluid-ripple-dark {
-      background: radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0) 70%);
-    }
-
-    @keyframes fluidRippleExpand {
-      0% {
-        transform: scale(0);
-        opacity: 0.85;
-      }
-      100% {
-        transform: scale(2.4);
-        opacity: 0;
-      }
-    }
-
-    /* Subtle Hero Sheen (no infinite GPU loop) */
-    .fluid-shimmer {
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* Modal Backdrop & Spring Animations (Pure GPU transform + opacity) */
-    [id$="Modal"].fixed:not(.hidden) {
-      animation: fluidBackdropIn 0.2s ease-out both;
-    }
-
-    [id$="Modal"].fixed:not(.hidden) > div {
-      animation: fluidModalIn 0.32s var(--fluid-spring) both;
-    }
-
-    [id$="Modal"].fixed.fluid-closing {
-      animation: fluidBackdropOut 0.18s ease-in forwards !important;
-      pointer-events: none;
-    }
-
-    [id$="Modal"].fixed.fluid-closing > div {
-      animation: fluidModalOut 0.18s ease-in forwards !important;
-    }
-
-    @keyframes fluidBackdropIn {
-      0% { opacity: 0; }
-      100% { opacity: 1; }
-    }
-
-    @keyframes fluidBackdropOut {
-      0% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-
-    @keyframes fluidModalIn {
-      0% {
-        opacity: 0;
-        transform: translate3d(0, 18px, 0) scale(0.95);
-      }
-      100% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1);
-      }
-    }
-
-    @keyframes fluidModalOut {
-      0% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1);
-      }
-      100% {
-        opacity: 0;
-        transform: translate3d(0, 14px, 0) scale(0.96);
-      }
-    }
-
-    /* Floating Toast Spring Animation */
-    #reviewToast:not(.hidden) {
-      animation: fluidToastIn 0.32s var(--fluid-spring) both;
-    }
-
-    #reviewToast.fluid-toast-out {
-      animation: fluidToastOut 0.2s ease-in forwards;
-    }
-
-    @keyframes fluidToastIn {
-      0% {
-        opacity: 0;
-        transform: translate(-50%, 16px) scale(0.92);
-      }
-      100% {
-        opacity: 1;
-        transform: translate(-50%, 0) scale(1);
-      }
-    }
-
-    @keyframes fluidToastOut {
-      0% {
-        opacity: 1;
-        transform: translate(-50%, 0) scale(1);
-      }
-      100% {
-        opacity: 0;
-        transform: translate(-50%, 12px) scale(0.95);
-      }
-    }
-
-    /* Header Icon Hover & Theme Toggle Morph */
-    #appHeaderLogoIcon {
-      transition: transform 0.3s var(--fluid-spring);
-    }
-
-    @media (hover: hover) {
-      #appHeaderLogoIcon:hover {
-        transform: scale(1.06) rotate(-3deg);
-      }
-    }
-
-    .theme-spin-morph {
-      animation: themeSpinMorph 0.38s var(--fluid-spring);
-    }
-
-    @keyframes themeSpinMorph {
-      0% { transform: rotate(-120deg) scale(0.6); opacity: 0.5; }
-      100% { transform: rotate(0deg) scale(1); opacity: 1; }
-    }
-
-    /* Live Banner Gentle Glow */
-    #liveBannerWidget > div {
-      animation: fluidPopSoft 0.45s var(--fluid-ease) both;
-    }
-
-    /* Respect OS Reduced Motion Preference */
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
   </style>
 </head>
 
 <body
-  class="bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white transition-colors duration-300">
-
-  <!-- Ambient Fluid Gradient Background Mesh -->
-  <div class="fluid-ambient-bg" aria-hidden="true">
-    <div class="fluid-orb fluid-orb-1"></div>
-    <div class="fluid-orb fluid-orb-2"></div>
-    <div class="fluid-orb fluid-orb-3"></div>
-  </div>
+  class="bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white transition-colors duration-200">
 
   <!-- ===================================================================== -->
   <!-- MOBILE PHONE APP CONTAINER (MAX-W-MD)                                  -->
@@ -536,7 +210,7 @@
         <div class="flex items-center gap-1.5 shrink-0">
           <!-- Install App Button (Auto-shows when browser detects installability, or can be clicked for iOS instructions) -->
           <button id="installAppBtn" onclick="handleInstallAppClick()" aria-label="Install App" title="Install Web App"
-            class="hidden fluid-shimmer px-2.5 h-8 rounded-full flex items-center gap-1.5 transition border shadow-xs bg-brandBlue hover:bg-brandBlueHover text-white border-blue-600 text-[11px] font-bold active:scale-95">
+            class="hidden px-2.5 h-8 rounded-full flex items-center gap-1.5 transition border shadow-xs bg-brandBlue hover:bg-brandBlueHover text-white border-blue-600 text-[11px] font-bold active:scale-95">
             <i class="fa-solid fa-download text-[10px]"></i>
             <span>Install</span>
           </button>
@@ -590,32 +264,31 @@
 
     <!-- 2. MAIN NAVIGATION TABS (CENTERED PILL STYLE) -->
     <div class="flex justify-center mb-4">
-      <div id="navTabList"
-        class="relative bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-full p-1 shadow-sm inline-flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full"
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full p-1 shadow-sm inline-flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full"
         role="tablist">
-        <div id="navTabGlider" aria-hidden="true"></div>
         <button onclick="switchTab('master')" id="tabBtn-master"
-          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-bold text-white shrink-0">
+          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm shrink-0">
           Schedule
         </button>
         <button onclick="switchTab('calendar')" id="tabBtn-calendar"
-          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 shrink-0">
+          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
           Calendar
         </button>
         <button onclick="switchTab('teacher')" id="tabBtn-teacher"
-          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 shrink-0">
+          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
           Teachers
         </button>
         <button onclick="switchTab('mess')" id="tabBtn-mess"
-          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 shrink-0">
+          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
           Mess Menu
         </button>
         <button onclick="switchTab('paylater')" id="tabBtn-paylater"
-          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 shrink-0">
+          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
           Pay Me Later
         </button>
         <button onclick="switchTab('parcel')" id="tabBtn-parcel"
-          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 shrink-0">
+          class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0">
           Parcels
         </button>
         <button onclick="switchTab('individual')" id="tabBtn-individual" class="hidden"></button>
@@ -7028,117 +6701,9 @@
 
     /**
      * ========================================================================
-     * 6. NAVIGATION, TABS & FLUID MOTION CONTROLLER
+     * 6. NAVIGATION & TABS
      * ========================================================================
      */
-    const NAV_TABS_ORDER = ["master", "calendar", "teacher", "mess", "paylater", "parcel"];
-    let lastFluidTabIndex = 0;
-
-    function updateNavTabGlider(tabId, instant = false) {
-      const tabList = document.getElementById("navTabList");
-      const glider = document.getElementById("navTabGlider");
-      const activeBtn = document.getElementById(`tabBtn-${tabId}`);
-      if (!tabList || !glider || !activeBtn) return;
-
-      if (instant) {
-        const prevTransition = glider.style.transition;
-        glider.style.transition = "none";
-        glider.style.width = activeBtn.offsetWidth + "px";
-        glider.style.transform = `translate3d(${activeBtn.offsetLeft}px, 0, 0)`;
-        void glider.offsetWidth;
-        glider.style.transition = prevTransition;
-      } else {
-        glider.style.width = activeBtn.offsetWidth + "px";
-        glider.style.transform = `translate3d(${activeBtn.offsetLeft}px, 0, 0)`;
-      }
-
-      // Smoothly center active tab inside horizontal scrollable pill strip on mobile
-      try {
-        const targetScroll = activeBtn.offsetLeft - (tabList.clientWidth / 2) + (activeBtn.offsetWidth / 2);
-        tabList.scrollTo({ left: Math.max(0, targetScroll), behavior: instant ? "auto" : "smooth" });
-      } catch (e) { }
-    }
-
-    function triggerFluidCascade(elOrId) {
-      const el = typeof elOrId === "string" ? document.getElementById(elOrId) : elOrId;
-      if (!el) return;
-      el.classList.remove("fluid-feed-animate");
-      void el.offsetWidth;
-      el.classList.add("fluid-feed-animate");
-    }
-
-    function fluidCloseModal(modalOrId, afterClose) {
-      const modal = typeof modalOrId === "string" ? document.getElementById(modalOrId) : modalOrId;
-      if (!modal || modal.classList.contains("hidden")) {
-        if (typeof afterClose === "function") afterClose();
-        return;
-      }
-      const token = String(Date.now() + Math.random());
-      modal.dataset.closingToken = token;
-      modal.classList.add("fluid-closing");
-      setTimeout(() => {
-        if (modal.dataset.closingToken === token && modal.classList.contains("fluid-closing")) {
-          modal.classList.remove("fluid-closing");
-          modal.classList.add("hidden");
-        }
-        if (typeof afterClose === "function") afterClose();
-      }, 210);
-    }
-
-    let fluidScrollObserver = null;
-    function observeFluidScrollItems() {
-      // Disabled heavy multi-hundred element observer for smooth 60fps mobile stability
-    }
-
-    // Automatically cancel any stale closing state ONLY when transitioning from hidden -> visible
-    if (typeof document !== "undefined" && typeof MutationObserver !== "undefined") {
-      try {
-        const modalClassObserver = new MutationObserver((mutations) => {
-          mutations.forEach(m => {
-            if (m.type === "attributes" && m.attributeName === "class") {
-              const el = m.target;
-              const wasHidden = (m.oldValue || "").split(/\s+/).includes("hidden");
-              if (wasHidden && !el.classList.contains("hidden") && el.classList.contains("fluid-closing")) {
-                el.classList.remove("fluid-closing");
-                delete el.dataset.closingToken;
-              }
-            }
-          });
-        });
-        document.querySelectorAll('[id$="Modal"]').forEach(modal => {
-          modalClassObserver.observe(modal, { attributes: true, attributeFilter: ["class"], attributeOldValue: true });
-        });
-      } catch (e) { }
-    }
-
-    // Global liquid touch ripple ONLY for buttons & links (never on schedule slot cards)
-    if (typeof document !== "undefined") {
-      document.addEventListener("pointerdown", (e) => {
-        if (e.target && e.target.closest && e.target.closest("#mobileSlotCardFeed > div[onclick]")) {
-          return;
-        }
-        const target = e.target && e.target.closest ? e.target.closest("button, a[class*='rounded']") : null;
-        if (!target || target.disabled) return;
-        const rect = target.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
-
-        const size = Math.max(rect.width, rect.height) * 0.85;
-        const wave = document.createElement("span");
-        const isLightBtn = target.className && (target.className.includes("bg-white") || target.className.includes("bg-slate-50") || target.className.includes("bg-slate-100") || target.className.includes("bg-transparent"));
-        wave.className = "fluid-ripple-wave" + (isLightBtn ? " fluid-ripple-dark" : "");
-        wave.style.width = size + "px";
-        wave.style.height = size + "px";
-        wave.style.left = (e.clientX - rect.left - size / 2) + "px";
-        wave.style.top = (e.clientY - rect.top - size / 2) + "px";
-        target.appendChild(wave);
-        setTimeout(() => { wave.remove(); }, 440);
-      }, { passive: true });
-    }
-
-    if (typeof window !== "undefined") {
-      window.addEventListener("resize", () => updateNavTabGlider(activeTab || "master", true));
-    }
-
     function switchTab(tabId) {
       if (!getUserIdentity()) {
         openUserIdentityModal(true);
@@ -7154,35 +6719,21 @@
           selectSquadFilter(selectedIndividualFriendId || FRIENDS_DATA[0].id);
         }
       }
-
-      const prevIndex = lastFluidTabIndex;
-      const nextIndex = NAV_TABS_ORDER.indexOf(tabId);
-      const isInitialSwitch = (activeTab === tabId && !document.getElementById("navTabGlider")?.style.width);
-      const enterClass = isInitialSwitch
-        ? "tab-enter-fade"
-        : (nextIndex > prevIndex ? "tab-enter-right" : (nextIndex < prevIndex ? "tab-enter-left" : "tab-enter-fade"));
-      if (nextIndex !== -1) lastFluidTabIndex = nextIndex;
-
       activeTab = tabId;
-      const tabs = NAV_TABS_ORDER;
+      const tabs = ["master", "calendar", "teacher", "mess", "paylater", "parcel"];
 
       tabs.forEach(t => {
         const panel = document.getElementById(`tabPanel-${t}`);
         const btn = document.getElementById(`tabBtn-${t}`);
         if (!panel || !btn) return;
-        panel.classList.remove("tab-enter-right", "tab-enter-left", "tab-enter-fade");
         if (t === tabId) {
           panel.classList.remove("hidden");
-          void panel.offsetWidth;
-          panel.classList.add(enterClass);
-          btn.className = "tab-btn px-3.5 py-1.5 rounded-full text-xs font-bold text-white shrink-0";
+          btn.className = "tab-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm shrink-0";
         } else {
           panel.classList.add("hidden");
-          btn.className = "tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 shrink-0";
+          btn.className = "tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0";
         }
       });
-
-      requestAnimationFrame(() => updateNavTabGlider(tabId, isInitialSwitch));
 
       // Update URL hash route for deep linking
       if (typeof window !== "undefined" && window.location) {
@@ -7207,31 +6758,21 @@
         renderMasterDayPills();
         renderMobileSlotCards();
         renderIndividualView();
-        triggerFluidCascade("mobileSlotCardFeed");
       } else if (tabId === "calendar") {
         renderCalendar();
-        triggerFluidCascade("calendarContainer");
       } else if (tabId === "teacher") {
-        // Render first viewport chunk immediately for silky 60fps tab slide; defer network listener slightly
+        // Teacher reviews are lazy-loaded ONLY when Teacher Finder is opened
+        initFirebaseReviews();
         renderTeacherFinder();
-        triggerFluidCascade("teacherSearchResults");
-        if (!isFirebaseReviewsListenerActive) {
-          setTimeout(() => { initFirebaseReviews(); }, 300);
-        } else {
-          initFirebaseReviews();
-        }
       } else if (tabId === "parcel") {
         initFirebaseParcelRequests();
         renderParcelHelper();
-        triggerFluidCascade("tabPanel-parcel");
       } else if (tabId === "paylater") {
         hasUserManuallySelectedPayLaterFilter = false;
         initFirebasePayLaterRequests();
         renderPayLaterUI();
-        triggerFluidCascade("tabPanel-paylater");
       } else if (tabId === "mess") {
         fetchMessMenu(getUserMess() || selectedMessId);
-        triggerFluidCascade("tabPanel-mess");
       }
     }
 
@@ -7269,7 +6810,6 @@
       selectedSlotIndex = null;
       renderMasterDayPills();
       renderMobileSlotCards();
-      triggerFluidCascade("mobileSlotCardFeed");
     }
 
     function renderInlineSquadToggles() {
@@ -7401,7 +6941,9 @@
         }
 
         const isCurrentSlotLive = (currentLiveSlotIdx === idx);
-        const isHighlighted = isCurrentSlotLive;
+        const isHighlighted = (selectedSlotIndex !== null)
+          ? (selectedSlotIndex === idx)
+          : isCurrentSlotLive;
 
         // When a single student is selected, compute classmates and same-slot squad members
         let sameClassFriends = [];
@@ -7463,9 +7005,10 @@
 
         return `
           <div
-            class="bg-white dark:bg-slate-900 border rounded-2xl p-3.5 shadow-2xs ${isHighlighted
+            onclick="selectMobileSlot(${idx})"
+            class="bg-white dark:bg-slate-900 border rounded-2xl p-3.5 shadow-2xs transition active:scale-[0.99] cursor-pointer ${isHighlighted
             ? 'border-brandBlue ring-2 ring-blue-100 dark:ring-blue-950'
-            : 'border-slate-200/90 dark:border-slate-800'
+            : 'border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
           }"
           >
             <!-- Card Header: Slot Name + Time + Status Badge -->
@@ -7639,7 +7182,12 @@
     }
 
     function selectMobileSlot(colIndex) {
-      // Disabled: slot boxes in Schedule are non-interactive
+      if (selectedSlotIndex === colIndex) {
+        selectedSlotIndex = null;
+      } else {
+        selectedSlotIndex = colIndex;
+      }
+      renderMobileSlotCards();
     }
 
     // Alias for backwards compatibility
@@ -7850,8 +7398,6 @@
         }
       }
       refreshAllViews();
-      triggerFluidCascade("mobileSlotCardFeed");
-      triggerFluidCascade("individualStatsRow");
     }
 
     function toggleFriendActive(friendId) {
@@ -8407,8 +7953,6 @@
     function setCalendarFilter(filterId) {
       calendarFilter = filterId;
       renderCalendar();
-      triggerFluidCascade("calendarContainer");
-      observeFluidScrollItems("#calendarContainer", ".rounded-2xl");
     }
 
     function handleCalendarSearch(query) {
@@ -8695,9 +8239,7 @@
       return bestScore >= 80 ? best : null;
     }
 
-    let _cachedTeacherDirectory = null;
     function getTeacherDirectory() {
-      if (_cachedTeacherDirectory) return _cachedTeacherDirectory;
       const teacherMap = new Map();
       const claimedFaculty = new Set();
 
@@ -8819,8 +8361,7 @@
         });
       }
 
-      _cachedTeacherDirectory = Array.from(teacherMap.values()).sort((a, b) => a.teacherName.localeCompare(b.teacherName));
-      return _cachedTeacherDirectory;
+      return Array.from(teacherMap.values()).sort((a, b) => a.teacherName.localeCompare(b.teacherName));
     }
 
     function handleTeacherSearchInput(val) {
@@ -9030,21 +8571,12 @@
       return { isMatch: false, score: 0 };
     }
 
-    let _teacherRenderToken = 0;
-    let _teacherChunkTimer = null;
-
     function renderTeacherFinder() {
       const allTeachers = getTeacherDirectory();
       const resultsContainer = document.getElementById("teacherSearchResults");
       const countBadge = document.getElementById("teacherCountBadge");
 
       if (!resultsContainer) return;
-
-      if (_teacherChunkTimer) {
-        clearTimeout(_teacherChunkTimer);
-        _teacherChunkTimer = null;
-      }
-      _teacherRenderToken++;
 
       const q = teacherSearchQuery.toLowerCase().trim();
 
@@ -9120,7 +8652,7 @@
         return;
       }
 
-      function renderTeacherCardHtml(t) {
+      resultsContainer.innerHTML = matchingTeachers.map(t => {
         const studentRecords = Object.values(t.studentRecords).sort((a, b) => a.friend.name.localeCompare(b.friend.name));
         const isExtraOnly = t.isExtraFaculty && studentRecords.length === 0;
 
@@ -9418,35 +8950,7 @@
             </div>
           </div>
         `;
-      }
-
-      const token = _teacherRenderToken;
-
-      const INITIAL_CHUNK = 14;
-      if (matchingTeachers.length <= INITIAL_CHUNK) {
-        resultsContainer.innerHTML = matchingTeachers.map(renderTeacherCardHtml).join("");
-        return;
-      }
-
-      // Mount only first viewport batch synchronously so tab slide animation stays locked at 60fps
-      resultsContainer.innerHTML = matchingTeachers.slice(0, INITIAL_CHUNK).map(renderTeacherCardHtml).join("");
-
-      let offset = INITIAL_CHUNK;
-      const BATCH_SIZE = 40;
-      function appendNextBatch() {
-        if (token !== _teacherRenderToken) return;
-        const nextSlice = matchingTeachers.slice(offset, offset + BATCH_SIZE);
-        if (!nextSlice.length) return;
-        resultsContainer.insertAdjacentHTML("beforeend", nextSlice.map(renderTeacherCardHtml).join(""));
-        offset += BATCH_SIZE;
-        if (offset < matchingTeachers.length) {
-          requestAnimationFrame(appendNextBatch);
-        }
-      }
-
-      _teacherChunkTimer = setTimeout(() => {
-        requestAnimationFrame(appendNextBatch);
-      }, 300);
+      }).join("");
     }
 
     /**
@@ -9702,7 +9206,8 @@
     }
 
     function closeReviewModal() {
-      fluidCloseModal("reviewModal");
+      const modal = document.getElementById("reviewModal");
+      if (modal) modal.classList.add("hidden");
     }
 
     function setReviewRating(val) {
@@ -9964,24 +9469,15 @@
       }
     }
 
-    let reviewToastHideTimer = null;
-    let reviewToastCleanTimer = null;
     function showReviewToast(msg) {
       const toast = document.getElementById("reviewToast");
       const msgEl = document.getElementById("reviewToastMsg");
       if (toast && msgEl) {
-        if (reviewToastHideTimer) clearTimeout(reviewToastHideTimer);
-        if (reviewToastCleanTimer) clearTimeout(reviewToastCleanTimer);
         msgEl.textContent = msg;
-        toast.classList.remove("hidden", "fluid-toast-out");
-        void toast.offsetWidth;
-        reviewToastHideTimer = setTimeout(() => {
-          toast.classList.add("fluid-toast-out");
-          reviewToastCleanTimer = setTimeout(() => {
-            toast.classList.add("hidden");
-            toast.classList.remove("fluid-toast-out");
-          }, 240);
-        }, 3400);
+        toast.classList.remove("hidden");
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 3500);
       }
     }
 
@@ -10670,7 +10166,8 @@
     }
 
     function closeParcelRequestModal() {
-      fluidCloseModal("parcelRequestModal");
+      const modal = document.getElementById("parcelRequestModal");
+      if (modal) modal.classList.add("hidden");
     }
 
     async function submitParcelRequest() {
@@ -10933,7 +10430,6 @@
     function setParcelFilter(filterKey) {
       selectedParcelFilter = filterKey;
       renderParcelHelper();
-      triggerFluidCascade("tabPanel-parcel");
     }
 
     function renderParcelHelper() {
@@ -11771,7 +11267,8 @@
     }
 
     function closePayLaterModal() {
-      fluidCloseModal("payLaterModal");
+      const modal = document.getElementById("payLaterModal");
+      if (modal) modal.classList.add("hidden");
     }
 
     function handleBorrowerSelectChange() {
@@ -12190,7 +11687,9 @@
     }
 
     function closePayNowModal() {
-      fluidCloseModal("payNowModal", () => { activePayNowRecord = null; });
+      const modal = document.getElementById("payNowModal");
+      if (modal) modal.classList.add("hidden");
+      activePayNowRecord = null;
     }
 
     function copyPayNowUpiId() {
@@ -12384,7 +11883,6 @@
       hasUserManuallySelectedPayLaterFilter = true;
       payLaterActiveFilter = (filter === "i_owe") ? "i_owe" : "owed_to_me";
       renderPayLaterUI();
-      triggerFluidCascade("tabPanel-paylater");
     }
 
     function handlePayLaterSearch(query) {
@@ -12589,7 +12087,7 @@
           <div class="grid grid-cols-2 gap-2.5">
             <!-- Card 1: You are Owed -->
             <div onclick="setPayLaterFilter('owed_to_me')"
-              class="fluid-shimmer cursor-pointer active:scale-[0.98] transition bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 border border-emerald-200/80 dark:border-emerald-800/60 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
+              class="cursor-pointer active:scale-[0.98] transition bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 border border-emerald-200/80 dark:border-emerald-800/60 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
               <div class="flex items-center justify-between">
                 <span class="text-[10px] font-bold tracking-wider uppercase text-emerald-800 dark:text-emerald-300">
                   You Are Owed
@@ -12610,7 +12108,7 @@
 
             <!-- Card 2: You Owe -->
             <div onclick="setPayLaterFilter('i_owe')"
-              class="fluid-shimmer cursor-pointer active:scale-[0.98] transition bg-gradient-to-br from-rose-50 to-amber-50 dark:from-rose-950/30 dark:to-amber-950/20 border border-rose-200/80 dark:border-rose-800/60 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
+              class="cursor-pointer active:scale-[0.98] transition bg-gradient-to-br from-rose-50 to-amber-50 dark:from-rose-950/30 dark:to-amber-950/20 border border-rose-200/80 dark:border-rose-800/60 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
               <div class="flex items-center justify-between">
                 <span class="text-[10px] font-bold tracking-wider uppercase text-rose-800 dark:text-rose-300">
                   You Owe
@@ -12968,7 +12466,8 @@ function openMessSelectorModal() {
 }
 
 function closeMessSelectorModal() {
-  fluidCloseModal("messSelectorModal");
+  const modal = document.getElementById("messSelectorModal");
+  if (modal) modal.classList.add("hidden");
 }
 
 function renderMessSelectorList() {
@@ -13143,7 +12642,6 @@ async function fetchMessMenu(messId, dateStr) {
   const cacheKey = `vitb_mess_${messId}_${dateStr}`;
   if (MESS_MENU_DATA_CACHE[cacheKey]) {
     renderMessMenuUI();
-    triggerFluidCascade("tabPanel-mess");
     return;
   }
 
@@ -13352,7 +12850,7 @@ function renderMessMenuUI() {
 
     <!-- Live Status & Countdown Hero Card (shown for today's date) -->
     ${isViewingToday && liveSlot ? `
-      <div class="fluid-shimmer p-3 rounded-2xl ${
+      <div class="p-3 rounded-2xl ${
         liveSlot.isOpen
           ? 'bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 border-emerald-200 dark:border-emerald-900/60'
           : 'bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-amber-200 dark:border-amber-900/60'
@@ -13523,12 +13021,6 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         localStorage.setItem("vitb_theme", isDark ? "dark" : "light");
       } catch (e) { }
       updateThemeToggleIcon();
-      const icon = document.getElementById("themeToggleIcon");
-      if (icon) {
-        icon.classList.remove("theme-spin-morph");
-        void icon.offsetWidth;
-        icon.classList.add("theme-spin-morph");
-      }
     }
 
     /**
@@ -13599,7 +13091,8 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     }
 
     function closeInstallHelpModal() {
-      fluidCloseModal("installHelpModal");
+      const modal = document.getElementById("installHelpModal");
+      if (modal) modal.classList.add("hidden");
     }
 
     // Register Service Worker for offline capability & PWA installability
@@ -13779,9 +13272,9 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         highlightIdentityRequirement();
         return;
       }
-      fluidCloseModal("userIdentityModal", () => {
-        document.body.classList.remove("overflow-hidden");
-      });
+      const modal = document.getElementById("userIdentityModal");
+      if (modal) modal.classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
     }
 
     function selectSquadUserIdentity(studentId) {
@@ -14614,7 +14107,8 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     }
 
     function closeFirebaseAuthCleanupGuideModal() {
-      fluidCloseModal("firebaseAuthCleanupGuideModal");
+      const modal = document.getElementById("firebaseAuthCleanupGuideModal");
+      if (modal) modal.classList.add("hidden");
     }
 
     function setUserTrackerView(view) {
@@ -14879,9 +14373,11 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     }
 
     function closeUserTrackerModal() {
-      fluidCloseModal("userTrackerModal", () => {
+      const modal = document.getElementById("userTrackerModal");
+      if (modal) {
+        modal.classList.add("hidden");
         document.body.classList.remove("overflow-hidden");
-      });
+      }
     }
 
     async function refreshUserTrackerData() {
@@ -15703,10 +15199,6 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
     // Background listeners, SW message channels, and network tasks
     window.onload = function () {
-      updateNavTabGlider(activeTab || "master", true);
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(() => updateNavTabGlider(activeTab || "master", true)).catch(() => {});
-      }
       checkInstallState();
       checkUserIdentityPrompt();
       checkMessOnboardingPrompt();
