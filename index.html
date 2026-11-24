@@ -1074,18 +1074,18 @@
     <div id="payNowModal"
       class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-4 animate-fadeIn">
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-4 sm:p-5 shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto no-scrollbar">
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-4 sm:p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto no-scrollbar">
         
         <!-- Modal Header -->
         <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
           <div class="flex items-center gap-2.5">
             <div
               class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-emerald-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-              <i class="fa-solid fa-bolt"></i>
+              <i class="fa-solid fa-wallet"></i>
             </div>
             <div>
               <h3 class="text-sm font-bold text-slate-900 dark:text-white">Pay via UPI</h3>
-              <p class="text-[10px] text-slate-500 dark:text-slate-400">Scan QR with amount or open UPI app</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Copy UPI ID and pay in your UPI app</p>
             </div>
           </div>
           <button onclick="closePayNowModal()" aria-label="Close Modal"
@@ -1095,33 +1095,14 @@
         </div>
 
         <div class="space-y-3.5">
-          <!-- Payee Info Box -->
-          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Paying to</span>
-              <span id="payNowTotalDueBadge" class="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">Total Due: ₹0</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="min-w-0">
-                <div id="payNowPayeeName" class="text-sm font-black text-slate-900 dark:text-white truncate">Friend</div>
-                <div class="flex items-center gap-1.5 mt-0.5">
-                  <span id="payNowPayeeUpi" class="text-[11px] font-mono text-slate-600 dark:text-slate-300 font-semibold truncate">upi@id</span>
-                  <button type="button" onclick="copyPayNowUpiId()" title="Copy UPI ID" class="text-slate-400 hover:text-brandBlue text-xs">
-                    <i class="fa-regular fa-copy"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
-                <i class="fa-solid fa-qrcode"></i>
-              </div>
-            </div>
-          </div>
-
           <!-- Payment Mode Selection (Full Pay vs Custom Pay) -->
           <div>
-            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              How much would you like to pay?
-            </label>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                Amount to Pay
+              </label>
+              <span id="payNowTotalDueBadge" class="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400">Total Due: ₹0</span>
+            </div>
             <div class="grid grid-cols-2 gap-2">
               <button type="button" id="payNowFullOptionBtn" onclick="setPayNowMode('full')"
                 class="p-2.5 rounded-xl border text-left transition relative flex flex-col justify-between border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30">
@@ -1130,7 +1111,7 @@
                   <i id="payNowFullCheckIcon" class="fa-solid fa-circle-check text-emerald-600 text-xs"></i>
                 </div>
                 <div id="payNowFullAmountDisplay" class="text-base font-black text-emerald-600 dark:text-emerald-400 mt-1">₹0</div>
-                <div class="text-[9px] text-slate-400">Clears full remaining due</div>
+                <div class="text-[9px] text-slate-400">Full remaining balance</div>
               </button>
 
               <button type="button" id="payNowCustomOptionBtn" onclick="setPayNowMode('custom')"
@@ -1158,54 +1139,67 @@
             <p id="payNowRemainingPreview" class="text-[10px] text-slate-400 font-medium"></p>
           </div>
 
-          <!-- QR Code Section: WITH AMOUNT PRESET! -->
-          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-center space-y-2">
-            <div class="flex items-center justify-between px-1">
-              <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <i class="fa-solid fa-qrcode text-emerald-600 text-xs"></i>
-                <span>Scan QR with Any UPI App</span>
-              </span>
-              <span id="payNowQrAmountBadge" class="text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-300/60">
-                ₹0
+          <!-- Hero UPI ID Sharing Box -->
+          <div class="p-3.5 rounded-2xl bg-gradient-to-br from-slate-50 to-emerald-50/40 dark:from-slate-800/80 dark:to-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/60 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Friend's UPI ID</span>
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300/60">
+                P2P Ready
               </span>
             </div>
 
-            <!-- QR Code Container -->
-            <div class="inline-block p-2 bg-white rounded-2xl shadow-xs border border-slate-200/90 mx-auto">
-              <div id="payNowQrCodeContainer" class="w-[160px] h-[160px] flex items-center justify-center mx-auto overflow-hidden">
-                <!-- Injected dynamically by renderPayNowQrCode() -->
+            <!-- Receiver Card -->
+            <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-500 dark:text-slate-400">Receiver:</span>
+                <strong id="payNowPayeeName" class="text-slate-900 dark:text-white font-bold text-sm">Friend</strong>
+              </div>
+              <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="text-[10px] text-slate-400 uppercase font-semibold">UPI ID</div>
+                  <div id="payNowPayeeUpi" class="font-mono font-black text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 truncate select-all">upi@id</div>
+                </div>
+                <button type="button" id="payNowQuickCopyIconBtn" onclick="copyPayNowUpiId()"
+                  class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition shrink-0"
+                  title="Copy UPI ID">
+                  <i class="fa-regular fa-copy text-sm"></i>
+                </button>
               </div>
             </div>
 
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Scan with any UPI app to send <strong class="text-emerald-600 dark:text-emerald-400 font-bold" id="payNowQrAmountHint">₹0</strong> to your friend.
-            </p>
-          </div>
+            <!-- Prominent Primary Copy Button -->
+            <button type="button" id="payNowCopyBtn" onclick="copyPayNowUpiId()"
+              class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm active:scale-95">
+              <i class="fa-regular fa-copy text-sm"></i>
+              <span id="payNowCopyBtnText">Copy UPI ID</span>
+            </button>
 
-          <!-- Direct UPI Launch Button (Clean P2P for non-merchant accounts) -->
-          <div class="pt-0.5 space-y-1.5">
-            <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1">
-              Or open directly in UPI app:
+            <!-- 3-Step Simple Guide -->
+            <div class="text-[11px] text-slate-600 dark:text-slate-300 space-y-1.5 pt-2 border-t border-emerald-200/60 dark:border-emerald-800/50">
+              <div class="flex items-start gap-2">
+                <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">1</span>
+                <span>Tap <strong>Copy UPI ID</strong> above.</span>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">2</span>
+                <span>Open GPay, PhonePe, or Paytm and pay <strong id="payNowAmountInstruction" class="text-emerald-600 dark:text-emerald-400">₹0</strong> to this UPI ID.</span>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">3</span>
+                <span>Return here and tap <strong>"I Have Paid"</strong> below.</span>
+              </div>
             </div>
-            <a id="payNowLaunchLink" href="#" target="_blank" onclick="handleLaunchUpiApp()"
-              class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-95">
-              <i class="fa-solid fa-bolt text-amber-300"></i>
-              <span id="payNowLaunchBtnText">Open in UPI App</span>
-            </a>
-            <p class="text-[10px] text-slate-400 dark:text-slate-500 text-center">
-              Personal UPI links open directly to your friend's profile. Enter <strong class="text-slate-700 dark:text-slate-300" id="payNowLinkAmountHint">₹0</strong> in the app to pay.
-            </p>
           </div>
 
           <!-- Confirm Payment Button -->
           <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
             <button type="button" onclick="confirmPayNowCompleted()"
-              class="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-300 text-xs font-bold transition flex items-center justify-center gap-1.5 border border-slate-200 dark:border-slate-700">
-              <i class="fa-solid fa-check text-emerald-500"></i>
-              <span>I Have Completed This Payment</span>
+              class="w-full py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm active:scale-95">
+              <i class="fa-solid fa-circle-check text-emerald-400 dark:text-emerald-600"></i>
+              <span id="payNowCompletedBtnText">I Have Completed This Payment</span>
             </button>
             <p class="text-[10px] text-slate-400 text-center">
-              Updates your remaining balance and notifies your friend.
+              Sends a confirmation request to your friend. The due will close once they confirm receipt.
             </p>
           </div>
         </div>
@@ -11602,11 +11596,43 @@
 
     function copyPayNowUpiId() {
       if (!activePayNowRecord || !activePayNowRecord.lenderUpi) return;
-      navigator.clipboard.writeText(activePayNowRecord.lenderUpi).then(() => {
-        showReviewToast("📋 UPI ID copied: " + activePayNowRecord.lenderUpi);
-      }).catch(() => {
-        showReviewToast("UPI ID: " + activePayNowRecord.lenderUpi);
-      });
+      const upi = activePayNowRecord.lenderUpi.trim();
+      const copyBtnText = document.getElementById("payNowCopyBtnText");
+      const quickCopyBtn = document.getElementById("payNowQuickCopyIconBtn");
+
+      const onSuccess = () => {
+        showReviewToast("📋 UPI ID copied: " + upi);
+        if (copyBtnText) copyBtnText.textContent = "Copied to Clipboard! ✓";
+        if (quickCopyBtn) quickCopyBtn.innerHTML = '<i class="fa-solid fa-check text-emerald-600 text-sm"></i>';
+        setTimeout(() => {
+          if (copyBtnText) copyBtnText.textContent = "Copy UPI ID";
+          if (quickCopyBtn) quickCopyBtn.innerHTML = '<i class="fa-regular fa-copy text-sm"></i>';
+        }, 2500);
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(upi).then(onSuccess).catch(() => {
+          fallbackCopyText(upi);
+          onSuccess();
+        });
+      } else {
+        fallbackCopyText(upi);
+        onSuccess();
+      }
+    }
+
+    function fallbackCopyText(text) {
+      try {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      } catch (err) {}
     }
 
     function setPayNowMode(mode) {
@@ -11660,56 +11686,24 @@
     }
 
     function renderPayNowQrCode(upiQrUri) {
-      const container = document.getElementById("payNowQrCodeContainer");
-      if (!container) return;
-      container.innerHTML = "";
-
-      if (typeof QRCode !== "undefined") {
-        try {
-          new QRCode(container, {
-            text: upiQrUri,
-            width: 160,
-            height: 160,
-            colorDark: "#0f172a",
-            colorLight: "#ffffff",
-            correctLevel: (typeof QRCode.CorrectLevel !== "undefined" && QRCode.CorrectLevel.M) ? QRCode.CorrectLevel.M : 0
-          });
-          return;
-        } catch (e) {
-          console.warn("Client QR generation failed, falling back to API image:", e);
-        }
-      }
-
-      // Fallback to QR Server API if QRCode library is not loaded
-      const img = document.createElement("img");
-      img.src = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=" + encodeURIComponent(upiQrUri) + "&margin=4";
-      img.alt = "UPI QR Code";
-      img.className = "w-[160px] h-[160px] rounded-lg shadow-2xs mx-auto";
-      img.loading = "lazy";
-      container.appendChild(img);
+      // Kept for backward compatibility
     }
 
     function updatePayNowLinkAndPreview() {
       if (!activePayNowRecord) return;
       const amount = getPayNowSelectedAmount();
       const preview = document.getElementById("payNowRemainingPreview");
-      const launchLink = document.getElementById("payNowLaunchLink");
-      const launchBtnText = document.getElementById("payNowLaunchBtnText");
-      const qrAmountBadge = document.getElementById("payNowQrAmountBadge");
-      const linkAmountHint = document.getElementById("payNowLinkAmountHint");
-
       const remainingAfter = Math.max(0, activePayNowRecord.amount - amount);
       const displayAmountStr = "₹" + amount.toFixed(amount % 1 === 0 ? 0 : 2);
 
-      if (qrAmountBadge) {
-        qrAmountBadge.textContent = displayAmountStr;
+      const instructionEl = document.getElementById("payNowAmountInstruction");
+      if (instructionEl) {
+        instructionEl.textContent = displayAmountStr;
       }
-      if (linkAmountHint) {
-        linkAmountHint.textContent = displayAmountStr;
-      }
-      const qrAmountHint = document.getElementById("payNowQrAmountHint");
-      if (qrAmountHint) {
-        qrAmountHint.textContent = displayAmountStr;
+
+      const completedBtnText = document.getElementById("payNowCompletedBtnText");
+      if (completedBtnText) {
+        completedBtnText.textContent = "I Have Paid " + displayAmountStr;
       }
 
       if (preview) {
@@ -11725,39 +11719,10 @@
           preview.innerHTML = "";
         }
       }
-
-      // Non-merchant (P2P) URI:
-      // In NPCI UPI spec for Peer-to-Peer / personal payments, only pa (UPI ID), pn (Payee Name),
-      // and cu (Currency) are permitted. Merchant-only parameters like tn (transaction note),
-      // am (dynamic amount in deep link), mc (MCC), and tr (reference ID) trigger PSP fraud/merchant
-      // verification blocks ("Payment failed / Unverified merchant") on personal bank accounts.
-      const cleanUpi = (activePayNowRecord.lenderUpi || "").trim();
-      const cleanName = (activePayNowRecord.lenderName || "Friend").replace(/[^a-zA-Z0-9 ]/g, "").trim() || "Friend";
-
-      const upiNonMerchantUri = "upi://pay?pa=" + encodeURIComponent(cleanUpi) +
-        "&pn=" + encodeURIComponent(cleanName) +
-        "&cu=INR";
-
-      if (launchLink) {
-        launchLink.href = upiNonMerchantUri;
-      }
-      if (launchBtnText) {
-        launchBtnText.textContent = "Open in UPI App";
-      }
-
-      renderPayNowQrCode(upiNonMerchantUri);
     }
 
     function handleLaunchUpiApp() {
-      const amount = getPayNowSelectedAmount();
-      if (amount <= 0) {
-        alert("Please specify a valid payment amount.");
-        return;
-      }
-      if (amount > activePayNowRecord.amount) {
-        alert("Amount cannot exceed the total due of ₹" + activePayNowRecord.amount);
-        return;
-      }
+      // Kept for backward compatibility
     }
 
     async function confirmPayNowCompleted() {
