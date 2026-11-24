@@ -7109,6 +7109,140 @@
      * ========================================================================
      */
     const ACADEMIC_CALENDAR_EVENTS = [
+      // --- Upcoming Campus & Student Events (from vitbhopal.ac.in/events) ---
+      {
+        id: "ev-campus-codeverse",
+        title: "CodeVerse 2.0",
+        displayDate: "15 – 29 Nov 2026",
+        startDate: "2026-11-15",
+        endDate: "2026-11-29",
+        dayOfWeek: "Sun – Sun",
+        type: "event",
+        typeLabel: "Competition",
+        note: "Online & AB-02 · Metaversity Club",
+        url: "https://vitbhopal.ac.in/events/codeverse-2-0"
+      },
+      {
+        id: "ev-campus-braingames",
+        title: "7-Day Brain Games League",
+        displayDate: "21 – 28 Nov 2026",
+        startDate: "2026-11-21",
+        endDate: "2026-11-28",
+        dayOfWeek: "Sat – Sat",
+        type: "event",
+        typeLabel: "Competition",
+        note: "Online · EvolVIT × Matiks",
+        url: "https://vitbhopal.ac.in/events/brain-games-league-2026"
+      },
+      {
+        id: "ev-campus-garba",
+        title: "Garba Night 2K26",
+        displayDate: "25 Nov 2026 · Wednesday",
+        startDate: "2026-11-25",
+        endDate: "2026-11-25",
+        dayOfWeek: "Wednesday",
+        type: "fest",
+        typeLabel: "Fest",
+        note: "Cricket Ground · 4:00 – 8:00 PM · Gujarati Club",
+        url: "https://vitbhopal.ac.in/events/garba-night-2026"
+      },
+      {
+        id: "ev-campus-natsamrat",
+        title: "Natsamrat 2026",
+        displayDate: "26 Nov 2026 · Thursday",
+        startDate: "2026-11-26",
+        endDate: "2026-11-26",
+        dayOfWeek: "Thursday",
+        type: "event",
+        typeLabel: "Theatre Fest",
+        note: "AB-01 Main Aud · The Dramatics Society",
+        url: "https://vitbhopal.ac.in/events/natsamrat-2026"
+      },
+      {
+        id: "ev-campus-foodfest",
+        title: "Hostel Food Fest 2026",
+        displayDate: "28 – 29 Nov 2026",
+        startDate: "2026-11-28",
+        endDate: "2026-11-29",
+        dayOfWeek: "Sat – Sun",
+        type: "fest",
+        typeLabel: "Campus Fest",
+        note: "Central Grounds · 48 Food Stalls & Movie Night",
+        url: "https://vitbhopal.ac.in/events/hostel-food-fest-2026"
+      },
+      {
+        id: "ev-campus-ethnixia",
+        title: "Ethnixia 3.0",
+        displayDate: "28 – 29 Nov 2026",
+        startDate: "2026-11-28",
+        endDate: "2026-11-29",
+        dayOfWeek: "Sat – Sun",
+        type: "fest",
+        typeLabel: "Fest",
+        note: "AB-01 Aud 1 · 10 AM – 6 PM · Fusion Club",
+        url: "https://vitbhopal.ac.in/events/ethnixia-3-0"
+      },
+      {
+        id: "ev-campus-bongoverse",
+        title: "BongoVerse’26",
+        displayDate: "10 Dec 2026 · Thursday",
+        startDate: "2026-12-10",
+        endDate: "2026-12-10",
+        dayOfWeek: "Thursday",
+        type: "fest",
+        typeLabel: "Cultural Fest",
+        note: "AB-01 Aud 1 · 4:20 – 7:00 PM · Aarohan (Bengali Society)",
+        url: "https://vitbhopal.ac.in/events/bongoverse-2026"
+      },
+      {
+        id: "ev-campus-creep",
+        title: "CREEP it CASUAL",
+        displayDate: "12 Dec 2026 · Saturday",
+        startDate: "2026-12-12",
+        endDate: "2026-12-12",
+        dayOfWeek: "Saturday",
+        type: "event",
+        typeLabel: "Cultural Event",
+        note: "AB-01 Aud 1 · 6:00 – 9:00 PM · The Voices",
+        url: "https://vitbhopal.ac.in/events/creep-it-casual-2026"
+      },
+      {
+        id: "ev-campus-aerospace",
+        title: "Beyond Gravity: Aerospace Workshop",
+        displayDate: "22 Nov 2026 · Sunday",
+        startDate: "2026-11-22",
+        endDate: "2026-11-22",
+        dayOfWeek: "Sunday",
+        type: "academic",
+        typeLabel: "Workshop",
+        note: "AB-01 Aud 1 · SAE VIT Bhopal",
+        url: "https://vitbhopal.ac.in/events/beyond-gravity-aerospace-workshop-2026"
+      },
+      {
+        id: "ev-campus-astra",
+        title: "ASTRA 2026",
+        displayDate: "21 – 22 Nov 2026",
+        startDate: "2026-11-21",
+        endDate: "2026-11-22",
+        dayOfWeek: "Sat – Sun",
+        type: "event",
+        typeLabel: "Student Event",
+        note: "Central Grounds · Astronomy & Space Club",
+        url: "https://vitbhopal.ac.in/events/astra-2026"
+      },
+      {
+        id: "ev-campus-solstice",
+        title: "Solstice’26",
+        displayDate: "21 – 22 Nov 2026",
+        startDate: "2026-11-21",
+        endDate: "2026-11-22",
+        dayOfWeek: "Sat – Sun",
+        type: "event",
+        typeLabel: "Student Event",
+        note: "AB-01 Main Aud · The Dramatics Society",
+        url: "https://vitbhopal.ac.in/events/solstice-2026"
+      },
+      // --- Academic & Holiday Calendar ---
       {
         id: "ev-1",
         title: "Remote Learning",
@@ -7469,6 +7603,8 @@
           return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-900/60"><i class="fa-solid fa-laptop-code text-[9px]"></i> ${label}</span>`;
         case "fest":
           return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-950/60 dark:text-fuchsia-300 border border-fuchsia-200 dark:border-fuchsia-900/60"><i class="fa-solid fa-masks-theater text-[9px]"></i> ${label}</span>`;
+        case "event":
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300 border border-violet-200 dark:border-violet-900/60"><i class="fa-solid fa-calendar-check text-[9px]"></i> ${label}</span>`;
         default: // academic
           return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/60"><i class="fa-solid fa-bookmark text-[9px]"></i> ${label}</span>`;
       }
@@ -7540,7 +7676,9 @@
 
       // Filter by category
       if (calendarFilter !== "all") {
-        if (calendarFilter === "exam") {
+        if (calendarFilter === "event") {
+          events = events.filter(e => e.type === "event" || e.type === "fest");
+        } else if (calendarFilter === "exam") {
           events = events.filter(e => e.type === "exam");
         } else if (calendarFilter === "holiday") {
           events = events.filter(e => e.type === "holiday");
@@ -7549,7 +7687,7 @@
         } else if (calendarFilter === "remote_learning") {
           events = events.filter(e => e.type === "remote_learning");
         } else if (calendarFilter === "academic") {
-          events = events.filter(e => e.type === "academic" || e.type === "fest");
+          events = events.filter(e => e.type === "academic");
         }
       }
 
@@ -7568,6 +7706,7 @@
 
       const filterOptions = [
         { id: "all", label: "All", icon: "fa-list-check" },
+        { id: "event", label: "Events & Fests", icon: "fa-champagne-glasses" },
         { id: "exam", label: "Exams", icon: "fa-graduation-cap" },
         { id: "holiday", label: "Holidays", icon: "fa-umbrella-beach" },
         { id: "sectional_holiday", label: "Sectional", icon: "fa-star-half-stroke" },
@@ -7679,7 +7818,10 @@
                           <div class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-slate-100 leading-tight mt-0.5">${dateBox.dayText}</div>
                         </div>
                         <div class="min-w-0 flex-1">
-                          <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug break-words">${ev.title}</h4>
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug break-words">${ev.title}</h4>
+                            ${ev.url ? `<a href="${ev.url}" target="_blank" rel="noopener noreferrer" class="text-[10px] text-brandBlue dark:text-blue-400 hover:underline inline-flex items-center gap-1 font-semibold"><i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> View</a>` : ''}
+                          </div>
                           <div class="text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-1.5 flex-wrap mt-0.5 font-medium">
                             <span>${ev.dayOfWeek}</span>
                             ${ev.note ? `<span class="text-slate-400 dark:text-slate-500">•</span><span class="text-blue-600 dark:text-blue-300 font-semibold">${ev.note}</span>` : ''}
