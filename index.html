@@ -11380,18 +11380,130 @@
       }
     }
 
-    async function markPayLaterAsPaid(docId, friendName, amount) {
+    async function requestPaymentConfirmation(docId) {
       const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
-      const targetFriend = friendName || (record ? (record.borrowerName || record.lenderName || "Friend") : "Friend");
-      const targetAmount = (amount !== undefined && amount !== null) ? amount : (record ? (record.amount || 0) : 0);
-      if (!confirm("Confirm that you received payment of ₹" + targetAmount + " from " + targetFriend + "?\n\nThis will permanently delete this record from Firebase.")) {
-        return;
+      if (!record) return;
+
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "You";
+      const targetLender = record.lenderName || "Lender";
+      const targetAmount = Number(record.amount || 0);
+
+      const confirmed = confirm(
+        "Have you completed the payment of ₹" + targetAmount + " to " + targetLender + "?\n\n" +
+        "A confirmation request will be sent to " + targetLender + ".\n" +
+        "This due will only be marked as paid and closed once " + targetLender + " confirms receiving the money."
+      );
+      if (!confirmed) return;
+
+      record.status = "awaiting_confirmation";
+      record.paymentClaimedAt = Date.now();
+      record.paymentClaimedBy = myName;
+      record.paymentClaimedAmount = targetAmount;
+      record.payments = record.payments || [];
+      record.payments.push({
+        amount: targetAmount,
+        paidAt: Date.now(),
+        payerName: myName,
+        type: "full_request"
+      });
+
+      await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      showReviewToast("📨 Payment confirmation sent to " + targetLender + "! Due will close once they confirm receipt.");
+      renderPayLaterUI();
+    }
+
+    async function confirmPaymentReceived(docId) {
+      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
+      if (!record) return;
+
+      const borrowerName = record.borrowerName || "Friend";
+      const claimedAmount = Number(record.paymentClaimedAmount || record.amount || 0);
+      const isClaimed = record.status === "awaiting_confirmation" || !!record.paymentClaimedAt;
+
+      const promptMsg = isClaimed
+        ? "Confirm that you received ₹" + claimedAmount + " from " + borrowerName + "?\n\nThis will verify payment and permanently settle this due."
+        : "Confirm that you received payment of ₹" + claimedAmount + " from " + borrowerName + " (cash / direct UPI)?\n\nThis will permanently settle this due.";
+
+      if (!confirm(promptMsg)) return;
+
+      const remainingAfterPayment = Math.max(0, Number(record.amount || 0) - (record.paymentClaimedAmount ? claimedAmount : Number(record.amount || 0)));
+
+      let updatedList;
+      if (remainingAfterPayment <= 0) {
+        // Full settlement: remove record permanently
+        updatedList = PAY_ME_LATER_LIST.filter(item => item.id !== docId);
+        await syncPayLaterRecordsToFirebase(updatedList);
+        showReviewToast("🎉 Payment confirmed! ₹" + claimedAmount + " received and due settled.");
+      } else {
+        // Partial settlement: update remaining balance
+        record.amount = remainingAfterPayment;
+        record.status = "partially_paid";
+        record.paymentClaimedAt = null;
+        record.paymentClaimedBy = null;
+        record.paymentClaimedAmount = null;
+        updatedList = PAY_ME_LATER_LIST;
+        await syncPayLaterRecordsToFirebase(updatedList);
+        showReviewToast("✅ ₹" + claimedAmount + " confirmed! Remaining due: ₹" + remainingAfterPayment);
       }
 
-      const updatedList = PAY_ME_LATER_LIST.filter(item => item.id !== docId);
-      await syncPayLaterRecordsToFirebase(updatedList);
-      showReviewToast("🎉 Payment confirmed! ₹" + targetAmount + " marked as received and deleted from Firebase.");
       renderPayLaterUI();
+    }
+
+    async function rejectPaymentClaim(docId) {
+      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
+      if (!record) return;
+
+      const borrowerName = record.borrowerName || "Friend";
+      const claimedAmount = Number(record.paymentClaimedAmount || record.amount || 0);
+
+      const confirmed = confirm(
+        "You did NOT receive ₹" + claimedAmount + " from " + borrowerName + "?\n\n" +
+        "This will decline the payment claim and revert the due back to active unpaid."
+      );
+      if (!confirmed) return;
+
+      record.status = (record.originalAmount && record.amount < record.originalAmount) ? "partially_paid" : "unpaid";
+      record.paymentClaimedAt = null;
+      record.paymentClaimedBy = null;
+      record.paymentClaimedAmount = null;
+
+      await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      showReviewToast("⚠️ Payment claim declined. Due status reverted to unpaid.");
+      renderPayLaterUI();
+    }
+
+    async function cancelPaymentClaim(docId) {
+      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
+      if (!record) return;
+
+      if (!confirm("Cancel your payment confirmation request?")) return;
+
+      record.status = (record.originalAmount && record.amount < record.originalAmount) ? "partially_paid" : "unpaid";
+      record.paymentClaimedAt = null;
+      record.paymentClaimedBy = null;
+      record.paymentClaimedAmount = null;
+
+      await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      showReviewToast("Payment confirmation request cancelled.");
+      renderPayLaterUI();
+    }
+
+    async function markPayLaterAsPaid(docId, friendName, amount) {
+      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
+      if (!record) return;
+
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
+      const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
+      const isLender = (myName && record.lenderName && record.lenderName.toLowerCase() === myName.toLowerCase()) ||
+                       (myId && record.lenderId && record.lenderId.toLowerCase() === myId.toLowerCase());
+
+      if (isLender) {
+        await confirmPaymentReceived(docId);
+      } else {
+        await requestPaymentConfirmation(docId);
+      }
     }
 
     function sendPayLaterReminderWhatsApp(docIdOrName, amount, note, upiId) {
@@ -11657,25 +11769,21 @@
       const identity = getUserIdentity();
       const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "Friend";
 
-      const remaining = activePayNowRecord.amount - amount;
-      activePayNowRecord.amount = remaining;
+      // Do NOT unilaterally mark as paid or delete! Set to awaiting confirmation so lender verifies receipt
+      activePayNowRecord.status = "awaiting_confirmation";
+      activePayNowRecord.paymentClaimedAt = Date.now();
+      activePayNowRecord.paymentClaimedBy = myName;
+      activePayNowRecord.paymentClaimedAmount = amount;
       activePayNowRecord.payments = activePayNowRecord.payments || [];
       activePayNowRecord.payments.push({
         amount: amount,
         paidAt: Date.now(),
         payerName: myName,
-        type: (remaining <= 0) ? "full" : "custom"
+        type: (amount >= activePayNowRecord.amount) ? "full" : "partial"
       });
 
-      if (remaining <= 0) {
-        activePayNowRecord.status = "paid";
-        await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
-        showReviewToast("🎉 Full payment of ₹" + amount + " marked! Waiting for " + activePayNowRecord.lenderName + " to confirm receipt & settle.");
-      } else {
-        activePayNowRecord.status = "partially_paid";
-        await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
-        showReviewToast("✅ Partial payment of ₹" + amount + " recorded! Remaining due: ₹" + remaining);
-      }
+      await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      showReviewToast("📨 Payment confirmation sent to " + (activePayNowRecord.lenderName || "friend") + "! Due will close once they confirm receipt.");
 
       closePayNowModal();
       renderPayLaterUI();
@@ -11758,6 +11866,7 @@
         let countOwedToMe = 0;
         let totalIOwe = 0;
         let countIOwe = 0;
+        let countAwaitingMyConfirmation = 0;
 
         PAY_ME_LATER_LIST.forEach(item => {
           const isLender = (myName && item.lenderName && item.lenderName.toLowerCase() === myName.toLowerCase()) ||
@@ -11768,6 +11877,9 @@
           if (isLender) {
             totalOwedToMe += Number(item.amount || 0);
             countOwedToMe++;
+            if (item.status === "awaiting_confirmation" || !!item.paymentClaimedAt) {
+              countAwaitingMyConfirmation++;
+            }
           }
           if (isBorrower) {
             totalIOwe += Number(item.amount || 0);
@@ -11899,7 +12011,7 @@
                   ₹${totalOwedToMe.toLocaleString("en-IN")}
                 </div>
                 <div class="text-[10px] font-semibold text-emerald-600/80 dark:text-emerald-400/80">
-                  ${countOwedToMe} friend${countOwedToMe === 1 ? "" : "s"} owe you
+                  ${countOwedToMe} friend${countOwedToMe === 1 ? "" : "s"} owe you${countAwaitingMyConfirmation > 0 ? ` • <span class="text-amber-600 dark:text-amber-400 font-extrabold animate-pulse">${countAwaitingMyConfirmation} to confirm</span>` : ''}
                 </div>
               </div>
             </div>
@@ -12003,12 +12115,14 @@
               const displayFriendName = isLender ? item.borrowerName : item.lenderName;
               const avatarClass = getStudentAvatarClass(displayFriendName);
 
+              const isAwaitingConfirmation = item.status === "awaiting_confirmation" || !!item.paymentClaimedAt;
               const isPaid = item.status === "paid" || item.amount <= 0;
               const isPartiallyPaid = item.status === "partially_paid" || (item.originalAmount > item.amount && item.amount > 0);
               const paidSoFar = Math.max(0, (item.originalAmount || item.amount) - item.amount);
+              const claimedAmount = Number(item.paymentClaimedAmount || item.amount || 0);
 
               return `
-                <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 shadow-2xs hover:shadow-xs transition space-y-2.5 ${isPaid ? 'opacity-90 ring-1 ring-emerald-500/30' : ''}">
+                <div class="bg-white dark:bg-slate-900 border ${isAwaitingConfirmation ? 'border-amber-300 dark:border-amber-700/80 ring-1 ring-amber-400/30' : isPaid ? 'border-emerald-300/80 ring-1 ring-emerald-500/30' : 'border-slate-200/80 dark:border-slate-800'} rounded-2xl p-3.5 shadow-2xs hover:shadow-xs transition space-y-2.5">
                   <div class="flex items-start justify-between gap-3">
                     <!-- Left: Avatar + Details -->
                     <div class="flex items-center gap-2.5 min-w-0">
@@ -12020,7 +12134,12 @@
                           <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
                             ${displayFriendName}
                           </span>
-                          ${isPaid ? `
+                          ${isAwaitingConfirmation ? `
+                            <span class="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold ${isLender ? 'bg-amber-500 text-white animate-pulse' : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300/60'}">
+                              <i class="fa-solid ${isLender ? 'fa-bell' : 'fa-clock'} mr-0.5"></i>
+                              ${isLender ? 'Confirm Payment' : 'Awaiting Confirmation'}
+                            </span>
+                          ` : isPaid ? `
                             <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300/60">
                               Payment Completed
                             </span>
@@ -12043,7 +12162,7 @@
                           <span>•</span>
                           <span class="shrink-0 text-[10px] text-slate-400">${formatRelativePayLaterTime(item.createdAt)}</span>
                         </div>
-                        ${isPartiallyPaid && !isPaid ? `
+                        ${isPartiallyPaid && !isPaid && !isAwaitingConfirmation ? `
                           <div class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
                             ₹${paidSoFar} paid so far • ₹${item.amount} remaining
                           </div>
@@ -12056,13 +12175,53 @@
                       <div class="text-base sm:text-lg font-black ${isPaid ? 'text-emerald-600 dark:text-emerald-400' : isLender ? 'text-emerald-600 dark:text-emerald-400' : isBorrower ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}">
                         ${isPaid ? '₹0' : (isLender ? '+' : isBorrower ? '-' : '') + '₹' + Number(item.amount || 0).toLocaleString("en-IN")}
                       </div>
-                      ${item.originalAmount && item.originalAmount !== item.amount ? `
+                      ${isAwaitingConfirmation ? `
+                        <div class="text-[10px] text-amber-600 dark:text-amber-400 font-bold">
+                          ₹${claimedAmount} claimed
+                        </div>
+                      ` : (item.originalAmount && item.originalAmount !== item.amount) ? `
                         <div class="text-[9px] text-slate-400 line-through">
                           Original: ₹${item.originalAmount}
                         </div>
                       ` : ''}
                     </div>
                   </div>
+
+                  <!-- Awaiting Confirmation Callout Box -->
+                  ${isAwaitingConfirmation ? (
+                    isLender ? `
+                      <div class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-between gap-2">
+                        <div class="text-[11px] text-amber-900 dark:text-amber-200 leading-tight min-w-0">
+                          <i class="fa-solid fa-circle-question text-amber-600 mr-1"></i>
+                          <span><strong>${item.borrowerName || 'Borrower'}</strong> claims they paid <strong>₹${claimedAmount}</strong>. Did you receive it?</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                          <button onclick="confirmPaymentReceived('${item.id}')"
+                            class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-2xs active:scale-95 transition flex items-center gap-1">
+                            <i class="fa-solid fa-check text-[10px]"></i>
+                            <span>Received</span>
+                          </button>
+                          <button onclick="rejectPaymentClaim('${item.id}')"
+                            class="px-2 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold shadow-2xs active:scale-95 transition flex items-center gap-1">
+                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                            <span>No</span>
+                          </button>
+                        </div>
+                      </div>
+                    ` : isBorrower ? `
+                      <div class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-between gap-2">
+                        <div class="text-[11px] text-amber-900 dark:text-amber-200 leading-tight min-w-0">
+                          <i class="fa-solid fa-hourglass-half text-amber-600 mr-1"></i>
+                          <span>You marked <strong>₹${claimedAmount}</strong> as paid. Waiting for <strong>${item.lenderName || 'Lender'}</strong> to confirm.</span>
+                        </div>
+                        <button onclick="cancelPaymentClaim('${item.id}')"
+                          class="px-2 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950/50 text-slate-700 dark:text-slate-300 text-[10px] font-bold shrink-0 transition"
+                          title="Cancel payment confirmation request">
+                          Cancel
+                        </button>
+                      </div>
+                    ` : ''
+                  ) : ''}
 
                   <!-- Action Toolbar -->
                   <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
@@ -12071,8 +12230,8 @@
                     </div>
 
                     <div class="flex items-center gap-1.5 shrink-0">
-                      <!-- Remind Button (Lender WhatsApp Reminder) -->
-                      ${isLender && !isPaid ? `
+                      <!-- Remind Button (Lender WhatsApp Reminder, only when not awaiting confirmation) -->
+                      ${isLender && !isPaid && !isAwaitingConfirmation ? `
                         <button onclick="sendPayLaterReminderWhatsApp('${item.id}')"
                           class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 hover:text-emerald-600 text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
                           title="Send friendly reminder on WhatsApp">
@@ -12081,8 +12240,18 @@
                         </button>
                       ` : ''}
 
-                      <!-- Pay Now (UPI) Button (Only for Borrower who owes money) -->
-                      ${!isLender && !isPaid ? `
+                      <!-- Direct Mark Received Button (For Lender when cash or direct settlement happened) -->
+                      ${isLender && !isPaid && !isAwaitingConfirmation ? `
+                        <button onclick="confirmPaymentReceived('${item.id}')"
+                          class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-300 text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
+                          title="Confirm payment received in cash or direct transfer and settle due">
+                          <i class="fa-solid fa-circle-check text-[10px]"></i>
+                          <span>Mark Received</span>
+                        </button>
+                      ` : ''}
+
+                      <!-- Pay Now Button (STRICTLY only for Borrower who owes money, never for Lender!) -->
+                      ${isBorrower && !isPaid && !isAwaitingConfirmation ? `
                         <button onclick="openPayNowModal('${item.id}')"
                           class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
                           title="Preset amount & launch UPI app">
@@ -12091,13 +12260,23 @@
                         </button>
                       ` : ''}
 
-                      <!-- Mark as Paid / Confirm Received Button (Deletes record from Firebase single document!) -->
-                      <button onclick="markPayLaterAsPaid('${item.id}')"
-                        class="px-2.5 py-1 rounded-lg ${isPaid ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white'} text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
-                        title="Confirm payment received and permanently delete this record from Firebase">
-                        <i class="fa-solid fa-circle-check text-[10px]"></i>
-                        <span>${isPaid ? 'Confirm & Settle' : isLender ? 'Mark Received' : 'Mark Paid'}</span>
-                      </button>
+                      <!-- Mark as Paid Button (STRICTLY only for Borrower, sends confirmation request to Lender) -->
+                      ${isBorrower && !isPaid && !isAwaitingConfirmation ? `
+                        <button onclick="requestPaymentConfirmation('${item.id}')"
+                          class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-300 text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
+                          title="Notify ${item.lenderName} that you have paid">
+                          <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                          <span>Mark as Paid</span>
+                        </button>
+                      ` : ''}
+
+                      <!-- Borrower Awaiting Status Pill in toolbar -->
+                      ${isBorrower && isAwaitingConfirmation ? `
+                        <span class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[11px] font-semibold flex items-center gap-1 border border-amber-200 dark:border-amber-800/60">
+                          <i class="fa-solid fa-clock text-[10px]"></i>
+                          <span>Waiting for ${item.lenderName}</span>
+                        </span>
+                      ` : ''}
                     </div>
                   </div>
                 </div>
