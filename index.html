@@ -11664,19 +11664,108 @@
       }
     }
 
-    async function requestPaymentConfirmation(docId) {
-      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
-      if (!record) return;
+    function getPayLaterPersonKey(id, name) {
+      const preset = (typeof findVerifiedPresetStudent === "function")
+        ? (findVerifiedPresetStudent(id) || findVerifiedPresetStudent(name))
+        : null;
+      if (preset) return preset.id.toLowerCase().trim();
+      return String(id || name || "unknown").toLowerCase().trim();
+    }
 
-      if (record.status === "awaiting_confirmation" || !!record.paymentClaimedAt) {
-        alert("Payment confirmation has already been sent to " + (record.lenderName || "lender") + "! Waiting for them to confirm receipt.");
+    function getPayLaterPairKey(item) {
+      const lKey = getPayLaterPersonKey(item.lenderId, item.lenderName);
+      const bKey = getPayLaterPersonKey(item.borrowerId, item.borrowerName);
+      return lKey + "__" + bKey;
+    }
+
+    function roundCurrency(val) {
+      return Math.round((Number(val) || 0) * 100) / 100;
+    }
+
+    function getGroupedPayLaterRecords(recordsList) {
+      const groupMap = new Map();
+      const sorted = [...(recordsList || [])].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+
+      sorted.forEach(item => {
+        if (!item) return;
+        const lenderKey = getPayLaterPersonKey(item.lenderId, item.lenderName);
+        const borrowerKey = getPayLaterPersonKey(item.borrowerId, item.borrowerName);
+        const pairKey = lenderKey + "__" + borrowerKey;
+
+        if (!groupMap.has(pairKey)) {
+          groupMap.set(pairKey, {
+            id: pairKey,
+            pairKey,
+            lenderKey,
+            borrowerKey,
+            lenderId: item.lenderId || lenderKey,
+            lenderName: item.lenderName || "Friend",
+            lenderUpi: item.lenderUpi || "",
+            borrowerId: item.borrowerId || borrowerKey,
+            borrowerName: item.borrowerName || "Friend",
+            shares: Number(item.shares || 1),
+            amount: 0,
+            originalAmount: 0,
+            latestCreatedAt: 0,
+            records: [],
+            claimedRecords: [],
+            unclaimedRecords: [],
+            claimedAmount: 0,
+            unclaimedAmount: 0
+          });
+        }
+
+        const grp = groupMap.get(pairKey);
+        if (!grp.lenderUpi && item.lenderUpi) grp.lenderUpi = item.lenderUpi;
+        if (Number(item.shares || 1) > grp.shares) grp.shares = Number(item.shares || 1);
+
+        const amt = Number(item.amount || 0);
+        const orig = Number(item.originalAmount || item.amount || 0);
+        const createdAt = Number(item.createdAt || 0);
+        if (createdAt > grp.latestCreatedAt) grp.latestCreatedAt = createdAt;
+
+        grp.amount = roundCurrency(grp.amount + amt);
+        grp.originalAmount = roundCurrency(grp.originalAmount + orig);
+        grp.records.push(item);
+
+        const isClaimed = item.status === "awaiting_confirmation" || !!item.paymentClaimedAt;
+        if (isClaimed) {
+          grp.claimedRecords.push(item);
+          grp.claimedAmount = roundCurrency(grp.claimedAmount + Number(item.paymentClaimedAmount || amt || 0));
+        } else if (amt > 0) {
+          grp.unclaimedRecords.push(item);
+          grp.unclaimedAmount = roundCurrency(grp.unclaimedAmount + amt);
+        }
+      });
+
+      return Array.from(groupMap.values()).sort((a, b) => b.latestCreatedAt - a.latestCreatedAt);
+    }
+
+    function findPayLaterGroupOrRecord(pairKeyOrDocId) {
+      const groups = getGroupedPayLaterRecords(PAY_ME_LATER_LIST);
+      let grp = groups.find(g => g.pairKey === pairKeyOrDocId);
+      if (!grp) {
+        const rec = PAY_ME_LATER_LIST.find(x => x.id === pairKeyOrDocId);
+        if (rec) {
+          grp = groups.find(g => g.pairKey === getPayLaterPairKey(rec));
+        }
+      }
+      return grp || null;
+    }
+
+    async function requestPaymentConfirmation(pairKeyOrDocId) {
+      const grp = findPayLaterGroupOrRecord(pairKeyOrDocId);
+      if (!grp) return;
+
+      if (grp.unclaimedRecords.length === 0 || grp.unclaimedAmount <= 0) {
+        alert("Payment confirmation has already been sent to " + (grp.lenderName || "lender") + "! Waiting for them to confirm receipt.");
         return;
       }
 
       const identity = getUserIdentity();
       const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "You";
-      const targetLender = record.lenderName || "Lender";
-      const targetAmount = Number(record.amount || 0);
+      const targetLender = grp.lenderName || "Lender";
+      const targetAmount = grp.unclaimedAmount;
 
       const confirmed = confirm(
         "Have you completed the payment of ₹" + targetAmount + " to " + targetLender + "?\n\n" +
@@ -11685,16 +11774,20 @@
       );
       if (!confirmed) return;
 
-      record.status = "awaiting_confirmation";
-      record.paymentClaimedAt = Date.now();
-      record.paymentClaimedBy = myName;
-      record.paymentClaimedAmount = targetAmount;
-      record.payments = record.payments || [];
-      record.payments.push({
-        amount: targetAmount,
-        paidAt: Date.now(),
-        payerName: myName,
-        type: "full_request"
+      const now = Date.now();
+      grp.unclaimedRecords.forEach(record => {
+        const recAmt = Number(record.amount || 0);
+        record.status = "awaiting_confirmation";
+        record.paymentClaimedAt = now;
+        record.paymentClaimedBy = myName;
+        record.paymentClaimedAmount = recAmt;
+        record.payments = record.payments || [];
+        record.payments.push({
+          amount: recAmt,
+          paidAt: now,
+          payerName: myName,
+          type: "full_request"
+        });
       });
 
       const success = await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
@@ -11704,49 +11797,63 @@
       renderPayLaterUI();
     }
 
-    async function confirmPaymentReceived(docId) {
-      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
-      if (!record) return;
+    async function confirmPaymentReceived(pairKeyOrDocId) {
+      const grp = findPayLaterGroupOrRecord(pairKeyOrDocId);
+      if (!grp) return;
 
-      const borrowerName = record.borrowerName || "Friend";
-      const claimedAmount = Number(record.paymentClaimedAmount || record.amount || 0);
-      const isClaimed = record.status === "awaiting_confirmation" || !!record.paymentClaimedAt;
+      const borrowerName = grp.borrowerName || "Friend";
+      const isClaimed = grp.claimedRecords.length > 0;
+      const targetRecords = isClaimed ? grp.claimedRecords : grp.records;
+      const claimedAmount = isClaimed ? grp.claimedAmount : grp.amount;
 
       const promptMsg = isClaimed
-        ? "Confirm that you received ₹" + claimedAmount + " from " + borrowerName + "?\n\nThis will verify payment and permanently settle this due."
-        : "Confirm that you received payment of ₹" + claimedAmount + " from " + borrowerName + " (cash / direct UPI)?\n\nThis will permanently settle this due.";
+        ? "Confirm that you received ₹" + claimedAmount + " from " + borrowerName + "?\n\nThis will verify payment and settle the claimed due(s)."
+        : "Confirm that you received payment of ₹" + claimedAmount + " from " + borrowerName + " (cash / direct UPI)?\n\nThis will permanently settle all dues with " + borrowerName + ".";
 
       if (!confirm(promptMsg)) return;
 
-      const remainingAfterPayment = Math.max(0, Number(record.amount || 0) - (record.paymentClaimedAmount ? claimedAmount : Number(record.amount || 0)));
+      const settledIds = new Set();
+      let hasPartialRemainder = false;
 
-      let updatedList;
-      if (remainingAfterPayment <= 0) {
-        // Full settlement: remove record permanently
-        updatedList = PAY_ME_LATER_LIST.filter(item => item.id !== docId);
-        await syncPayLaterRecordsToFirebase(updatedList);
+      targetRecords.forEach(record => {
+        const paidNow = isClaimed ? Number(record.paymentClaimedAmount || record.amount || 0) : Number(record.amount || 0);
+        const remainingAfterPayment = roundCurrency(Math.max(0, Number(record.amount || 0) - paidNow));
+        if (remainingAfterPayment <= 0) {
+          settledIds.add(record.id);
+        } else {
+          hasPartialRemainder = true;
+          record.amount = remainingAfterPayment;
+          record.status = "partially_paid";
+          record.paymentClaimedAt = null;
+          record.paymentClaimedBy = null;
+          record.paymentClaimedAmount = null;
+        }
+      });
+
+      const updatedList = PAY_ME_LATER_LIST.filter(item => !settledIds.has(item.id));
+      await syncPayLaterRecordsToFirebase(updatedList);
+
+      const remainingGroupTotal = roundCurrency(
+        updatedList
+          .filter(item => getPayLaterPairKey(item) === grp.pairKey)
+          .reduce((sum, item) => sum + Number(item.amount || 0), 0)
+      );
+
+      if (remainingGroupTotal <= 0 && !hasPartialRemainder) {
         showReviewToast("🎉 Payment confirmed! ₹" + claimedAmount + " received and due settled.");
       } else {
-        // Partial settlement: update remaining balance
-        record.amount = remainingAfterPayment;
-        record.status = "partially_paid";
-        record.paymentClaimedAt = null;
-        record.paymentClaimedBy = null;
-        record.paymentClaimedAmount = null;
-        updatedList = PAY_ME_LATER_LIST;
-        await syncPayLaterRecordsToFirebase(updatedList);
-        showReviewToast("✅ ₹" + claimedAmount + " confirmed! Remaining due: ₹" + remainingAfterPayment);
+        showReviewToast("✅ ₹" + claimedAmount + " confirmed! Remaining due: ₹" + remainingGroupTotal);
       }
 
       renderPayLaterUI();
     }
 
-    async function rejectPaymentClaim(docId) {
-      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
-      if (!record) return;
+    async function rejectPaymentClaim(pairKeyOrDocId) {
+      const grp = findPayLaterGroupOrRecord(pairKeyOrDocId);
+      if (!grp || grp.claimedRecords.length === 0) return;
 
-      const borrowerName = record.borrowerName || "Friend";
-      const claimedAmount = Number(record.paymentClaimedAmount || record.amount || 0);
+      const borrowerName = grp.borrowerName || "Friend";
+      const claimedAmount = grp.claimedAmount;
 
       const confirmed = confirm(
         "You did NOT receive ₹" + claimedAmount + " from " + borrowerName + "?\n\n" +
@@ -11754,57 +11861,63 @@
       );
       if (!confirmed) return;
 
-      record.status = (record.originalAmount && record.amount < record.originalAmount) ? "partially_paid" : "unpaid";
-      record.paymentClaimedAt = null;
-      record.paymentClaimedBy = null;
-      record.paymentClaimedAmount = null;
+      grp.claimedRecords.forEach(record => {
+        record.status = (record.originalAmount && record.amount < record.originalAmount) ? "partially_paid" : "unpaid";
+        record.paymentClaimedAt = null;
+        record.paymentClaimedBy = null;
+        record.paymentClaimedAmount = null;
+      });
 
       await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
       showReviewToast("⚠️ Payment claim declined. Due status reverted to unpaid.");
       renderPayLaterUI();
     }
 
-    async function cancelPaymentClaim(docId) {
-      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
-      if (!record) return;
+    async function cancelPaymentClaim(pairKeyOrDocId) {
+      const grp = findPayLaterGroupOrRecord(pairKeyOrDocId);
+      if (!grp || grp.claimedRecords.length === 0) return;
 
       if (!confirm("Cancel your payment confirmation request?")) return;
 
-      record.status = (record.originalAmount && record.amount < record.originalAmount) ? "partially_paid" : "unpaid";
-      record.paymentClaimedAt = null;
-      record.paymentClaimedBy = null;
-      record.paymentClaimedAmount = null;
+      grp.claimedRecords.forEach(record => {
+        record.status = (record.originalAmount && record.amount < record.originalAmount) ? "partially_paid" : "unpaid";
+        record.paymentClaimedAt = null;
+        record.paymentClaimedBy = null;
+        record.paymentClaimedAmount = null;
+      });
 
       await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
       showReviewToast("Payment confirmation request cancelled.");
       renderPayLaterUI();
     }
 
-    async function markPayLaterAsPaid(docId, friendName, amount) {
-      const record = PAY_ME_LATER_LIST.find(item => item.id === docId);
-      if (!record) return;
+    async function markPayLaterAsPaid(pairKeyOrDocId, friendName, amount) {
+      const grp = findPayLaterGroupOrRecord(pairKeyOrDocId);
+      if (!grp) return;
 
       const identity = getUserIdentity();
       const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
       const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
-      const isLender = (myName && record.lenderName && record.lenderName.toLowerCase() === myName.toLowerCase()) ||
-                       (myId && record.lenderId && record.lenderId.toLowerCase() === myId.toLowerCase());
+      const myKey = getPayLaterPersonKey(myId, myName);
+      const isLender = myKey && grp.lenderKey === myKey;
 
       if (isLender) {
-        await confirmPaymentReceived(docId);
+        await confirmPaymentReceived(grp.pairKey);
       } else {
-        await requestPaymentConfirmation(docId);
+        await requestPaymentConfirmation(grp.pairKey);
       }
     }
 
     function sendPayLaterReminderWhatsApp(docIdOrName, amount, note, upiId) {
-      const item = PAY_ME_LATER_LIST.find(x => x.id === docIdOrName);
-      const friendName = item ? item.borrowerName : docIdOrName;
-      const dueAmount = item ? item.amount : amount;
-      const dueNote = item ? item.note : note;
-      const lenderUpi = item ? item.lenderUpi : upiId;
+      const grp = findPayLaterGroupOrRecord(docIdOrName);
+      const friendName = grp ? grp.borrowerName : docIdOrName;
+      const dueAmount = grp ? grp.amount : amount;
+      const dueNote = grp
+        ? grp.records.map(r => (r.note || "Due") + " (₹" + Number(r.amount || 0) + ")").join(", ")
+        : note;
+      const lenderUpi = grp ? grp.lenderUpi : upiId;
 
-      let text = "Hey " + (friendName || "friend") + "! Friendly reminder to clear ₹" + dueAmount + (dueNote ? (" for " + dueNote) : "") + " on Pay Me Later (Campus Saathi).";
+      let text = "Hey " + (friendName || "friend") + "! Friendly reminder to clear ₹" + dueAmount + (dueNote ? (" (" + dueNote + ")") : "") + " on Pay Me Later (Campus Saathi).";
       if (lenderUpi) {
         text += " You can pay directly via UPI: " + lenderUpi;
       }
@@ -11825,9 +11938,10 @@
           const identity = getUserIdentity();
           const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
           const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
+          const myKey = getPayLaterPersonKey(myId, myName);
           let modified = false;
           PAY_ME_LATER_LIST.forEach(item => {
-            if ((myId && item.lenderId === myId) || (myName && item.lenderName === myName)) {
+            if (myKey && getPayLaterPersonKey(item.lenderId, item.lenderName) === myKey) {
               if (!item.lenderUpi || item.lenderUpi !== cleaned) {
                 item.lenderUpi = cleaned;
                 modified = true;
@@ -11844,43 +11958,52 @@
       }
     }
 
-    function openPayNowModal(docId) {
-      const record = PAY_ME_LATER_LIST.find(x => x.id === docId);
-      if (!record) return;
+    function openPayNowModal(pairKeyOrDocId) {
+      const grp = findPayLaterGroupOrRecord(pairKeyOrDocId);
+      if (!grp) return;
 
-      if (record.status === "awaiting_confirmation" || !!record.paymentClaimedAt) {
-        alert("Payment confirmation has already been sent to " + (record.lenderName || "lender") + "! Waiting for them to confirm receipt.");
+      if (grp.unclaimedRecords.length === 0 || grp.unclaimedAmount <= 0) {
+        alert("Payment confirmation has already been sent to " + (grp.lenderName || "lender") + "! Waiting for them to confirm receipt.");
         return;
       }
 
       // If lender hasn't added UPI ID, prompt borrower to enter it
-      if (!record.lenderUpi) {
-        const entered = prompt(record.lenderName + " hasn't added their UPI ID yet.\n\nEnter " + record.lenderName + "'s UPI ID if you know it (e.g. 9876543210@paytm, name@okaxis):");
+      if (!grp.lenderUpi) {
+        const entered = prompt(grp.lenderName + " hasn't added their UPI ID yet.\n\nEnter " + grp.lenderName + "'s UPI ID if you know it (e.g. 9876543210@paytm, name@okaxis):");
         if (!entered || !entered.trim()) {
-          alert("UPI ID is required to launch Pay Now. You can still pay manually or ask " + record.lenderName + " for their UPI ID.");
+          alert("UPI ID is required to launch Pay Now. You can still pay manually or ask " + grp.lenderName + " for their UPI ID.");
           return;
         }
-        record.lenderUpi = entered.trim();
+        const upiClean = entered.trim();
+        grp.lenderUpi = upiClean;
+        grp.records.forEach(r => { r.lenderUpi = upiClean; });
         syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
       }
 
-      activePayNowRecord = record;
+      activePayNowRecord = {
+        id: grp.pairKey,
+        pairKey: grp.pairKey,
+        lenderName: grp.lenderName,
+        lenderUpi: grp.lenderUpi,
+        amount: grp.unclaimedAmount,
+        recordIds: grp.unclaimedRecords.map(r => r.id)
+      };
       activePayNowMode = "full";
 
       const modal = document.getElementById("payNowModal");
       if (!modal) return;
 
       const payeeName = document.getElementById("payNowPayeeName");
-      if (payeeName) payeeName.textContent = record.lenderName;
+      if (payeeName) payeeName.textContent = activePayNowRecord.lenderName;
 
       const payeeUpi = document.getElementById("payNowPayeeUpi");
-      if (payeeUpi) payeeUpi.textContent = record.lenderUpi;
+      if (payeeUpi) payeeUpi.textContent = activePayNowRecord.lenderUpi;
 
       const totalBadge = document.getElementById("payNowTotalDueBadge");
-      if (totalBadge) totalBadge.textContent = "Remaining Due: ₹" + record.amount;
+      if (totalBadge) totalBadge.textContent = "Remaining Due: ₹" + activePayNowRecord.amount;
 
       const fullAmountDisplay = document.getElementById("payNowFullAmountDisplay");
-      if (fullAmountDisplay) fullAmountDisplay.textContent = "₹" + record.amount;
+      if (fullAmountDisplay) fullAmountDisplay.textContent = "₹" + activePayNowRecord.amount;
 
       const customInput = document.getElementById("payNowCustomAmountInput");
       if (customInput) customInput.value = "";
@@ -12043,34 +12166,41 @@
 
       const identity = getUserIdentity();
       const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "Friend";
-      const targetId = activePayNowRecord.id;
+      const targetIds = Array.isArray(activePayNowRecord.recordIds) && activePayNowRecord.recordIds.length > 0
+        ? activePayNowRecord.recordIds
+        : [activePayNowRecord.id];
 
-      // Locate the exact record in the master PAY_ME_LATER_LIST (prevents detached reference after app switch)
-      let targetRecord = PAY_ME_LATER_LIST.find(item => item.id === targetId);
-      if (!targetRecord) {
-        targetRecord = activePayNowRecord;
-        PAY_ME_LATER_LIST.unshift(targetRecord);
+      // Locate matching unclaimed records sorted oldest-first for clean FIFO allocation
+      const candidates = PAY_ME_LATER_LIST
+        .filter(item => targetIds.includes(item.id) && item.status !== "awaiting_confirmation" && !item.paymentClaimedAt && Number(item.amount || 0) > 0)
+        .sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
+
+      const now = Date.now();
+      let remainingToAllocate = roundCurrency(amount);
+
+      if (candidates.length > 0) {
+        candidates.forEach(rec => {
+          if (remainingToAllocate <= 0) return;
+          const recAmt = Number(rec.amount || 0);
+          const alloc = roundCurrency(Math.min(recAmt, remainingToAllocate));
+          if (alloc <= 0) return;
+
+          rec.status = "awaiting_confirmation";
+          rec.paymentClaimedAt = now;
+          rec.paymentClaimedBy = myName;
+          rec.paymentClaimedAmount = alloc;
+          rec.payments = rec.payments || [];
+          rec.payments.push({
+            amount: alloc,
+            paidAt: now,
+            payerName: myName,
+            type: (alloc >= recAmt) ? "full" : "partial"
+          });
+          remainingToAllocate = roundCurrency(remainingToAllocate - alloc);
+        });
       }
 
-      // Explicitly mark as awaiting confirmation
-      targetRecord.status = "awaiting_confirmation";
-      targetRecord.paymentClaimedAt = Date.now();
-      targetRecord.paymentClaimedBy = myName;
-      targetRecord.paymentClaimedAmount = amount;
-      targetRecord.payments = targetRecord.payments || [];
-      targetRecord.payments.push({
-        amount: amount,
-        paidAt: Date.now(),
-        payerName: myName,
-        type: (amount >= targetRecord.amount) ? "full" : "partial"
-      });
-
-      // Synchronize activePayNowRecord reference
-      activePayNowRecord.status = targetRecord.status;
-      activePayNowRecord.paymentClaimedAt = targetRecord.paymentClaimedAt;
-      activePayNowRecord.paymentClaimedBy = targetRecord.paymentClaimedBy;
-      activePayNowRecord.paymentClaimedAmount = targetRecord.paymentClaimedAmount;
-
+      const lenderDisplay = activePayNowRecord.lenderName || "friend";
       const completedBtnText = document.getElementById("payNowCompletedBtnText");
       if (completedBtnText) {
         completedBtnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving to Firebase...';
@@ -12078,7 +12208,7 @@
 
       const success = await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
       if (success) {
-        showReviewToast("📨 Payment confirmation sent to " + (targetRecord.lenderName || "friend") + "! Due will close once they confirm receipt.");
+        showReviewToast("📨 Payment confirmation sent to " + lenderDisplay + "! Due will close once they confirm receipt.");
       }
 
       closePayNowModal();
@@ -12161,33 +12291,35 @@
           } catch (e) { }
         }
 
-        // Compute statistics for current student
+        // Group records per (lender -> borrower) pair so one student's dues to another merge into a single amount
+        const groupedRecords = getGroupedPayLaterRecords(PAY_ME_LATER_LIST);
+        const myKey = getPayLaterPersonKey(myId, myName);
+
+        // Compute statistics for current student across merged friend pairs
         let totalOwedToMe = 0;
         let countOwedToMe = 0;
         let totalIOwe = 0;
         let countIOwe = 0;
         let countAwaitingMyConfirmation = 0;
 
-        PAY_ME_LATER_LIST.forEach(item => {
-          const isLender = (myName && item.lenderName && item.lenderName.toLowerCase() === myName.toLowerCase()) ||
-                           (myId && item.lenderId && item.lenderId.toLowerCase() === myId.toLowerCase());
-          const isBorrower = (myName && item.borrowerName && item.borrowerName.toLowerCase() === myName.toLowerCase()) ||
-                             (myId && item.borrowerId && item.borrowerId.toLowerCase() === myId.toLowerCase());
+        groupedRecords.forEach(grp => {
+          const isLender = myKey && grp.lenderKey === myKey;
+          const isBorrower = myKey && grp.borrowerKey === myKey;
 
           if (isLender) {
-            totalOwedToMe += Number(item.amount || 0);
+            totalOwedToMe = roundCurrency(totalOwedToMe + grp.amount);
             countOwedToMe++;
-            if (item.status === "awaiting_confirmation" || !!item.paymentClaimedAt) {
+            if (grp.claimedRecords.length > 0) {
               countAwaitingMyConfirmation++;
             }
           }
           if (isBorrower) {
-            totalIOwe += Number(item.amount || 0);
+            totalIOwe = roundCurrency(totalIOwe + grp.amount);
             countIOwe++;
           }
         });
 
-        const netBalance = totalOwedToMe - totalIOwe;
+        const netBalance = roundCurrency(totalOwedToMe - totalIOwe);
 
         // Auto-select tab with active dues when opening section or if current tab is empty
         if (!hasUserManuallySelectedPayLaterFilter) {
@@ -12209,13 +12341,11 @@
           }
         }
 
-        // Filter dues list - STRICT PRIVACY: ONLY visible to the one who gave (lender) and the one who took (borrower)
-        let displayList = PAY_ME_LATER_LIST.filter(item => {
+        // Filter merged pairs - STRICT PRIVACY: ONLY visible to the one who gave (lender) and the one who took (borrower)
+        let displayList = groupedRecords.filter(grp => {
           if (!myName && !myId) return false;
-          const isLender = (myName && item.lenderName && item.lenderName.toLowerCase() === myName.toLowerCase()) ||
-                           (myId && item.lenderId && item.lenderId.toLowerCase() === myId.toLowerCase());
-          const isBorrower = (myName && item.borrowerName && item.borrowerName.toLowerCase() === myName.toLowerCase()) ||
-                             (myId && item.borrowerId && item.borrowerId.toLowerCase() === myId.toLowerCase());
+          const isLender = myKey && grp.lenderKey === myKey;
+          const isBorrower = myKey && grp.borrowerKey === myKey;
 
           // Completely hide from anyone who is not part of this transaction
           if (!isLender && !isBorrower) return false;
@@ -12225,11 +12355,11 @@
         });
 
         if (payLaterSearchQuery) {
-          displayList = displayList.filter(item => {
-            const l = (item.lenderName || "").toLowerCase();
-            const b = (item.borrowerName || "").toLowerCase();
-            const n = (item.note || "").toLowerCase();
-            return l.includes(payLaterSearchQuery) || b.includes(payLaterSearchQuery) || n.includes(payLaterSearchQuery);
+          displayList = displayList.filter(grp => {
+            const l = (grp.lenderName || "").toLowerCase();
+            const b = (grp.borrowerName || "").toLowerCase();
+            const anyNoteMatch = grp.records.some(r => (r.note || "").toLowerCase().includes(payLaterSearchQuery));
+            return l.includes(payLaterSearchQuery) || b.includes(payLaterSearchQuery) || anyNoteMatch;
           });
         }
 
@@ -12407,19 +12537,22 @@
                 </div>
               </div>
             ` : displayList.map(item => {
-              const isLender = (myName && item.lenderName && item.lenderName.toLowerCase() === myName.toLowerCase()) ||
-                               (myId && item.lenderId && item.lenderId.toLowerCase() === myId.toLowerCase());
-              const isBorrower = (myName && item.borrowerName && item.borrowerName.toLowerCase() === myName.toLowerCase()) ||
-                                 (myId && item.borrowerId && item.borrowerId.toLowerCase() === myId.toLowerCase());
+              const isLender = myKey && item.lenderKey === myKey;
+              const isBorrower = myKey && item.borrowerKey === myKey;
 
               const displayFriendName = isLender ? item.borrowerName : item.lenderName;
               const avatarClass = getStudentAvatarClass(displayFriendName);
 
-              const isAwaitingConfirmation = item.status === "awaiting_confirmation" || !!item.paymentClaimedAt;
-              const isPaid = item.status === "paid" || item.amount <= 0;
-              const isPartiallyPaid = item.status === "partially_paid" || (item.originalAmount > item.amount && item.amount > 0);
-              const paidSoFar = Math.max(0, (item.originalAmount || item.amount) - item.amount);
-              const claimedAmount = Number(item.paymentClaimedAmount || item.amount || 0);
+              const hasClaimed = item.claimedRecords.length > 0;
+              const hasUnclaimed = item.unclaimedRecords.length > 0 && item.unclaimedAmount > 0;
+              const isAwaitingConfirmation = hasClaimed;
+              const isPaid = item.amount <= 0;
+              const isPartiallyPaid = (item.originalAmount > item.amount && item.amount > 0);
+              const paidSoFar = roundCurrency(Math.max(0, (item.originalAmount || item.amount) - item.amount));
+              const claimedAmount = Number(item.claimedAmount || 0);
+              const duesCount = item.records.length;
+              const singleRecord = duesCount === 1 ? item.records[0] : null;
+              const safePairKey = item.pairKey.replace(/'/g, "\\'");
 
               return `
                 <div class="bg-white dark:bg-slate-900 border ${isAwaitingConfirmation ? 'border-amber-300 dark:border-amber-700/80 ring-1 ring-amber-400/30' : isPaid ? 'border-emerald-300/80 ring-1 ring-emerald-500/30' : 'border-slate-200/80 dark:border-slate-800'} rounded-2xl p-3.5 shadow-2xs hover:shadow-xs transition space-y-2.5">
@@ -12437,6 +12570,11 @@
                           ${(displayFriendName && displayFriendName.toLowerCase() === 'judwe') || item.shares === 2 ? `
                             <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-fuchsia-100 dark:bg-fuchsia-950/60 text-fuchsia-700 dark:text-fuchsia-300 border border-fuchsia-200 dark:border-fuchsia-800/60">
                               Twins (2x)
+                            </span>
+                          ` : ''}
+                          ${duesCount > 1 ? `
+                            <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
+                              ${duesCount} dues
                             </span>
                           ` : ''}
                           ${isAwaitingConfirmation ? `
@@ -12463,9 +12601,15 @@
                           `}
                         </div>
                         <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
-                          <span class="truncate">${item.note || 'Money borrowed'}</span>
-                          <span>•</span>
-                          <span class="shrink-0 text-[10px] text-slate-400">${formatRelativePayLaterTime(item.createdAt)}</span>
+                          ${singleRecord ? `
+                            <span class="truncate">${singleRecord.note || 'Money borrowed'}</span>
+                            <span>•</span>
+                            <span class="shrink-0 text-[10px] text-slate-400">${formatRelativePayLaterTime(singleRecord.createdAt)}</span>
+                          ` : `
+                            <span class="truncate">${duesCount} combined dues</span>
+                            <span>•</span>
+                            <span class="shrink-0 text-[10px] text-slate-400">Latest ${formatRelativePayLaterTime(item.latestCreatedAt)}</span>
+                          `}
                         </div>
                         ${isPartiallyPaid && !isPaid && !isAwaitingConfirmation ? `
                           <div class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
@@ -12475,22 +12619,53 @@
                       </div>
                     </div>
 
-                    <!-- Right: Amount -->
+                    <!-- Right: Merged Total Amount -->
                     <div class="text-right shrink-0">
                       <div class="text-base sm:text-lg font-black ${isPaid ? 'text-emerald-600 dark:text-emerald-400' : isLender ? 'text-emerald-600 dark:text-emerald-400' : isBorrower ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}">
                         ${isPaid ? '₹0' : (isLender ? '+' : isBorrower ? '-' : '') + '₹' + Number(item.amount || 0).toLocaleString("en-IN")}
                       </div>
                       ${isAwaitingConfirmation ? `
                         <div class="text-[10px] text-amber-600 dark:text-amber-400 font-bold">
-                          ₹${claimedAmount} claimed
+                          ₹${claimedAmount.toLocaleString("en-IN")} claimed
                         </div>
                       ` : (item.originalAmount && item.originalAmount !== item.amount) ? `
                         <div class="text-[9px] text-slate-400 line-through">
-                          Original: ₹${item.originalAmount}
+                          Original: ₹${item.originalAmount.toLocaleString("en-IN")}
                         </div>
                       ` : ''}
                     </div>
                   </div>
+
+                  <!-- Combined Dues History Description -->
+                  ${duesCount > 1 ? `
+                    <div class="p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700/60 space-y-1.5">
+                      <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        <span><i class="fa-solid fa-clock-rotate-left mr-1 text-[9px]"></i>Dues History (${duesCount})</span>
+                        <span>Total: ₹${Number(item.amount || 0).toLocaleString("en-IN")}</span>
+                      </div>
+                      <div class="space-y-1 max-h-36 overflow-y-auto no-scrollbar divide-y divide-slate-200/60 dark:divide-slate-700/50">
+                        ${item.records.map(r => {
+                          const rAmt = Number(r.amount || 0);
+                          const rOrig = Number(r.originalAmount || r.amount || 0);
+                          const rPartial = rOrig > rAmt && rAmt > 0;
+                          const rClaimed = r.status === "awaiting_confirmation" || !!r.paymentClaimedAt;
+                          return `
+                            <div class="pt-1 first:pt-0 flex items-center justify-between gap-2 text-[11px]">
+                              <div class="min-w-0 flex-1">
+                                <span class="font-semibold text-slate-700 dark:text-slate-200 break-words">${r.note || 'Money borrowed'}</span>
+                                <span class="text-[10px] text-slate-400 dark:text-slate-500 ml-1">• ${formatRelativePayLaterTime(r.createdAt)}</span>
+                              </div>
+                              <div class="text-right shrink-0 flex items-center gap-1">
+                                ${rClaimed ? `<span class="text-[9px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold">claimed</span>` : ''}
+                                <span class="font-mono font-bold text-slate-800 dark:text-slate-100">₹${rAmt.toLocaleString("en-IN")}</span>
+                                ${rPartial ? `<span class="text-[9px] text-slate-400 line-through">₹${rOrig}</span>` : ''}
+                              </div>
+                            </div>
+                          `;
+                        }).join("")}
+                      </div>
+                    </div>
+                  ` : ''}
 
                   <!-- Awaiting Confirmation Callout Box -->
                   ${isAwaitingConfirmation ? (
@@ -12501,12 +12676,12 @@
                           <span><strong>${item.borrowerName || 'Borrower'}</strong> claims they paid <strong>₹${claimedAmount}</strong>. Did you receive it?</span>
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
-                          <button onclick="confirmPaymentReceived('${item.id}')"
+                          <button onclick="confirmPaymentReceived('${safePairKey}')"
                             class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-2xs active:scale-95 transition flex items-center gap-1">
                             <i class="fa-solid fa-check text-[10px]"></i>
                             <span>Received</span>
                           </button>
-                          <button onclick="rejectPaymentClaim('${item.id}')"
+                          <button onclick="rejectPaymentClaim('${safePairKey}')"
                             class="px-2 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold shadow-2xs active:scale-95 transition flex items-center gap-1">
                             <i class="fa-solid fa-xmark text-[10px]"></i>
                             <span>No</span>
@@ -12519,7 +12694,7 @@
                           <i class="fa-solid fa-hourglass-half text-amber-600 mr-1"></i>
                           <span>You marked <strong>₹${claimedAmount}</strong> as paid. Waiting for <strong>${item.lenderName || 'Lender'}</strong> to confirm.</span>
                         </div>
-                        <button onclick="cancelPaymentClaim('${item.id}')"
+                        <button onclick="cancelPaymentClaim('${safePairKey}')"
                           class="px-2 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950/50 text-slate-700 dark:text-slate-300 text-[10px] font-bold shrink-0 transition"
                           title="Cancel payment confirmation request">
                           Cancel
@@ -12535,9 +12710,9 @@
                     </div>
 
                     <div class="flex items-center gap-1.5 shrink-0">
-                      <!-- Remind Button (Lender WhatsApp Reminder, only when not awaiting confirmation) -->
-                      ${isLender && !isPaid && !isAwaitingConfirmation ? `
-                        <button onclick="sendPayLaterReminderWhatsApp('${item.id}')"
+                      <!-- Remind Button (Lender WhatsApp Reminder, when unclaimed balance exists) -->
+                      ${isLender && !isPaid && hasUnclaimed ? `
+                        <button onclick="sendPayLaterReminderWhatsApp('${safePairKey}')"
                           class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 hover:text-emerald-600 text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
                           title="Send friendly reminder on WhatsApp">
                           <i class="fa-brands fa-whatsapp text-emerald-500 text-xs"></i>
@@ -12547,7 +12722,7 @@
 
                       <!-- Direct Mark Received Button (For Lender when cash or direct settlement happened) -->
                       ${isLender && !isPaid && !isAwaitingConfirmation ? `
-                        <button onclick="confirmPaymentReceived('${item.id}')"
+                        <button onclick="confirmPaymentReceived('${safePairKey}')"
                           class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-300 text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
                           title="Confirm payment received in cash or direct transfer and settle due">
                           <i class="fa-solid fa-circle-check text-[10px]"></i>
@@ -12556,8 +12731,8 @@
                       ` : ''}
 
                       <!-- Pay Now Button (STRICTLY only for Borrower who owes money, never for Lender!) -->
-                      ${isBorrower && !isPaid && !isAwaitingConfirmation ? `
-                        <button onclick="openPayNowModal('${item.id}')"
+                      ${isBorrower && !isPaid && hasUnclaimed ? `
+                        <button onclick="openPayNowModal('${safePairKey}')"
                           class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
                           title="Preset amount & launch UPI app">
                           <i class="fa-solid fa-bolt text-amber-300 text-[10px]"></i>
@@ -12566,8 +12741,8 @@
                       ` : ''}
 
                       <!-- Mark as Paid Button (STRICTLY only for Borrower, sends confirmation request to Lender) -->
-                      ${isBorrower && !isPaid && !isAwaitingConfirmation ? `
-                        <button onclick="requestPaymentConfirmation('${item.id}')"
+                      ${isBorrower && !isPaid && hasUnclaimed ? `
+                        <button onclick="requestPaymentConfirmation('${safePairKey}')"
                           class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-300 text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
                           title="Notify ${item.lenderName} that you have paid">
                           <i class="fa-solid fa-paper-plane text-[10px]"></i>
@@ -12576,7 +12751,7 @@
                       ` : ''}
 
                       <!-- Borrower Awaiting Status Pill in toolbar -->
-                      ${isBorrower && isAwaitingConfirmation ? `
+                      ${isBorrower && isAwaitingConfirmation && !hasUnclaimed ? `
                         <span class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[11px] font-semibold flex items-center gap-1 border border-amber-200 dark:border-amber-800/60">
                           <i class="fa-solid fa-clock text-[10px]"></i>
                           <span>Waiting for ${item.lenderName}</span>
