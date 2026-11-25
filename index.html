@@ -6665,7 +6665,7 @@
             <span class="font-extrabold text-slate-900 dark:text-white truncate">${currentClassItem.course.code}</span>
             <span class="text-slate-400 dark:text-slate-500">•</span>
             <span class="text-slate-600 dark:text-slate-300 font-semibold truncate">📍 ${venue}</span>
-            <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold shrink-0 ml-auto">Ends in ${minsLeft}m</span>
+            <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold shrink-0 ml-auto">Ends in ${formatDuration(minsLeft)}</span>
           </div>
         `;
       } else if (activeCol) {
@@ -6701,7 +6701,7 @@
             <span class="font-extrabold text-slate-900 dark:text-white truncate">${nextClassItem.course.code}</span>
             <span class="text-slate-400 dark:text-slate-500">•</span>
             <span class="text-slate-600 dark:text-slate-300 font-semibold truncate">📍 ${venue}</span>
-            <span class="text-[10px] text-blue-600 dark:text-blue-400 font-bold shrink-0 ml-auto">${nextClassItem.timeCol.start} (${minsUntil > 0 ? 'in ' + minsUntil + 'm' : 'now'})</span>
+            <span class="text-[10px] text-blue-600 dark:text-blue-400 font-bold shrink-0 ml-auto">${nextClassItem.timeCol.start} (${minsUntil > 0 ? 'in ' + formatDuration(minsUntil) : 'now'})</span>
           </div>
         `;
       } else if (todayClasses.length === 0) {
@@ -6917,10 +6917,70 @@
       renderInlineSquadToggles();
     }
 
+    let showPreviousScheduleSlots = false;
+
+    function togglePreviousScheduleSlots() {
+      showPreviousScheduleSlots = !showPreviousScheduleSlots;
+      renderMobileSlotCards();
+      animateFluidEnter("mobileSlotCardFeed");
+    }
+
+    function buildPreviousSlotsToggleHtml(opts) {
+      const completedCount = Number(opts.completedCount || 0);
+      if (!opts.isActive || completedCount <= 0) {
+        return { barHtml: "", emptyHtml: "" };
+      }
+
+      const isExpanded = Boolean(opts.isExpanded);
+      const remainingCount = Number(opts.remainingCount || 0);
+      const itemLabel = opts.itemLabel || "slot";
+      const countText = completedCount === 1 ? `1 ${itemLabel}` : `${completedCount} ${itemLabel}s`;
+
+      if (remainingCount === 0 && !isExpanded) {
+        return {
+          barHtml: "",
+          emptyHtml: `
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 text-center space-y-2.5 shadow-2xs">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base mx-auto">
+                <i class="fa-solid fa-circle-check"></i>
+              </div>
+              <div class="space-y-0.5">
+                <p class="text-xs font-bold text-slate-900 dark:text-slate-100">${opts.emptyTitle || 'All completed for today!'}</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">${countText} already completed today.</p>
+              </div>
+              <button type="button" onclick="${opts.toggleFnName}()"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition shadow-2xs active:scale-95 cursor-pointer">
+                <i class="fa-solid fa-clock-rotate-left text-[11px] text-brandBlue"></i>
+                <span>Show Previous</span>
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700">${completedCount}</span>
+              </button>
+            </div>
+          `
+        };
+      }
+
+      return {
+        barHtml: `
+          <div class="flex items-center px-0.5">
+            <button type="button" onclick="${opts.toggleFnName}()"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-800 text-xs font-bold transition shadow-2xs active:scale-95 cursor-pointer">
+              <i class="fa-solid ${isExpanded ? 'fa-chevron-up text-slate-400' : 'fa-clock-rotate-left text-brandBlue'} text-[11px]"></i>
+              <span>${isExpanded ? 'Hide Previous' : 'Show Previous'}</span>
+              <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${isExpanded ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' : 'bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-400 border border-blue-200/70 dark:border-blue-800/60'}">${completedCount}</span>
+            </button>
+          </div>
+        `,
+        emptyHtml: ""
+      };
+    }
+
     function selectMasterDay(day) {
       const changed = selectedMasterDay !== day;
       selectedMasterDay = day;
       selectedSlotIndex = null;
+      if (changed) {
+        showPreviousScheduleSlots = false;
+      }
       renderMasterDayPills();
       renderMobileSlotCards();
       if (changed) {
@@ -7008,6 +7068,30 @@
       const isSoleStudent = activeFriends.length === 1;
       const soleStudent = isSoleStudent ? activeFriends[0] : null;
       const currentLiveSlotIdx = getCurrentLiveSlotIndex(selectedMasterDay);
+      const { jsDay: istJsDay, currentMins: istCurrentMins } = getISTTime();
+      const todayDayCode = (istJsDay >= 1 && istJsDay <= 6) ? DAYS_ORDER[istJsDay - 1] : null;
+      const isTodaySchedule = (todayDayCode === selectedMasterDay);
+
+      const indexedColumns = TIME_COLUMNS.map((col, idx) => ({
+        col,
+        idx,
+        isCompleted: isTodaySchedule && istCurrentMins >= col.endMin
+      }));
+      const completedSlotsCount = indexedColumns.filter(entry => entry.isCompleted).length;
+      const remainingSlotsCount = indexedColumns.length - completedSlotsCount;
+      const visibleColumns = (isTodaySchedule && !showPreviousScheduleSlots)
+        ? indexedColumns.filter(entry => !entry.isCompleted)
+        : indexedColumns;
+
+      const prevUi = buildPreviousSlotsToggleHtml({
+        isActive: isTodaySchedule,
+        isExpanded: showPreviousScheduleSlots,
+        completedCount: completedSlotsCount,
+        remainingCount: remainingSlotsCount,
+        itemLabel: "slot",
+        toggleFnName: "togglePreviousScheduleSlots",
+        emptyTitle: "All classes for today are completed!"
+      });
 
       const soleStudentHeaderHtml = isSoleStudent ? `
         <div class="flex items-center justify-between px-1 pb-1">
@@ -7030,8 +7114,8 @@
         </div>
       ` : '';
 
-      // Render 7 slots for the chosen day
-      const slotCardsHtml = TIME_COLUMNS.map((col, idx) => {
+      // Render current/after slots (or all when Show Previous is toggled or viewing non-today)
+      const slotCardsHtml = visibleColumns.map(({ col, idx, isCompleted }) => {
         const occ = getSlotOccupancy(selectedMasterDay, idx);
         const total = occ.freeFriends.length + occ.busyFriends.length;
         const allFree = occ.freeFriends.length === total;
@@ -7143,9 +7227,16 @@
                   ` : ''}
                 </span>
               </div>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badgeStyle}">
-                ${statusText}
-              </span>
+              <div class="flex items-center gap-1.5 shrink-0">
+                ${isCompleted ? `
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700">
+                    Completed
+                  </span>
+                ` : ''}
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badgeStyle}">
+                  ${statusText}
+                </span>
+              </div>
             </div>
 
             <!-- Card Body: Busy Classes & Direct Free Students Display -->
@@ -7294,7 +7385,7 @@
         `;
       }).join("");
 
-      container.innerHTML = soleStudentHeaderHtml + slotCardsHtml;
+      container.innerHTML = soleStudentHeaderHtml + prevUi.barHtml + (visibleColumns.length === 0 ? prevUi.emptyHtml : slotCardsHtml);
     }
 
     function selectMobileSlot(colIndex) {
@@ -12810,7 +12901,14 @@ let selectedMessId = localStorage.getItem("vitb_user_mess") || "mayuri_boys";
 let selectedMessDateStr = ""; // Defaults to today's YYYY-MM-DD
 let isMessMenuLoading = false;
 let messMenuError = null;
+let showPreviousMessMeals = false;
 const MESS_MENU_DATA_CACHE = {};
+
+function togglePreviousMessMeals() {
+  showPreviousMessMeals = !showPreviousMessMeals;
+  renderMessMenuUI();
+  animateFluidEnter("messMealCardsStack");
+}
 
 function getUserMess() {
   return localStorage.getItem("vitb_user_mess") || "";
@@ -12935,23 +13033,16 @@ function rawMealValues(values) {
   }).filter(item => item && item.name);
 }
 
+const MESS_MEAL_SLOTS = [
+  { key: "breakfast", name: "Breakfast", label: "Breakfast Serving Now", icon: "fa-mug-saucer", start: 7 * 60 + 30, end: 9 * 60 + 30, time: "07:30 AM – 09:30 AM" },
+  { key: "lunch", name: "Lunch", label: "Lunch Serving Now", icon: "fa-bowl-rice", start: 12 * 60 + 30, end: 14 * 60 + 30, time: "12:30 PM – 02:30 PM" },
+  { key: "snacks", name: "Evening Snacks", label: "Evening Snacks Serving Now", icon: "fa-cookie-bite", start: 17 * 60, end: 18 * 60 + 15, time: "05:00 PM – 06:15 PM" },
+  { key: "dinner", name: "Dinner", label: "Dinner Serving Now", icon: "fa-utensils", start: 19 * 60 + 30, end: 21 * 60 + 30, time: "07:30 PM – 09:30 PM" }
+];
+
 function getCurrentMealSlotInfo() {
-  const now = new Date();
-  const istOffset = 5.5 * 60 * 60 * 1000;
-  const istDate = new Date(now.getTime() + (now.getTimezoneOffset() * 60 * 1000) + istOffset);
-  const mins = istDate.getHours() * 60 + istDate.getMinutes();
-
-  // Breakfast: 7:30 AM (450m) to 9:30 AM (570m)
-  // Lunch: 12:30 PM (750m) to 2:30 PM (870m)
-  // Snacks: 5:00 PM (1020m) to 6:15 PM (1095m)
-  // Dinner: 7:30 PM (1170m) to 9:30 PM (1290m)
-
-  const slots = [
-    { key: "breakfast", name: "Breakfast", label: "Breakfast Serving Now", icon: "fa-mug-saucer", start: 7 * 60 + 30, end: 9 * 60 + 30, time: "07:30 AM – 09:30 AM" },
-    { key: "lunch", name: "Lunch", label: "Lunch Serving Now", icon: "fa-bowl-rice", start: 12 * 60 + 30, end: 14 * 60 + 30, time: "12:30 PM – 02:30 PM" },
-    { key: "snacks", name: "Evening Snacks", label: "Evening Snacks Serving Now", icon: "fa-cookie-bite", start: 17 * 60, end: 18 * 60 + 15, time: "05:00 PM – 06:15 PM" },
-    { key: "dinner", name: "Dinner", label: "Dinner Serving Now", icon: "fa-utensils", start: 19 * 60 + 30, end: 21 * 60 + 30, time: "07:30 PM – 09:30 PM" }
-  ];
+  const { currentMins: mins } = getISTTime();
+  const slots = MESS_MEAL_SLOTS;
 
   function formatDiff(diffMins) {
     const hrs = Math.floor(diffMins / 60);
@@ -13024,6 +13115,9 @@ async function fetchMessMenu(messId, dateStr) {
   if (!dateStr) dateStr = getTodayDateStr();
 
   const isUserSelectionChange = Boolean(prevDateStr && (messId !== prevMessId || dateStr !== prevDateStr));
+  if (prevDateStr && dateStr !== prevDateStr) {
+    showPreviousMessMeals = false;
+  }
 
   selectedMessId = messId;
   selectedMessDateStr = dateStr;
@@ -13308,16 +13402,37 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     `;
   }
 
-  const mealSections = [
-    { key: "breakfast", title: "Breakfast", icon: "fa-mug-saucer", time: "07:30 AM – 09:30 AM", items: menu.breakfast || [] },
-    { key: "lunch", title: "Lunch", icon: "fa-bowl-rice", time: "12:30 PM – 02:30 PM", items: menu.lunch || [] },
-    { key: "snacks", title: "Evening Snacks", icon: "fa-cookie-bite", time: "05:00 PM – 06:15 PM", items: menu.snacks || [] },
-    { key: "dinner", title: "Dinner", icon: "fa-utensils", time: "07:30 PM – 09:30 PM", items: menu.dinner || [] }
-  ];
+  const { currentMins } = getISTTime();
+  const mealSections = MESS_MEAL_SLOTS.map(slot => ({
+    key: slot.key,
+    title: slot.name,
+    icon: slot.icon,
+    time: slot.time,
+    end: slot.end,
+    items: menu[slot.key] || [],
+    isCompleted: isViewingToday && currentMins >= slot.end
+  }));
+
+  const completedMealsCount = mealSections.filter(m => m.isCompleted).length;
+  const remainingMealsCount = mealSections.length - completedMealsCount;
+  const visibleMeals = (isViewingToday && !showPreviousMessMeals)
+    ? mealSections.filter(m => !m.isCompleted)
+    : mealSections;
+
+  const prevUi = buildPreviousSlotsToggleHtml({
+    isActive: isViewingToday,
+    isExpanded: showPreviousMessMeals,
+    completedCount: completedMealsCount,
+    remainingCount: remainingMealsCount,
+    itemLabel: "meal",
+    toggleFnName: "togglePreviousMessMeals",
+    emptyTitle: "All meals for today are completed!"
+  });
 
   return `
     <div id="messMealCardsStack" class="space-y-3">
-      ${mealSections.map(meal => {
+      ${prevUi.barHtml}
+      ${visibleMeals.length === 0 ? prevUi.emptyHtml : visibleMeals.map(meal => {
         const isLive = isViewingToday && liveSlot && (liveSlot.current === meal.key);
         const hasItems = meal.items.length > 0;
 
@@ -13342,9 +13457,16 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
                 </div>
               </div>
 
-              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shrink-0">
-                ${meal.items.length} items
-              </span>
+              <div class="flex items-center gap-1.5 shrink-0">
+                ${meal.isCompleted ? `
+                  <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700">
+                    Completed
+                  </span>
+                ` : ''}
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                  ${meal.items.length} items
+                </span>
+              </div>
             </div>
 
             <!-- Dishes Grid / Pill List -->
