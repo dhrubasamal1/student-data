@@ -180,6 +180,98 @@
     #inlineSquadToggles:empty {
       display: none;
     }
+
+    /* ===================================================================== */
+    /* UNIFIED LIGHT FLUID MOTION (OPTIMIZED FOR ALL & OLDER DEVICES)        */
+    /* ===================================================================== */
+    :root {
+      --fluid-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --fluid-duration: 200ms;
+    }
+
+    @keyframes fluidEnter {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 6px, 0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+    @keyframes fluidEnterAlt {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 6px, 0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+    @keyframes fluidToastEnter {
+      0% {
+        opacity: 0;
+        transform: translate3d(-50%, 6px, 0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(-50%, 0, 0);
+      }
+    }
+
+    @keyframes fluidBackdropFade {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .fluid-enter {
+      animation: fluidEnter var(--fluid-duration) var(--fluid-ease) backwards;
+    }
+
+    .fluid-enter-alt {
+      animation: fluidEnterAlt var(--fluid-duration) var(--fluid-ease) backwards;
+    }
+
+    .fluid-modal-backdrop:not(.hidden) {
+      animation: fluidBackdropFade 160ms ease-out backwards;
+    }
+
+    .fluid-modal-backdrop:not(.hidden) > .fluid-modal-card {
+      animation: fluidEnter var(--fluid-duration) var(--fluid-ease) backwards;
+    }
+
+    #reviewToast:not(.hidden) {
+      animation: fluidToastEnter var(--fluid-duration) var(--fluid-ease) backwards;
+    }
+
+    /* Consistent light tactile press & state transitions across all buttons */
+    :where(button, a[class*="rounded"], [role="tab"]) {
+      transition: transform 150ms var(--fluid-ease), background-color 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease;
+    }
+
+    :where(button:not(:disabled):not([class*="-translate-"])):active {
+      transform: scale(0.97);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .fluid-enter,
+      .fluid-enter-alt,
+      .fluid-modal-backdrop:not(.hidden),
+      .fluid-modal-backdrop:not(.hidden) > .fluid-modal-card,
+      #reviewToast:not(.hidden) {
+        animation: none !important;
+      }
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 
@@ -239,7 +331,7 @@
 
     <!-- NOTIFICATION PERMISSION PROMPT BANNER (Shows only if permission is default and not dismissed) -->
     <div id="notificationPermissionBanner"
-      class="hidden mb-3 p-3 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-blue-500/10 border border-blue-200 dark:border-blue-900/60 flex items-center justify-between gap-3 text-xs shadow-xs transition animate-in fade-in">
+      class="hidden mb-3 p-3 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-blue-500/10 border border-blue-200 dark:border-blue-900/60 flex items-center justify-between gap-3 text-xs shadow-xs transition fluid-enter">
       <div class="flex items-center gap-2.5 min-w-0">
         <div class="w-8 h-8 rounded-xl bg-brandBlue text-white flex items-center justify-center shrink-0 shadow-2xs">
           <i class="fa-solid fa-bell text-xs"></i>
@@ -264,7 +356,7 @@
 
     <!-- 2. MAIN NAVIGATION TABS (CENTERED PILL STYLE) -->
     <div class="flex justify-center mb-4">
-      <div
+      <div id="navTabList"
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full p-1 shadow-sm inline-flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full"
         role="tablist">
         <button onclick="switchTab('master')" id="tabBtn-master"
@@ -490,9 +582,9 @@
 
     <!-- Install Help / iOS Modal -->
     <div id="installHelpModal"
-      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-4">
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-end sm:items-center justify-center p-4 fluid-modal-backdrop">
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-xl space-y-4">
+        class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-xl space-y-4">
         <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
           <div class="flex items-center gap-2.5">
             <img src="icons/icon-192.png" alt="App Icon"
@@ -549,9 +641,9 @@
 
     <!-- Teacher Review Modal -->
     <div id="reviewModal"
-      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 overflow-y-auto">
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-end sm:items-center justify-center p-3 overflow-y-auto fluid-modal-backdrop">
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4 my-auto max-h-[92vh] overflow-y-auto custom-h-scrollbar">
+        class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4 my-auto max-h-[92vh] overflow-y-auto custom-h-scrollbar">
         <!-- Modal Header -->
         <div class="flex items-start justify-between gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
           <div>
@@ -716,9 +808,9 @@
 
     <!-- Parcel Request Modal -->
     <div id="parcelRequestModal"
-      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-4 animate-fadeIn">
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-end sm:items-center justify-center p-4 fluid-modal-backdrop">
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+        class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
         <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
           <div class="flex items-center gap-2.5">
             <div
@@ -802,9 +894,9 @@
     <!-- PAY ME LATER ENTRY & MULTI-PAY SPLIT MODAL                            -->
     <!-- ===================================================================== -->
     <div id="payLaterModal"
-      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-4 animate-fadeIn">
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-end sm:items-center justify-center p-4 fluid-modal-backdrop">
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto no-scrollbar">
+        class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto no-scrollbar">
         
         <!-- Modal Header -->
         <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -1072,9 +1164,9 @@
     <!-- PAY NOW VIA UPI MODAL                                                 -->
     <!-- ===================================================================== -->
     <div id="payNowModal"
-      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-4 animate-fadeIn">
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-end sm:items-center justify-center p-4 fluid-modal-backdrop">
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-4 sm:p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto no-scrollbar">
+        class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-4 sm:p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto no-scrollbar">
         
         <!-- Modal Header -->
         <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -1210,9 +1302,9 @@
     <!-- MESS SELECTION MODAL                                                  -->
     <!-- ===================================================================== -->
     <div id="messSelectorModal"
-      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 fluid-modal-backdrop">
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md p-5 shadow-2xl space-y-4">
+        class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md p-5 shadow-2xl space-y-4">
         
         <!-- Modal Header -->
         <div class="flex items-start justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -1249,10 +1341,10 @@
     <!-- USER IDENTITY ONBOARDING MODAL ("WHO ARE YOU?")                       -->
     <!-- ===================================================================== -->
     <div id="userIdentityModal" onclick="handleIdentityBackdropClick(event)"
-      class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      class="hidden fixed inset-0 z-50 bg-slate-900/75 flex items-center justify-center p-3 sm:p-4 overflow-y-auto fluid-modal-backdrop"
       role="dialog" aria-modal="true" aria-labelledby="userIdentityModalTitle">
       <div id="userIdentityModalContent"
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md shadow-2xl p-4 sm:p-5 space-y-3.5 my-auto animate-in fade-in zoom-in-95 duration-150 transition-all">
+        class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md shadow-2xl p-4 sm:p-5 space-y-3.5 my-auto transition-transform duration-150">
         
         <!-- Header -->
         <div class="text-center space-y-1 relative">
@@ -1324,10 +1416,10 @@
     <!-- DHRUBA USER ACTIVITY TRACKER MODAL (ADMIN ONLY)                       -->
     <!-- ===================================================================== -->
     <div id="userTrackerModal"
-      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-3 sm:p-4 overflow-y-auto fluid-modal-backdrop"
       role="dialog" aria-modal="true" aria-labelledby="userTrackerModalTitle">
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-xl shadow-2xl p-4 sm:p-5 space-y-3.5 my-auto animate-in fade-in zoom-in-95 duration-150 max-h-[92vh] flex flex-col">
+        class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-xl shadow-2xl p-4 sm:p-5 space-y-3.5 my-auto max-h-[92vh] flex flex-col">
         
         <!-- Modal Header -->
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
@@ -1373,10 +1465,10 @@
     <!-- DEVICE ACCESS RESTRICTED MODAL (FIREBASE GATEKEEPER)                   -->
     <!-- ===================================================================== -->
     <div id="deviceAccessRestrictedModal"
-      class="hidden fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+      class="hidden fixed inset-0 z-[100] bg-slate-950/85 flex items-center justify-center p-4 overflow-y-auto fluid-modal-backdrop"
       role="dialog" aria-modal="true" aria-labelledby="deviceAccessRestrictedTitle">
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md shadow-2xl p-5 sm:p-6 space-y-4 my-auto animate-in fade-in zoom-in-95 duration-150 text-center">
+        class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md shadow-2xl p-5 sm:p-6 space-y-4 my-auto text-center">
         
         <!-- Icon & Status Badge -->
         <div class="relative w-16 h-16 rounded-3xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center text-2xl mx-auto shadow-inner">
@@ -1445,10 +1537,10 @@
     <!-- FIREBASE AUTH CLEANUP GUIDE MODAL (FOR DHRUBA & AJAY)                 -->
     <!-- ===================================================================== -->
     <div id="firebaseAuthCleanupGuideModal"
-      class="hidden fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      class="hidden fixed inset-0 z-[110] bg-slate-950/85 flex items-center justify-center p-3 sm:p-4 overflow-y-auto fluid-modal-backdrop"
       role="dialog" aria-modal="true" aria-labelledby="firebaseAuthCleanupTitle">
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl p-5 sm:p-6 space-y-4 my-auto animate-in fade-in zoom-in-95 duration-150 text-left">
+        class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl p-5 sm:p-6 space-y-4 my-auto text-left">
         
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
           <div class="flex items-center gap-2.5">
@@ -1524,7 +1616,7 @@
 
     <!-- Review Success / Info Toast -->
     <div id="reviewToast"
-      class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-lg border border-slate-700 text-xs font-bold flex items-center gap-2 pointer-events-none transition-all">
+      class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-lg border border-slate-700 text-xs font-bold flex items-center gap-2 pointer-events-none">
       <i class="fa-solid fa-circle-check text-emerald-400"></i>
       <span id="reviewToastMsg">Review submitted successfully!</span>
     </div>
@@ -6704,6 +6796,20 @@
      * 6. NAVIGATION & TABS
      * ========================================================================
      */
+    let hasInitializedTabAnimation = false;
+
+    function animateFluidEnter(target) {
+      const el = typeof target === "string" ? document.getElementById(target) : target;
+      if (!el) return;
+      if (el.classList.contains("fluid-enter")) {
+        el.classList.remove("fluid-enter");
+        el.classList.add("fluid-enter-alt");
+      } else {
+        el.classList.remove("fluid-enter-alt");
+        el.classList.add("fluid-enter");
+      }
+    }
+
     function switchTab(tabId) {
       if (!getUserIdentity()) {
         openUserIdentityModal(true);
@@ -6727,13 +6833,19 @@
         const btn = document.getElementById(`tabBtn-${t}`);
         if (!panel || !btn) return;
         if (t === tabId) {
+          const wasHidden = panel.classList.contains("hidden");
           panel.classList.remove("hidden");
+          if (wasHidden || !hasInitializedTabAnimation) {
+            animateFluidEnter(panel);
+          }
           btn.className = "tab-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition bg-brandBlue text-white shadow-sm shrink-0";
         } else {
           panel.classList.add("hidden");
+          panel.classList.remove("fluid-enter", "fluid-enter-alt");
           btn.className = "tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition shrink-0";
         }
       });
+      hasInitializedTabAnimation = true;
 
       // Update URL hash route for deep linking
       if (typeof window !== "undefined" && window.location) {
@@ -6806,10 +6918,14 @@
     }
 
     function selectMasterDay(day) {
+      const changed = selectedMasterDay !== day;
       selectedMasterDay = day;
       selectedSlotIndex = null;
       renderMasterDayPills();
       renderMobileSlotCards();
+      if (changed) {
+        animateFluidEnter("mobileSlotCardFeed");
+      }
     }
 
     function renderInlineSquadToggles() {
@@ -7205,6 +7321,9 @@
     function toggleIndividualCoursesExpand() {
       isIndividualCoursesExpanded = !isIndividualCoursesExpanded;
       renderIndividualView();
+      if (isIndividualCoursesExpanded) {
+        animateFluidEnter("individualCourseCardsFeed");
+      }
     }
 
     function scrollToStudentCourses() {
@@ -7398,6 +7517,12 @@
         }
       }
       refreshAllViews();
+      if (activeTab === "master") {
+        animateFluidEnter("mobileSlotCardFeed");
+        if (activeFriendIds.size === 1) {
+          animateFluidEnter("individualDetailsContainer");
+        }
+      }
     }
 
     function toggleFriendActive(friendId) {
@@ -7951,8 +8076,10 @@
     }
 
     function setCalendarFilter(filterId) {
+      if (calendarFilter === filterId) return;
       calendarFilter = filterId;
       renderCalendar();
+      animateFluidEnter("calendarEventsList");
     }
 
     function handleCalendarSearch(query) {
@@ -7963,11 +8090,13 @@
     function clearCalendarSearch() {
       calendarSearchQuery = "";
       renderCalendar();
+      animateFluidEnter("calendarEventsList");
     }
 
     function toggleCalendarShowPast() {
       calendarShowPast = !calendarShowPast;
       renderCalendar();
+      animateFluidEnter("calendarEventsList");
     }
 
     function renderCalendar() {
@@ -8102,7 +8231,7 @@
       const monthKeys = Object.keys(groupedMonths);
       if (monthKeys.length === 0) {
         html += `
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center space-y-2">
+          <div id="calendarEventsList" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center space-y-2">
             <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
               <i class="fa-regular fa-calendar-xmark text-lg"></i>
             </div>
@@ -8117,7 +8246,7 @@
           </div>
         `;
       } else {
-        html += `<div class="space-y-4">`;
+        html += `<div id="calendarEventsList" class="space-y-4">`;
         monthKeys.forEach(mKey => {
           const mEvents = groupedMonths[mKey];
           html += `
@@ -8239,7 +8368,9 @@
       return bestScore >= 80 ? best : null;
     }
 
+    let _cachedTeacherDirectory = null;
     function getTeacherDirectory() {
+      if (_cachedTeacherDirectory) return _cachedTeacherDirectory;
       const teacherMap = new Map();
       const claimedFaculty = new Set();
 
@@ -8361,7 +8492,8 @@
         });
       }
 
-      return Array.from(teacherMap.values()).sort((a, b) => a.teacherName.localeCompare(b.teacherName));
+      _cachedTeacherDirectory = Array.from(teacherMap.values()).sort((a, b) => a.teacherName.localeCompare(b.teacherName));
+      return _cachedTeacherDirectory;
     }
 
     function handleTeacherSearchInput(val) {
@@ -8384,6 +8516,7 @@
       const clearBtn = document.getElementById("clearTeacherSearchBtn");
       if (clearBtn) clearBtn.classList.add("hidden");
       renderTeacherFinder();
+      animateFluidEnter("teacherSearchResults");
     }
 
     function quickFillTeacherSearch(term) {
@@ -8571,12 +8704,23 @@
       return { isMatch: false, score: 0 };
     }
 
+    let _teacherRenderToken = 0;
+    let _teacherChunkTimer = null;
+    let lastAnimatedTeacherStudentsKey = null;
+    let lastAnimatedTeacherReviewsKey = null;
+
     function renderTeacherFinder() {
       const allTeachers = getTeacherDirectory();
       const resultsContainer = document.getElementById("teacherSearchResults");
       const countBadge = document.getElementById("teacherCountBadge");
 
       if (!resultsContainer) return;
+
+      if (_teacherChunkTimer) {
+        clearTimeout(_teacherChunkTimer);
+        _teacherChunkTimer = null;
+      }
+      _teacherRenderToken++;
 
       const q = teacherSearchQuery.toLowerCase().trim();
 
@@ -8652,7 +8796,7 @@
         return;
       }
 
-      resultsContainer.innerHTML = matchingTeachers.map(t => {
+      function renderTeacherCardHtml(t) {
         const studentRecords = Object.values(t.studentRecords).sort((a, b) => a.friend.name.localeCompare(b.friend.name));
         const isExtraOnly = t.isExtraFaculty && studentRecords.length === 0;
 
@@ -8788,7 +8932,7 @@
                 </button>
 
                 ${isStudentsExpanded ? `
-                  <div class="space-y-2 pt-1 animate-fadeIn">
+                  <div class="space-y-2 pt-1 ${lastAnimatedTeacherStudentsKey === safeTeacherKey ? 'fluid-enter' : ''}">
                     ${studentRecords.map(sr => `
                       <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl p-3 space-y-2">
                         <div class="flex items-center justify-between">
@@ -8882,7 +9026,7 @@
 
               ${isExpanded && reviewsCount > 0 ? `
                 <!-- Expanded Reviews Tray -->
-                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-3 border border-slate-100 dark:border-slate-800 space-y-2.5">
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-3 border border-slate-100 dark:border-slate-800 space-y-2.5 ${lastAnimatedTeacherReviewsKey === safeTeacherKey ? 'fluid-enter' : ''}">
                   <!-- Stats Breakdown Row -->
                   <div class="grid grid-cols-3 gap-1.5 text-center bg-white dark:bg-slate-900/80 p-2 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-[10px]">
                     <div>
@@ -8950,7 +9094,45 @@
             </div>
           </div>
         `;
-      }).join("");
+      }
+
+      const token = _teacherRenderToken;
+      const INITIAL_CHUNK = 14;
+      const shouldRenderImmediate = (
+        matchingTeachers.length <= INITIAL_CHUNK ||
+        expandedTeacherStudents.size > 0 ||
+        expandedTeacherReviews.size > 0 ||
+        (typeof window !== "undefined" && window.scrollY > 150)
+      );
+
+      if (shouldRenderImmediate) {
+        resultsContainer.innerHTML = matchingTeachers.map(renderTeacherCardHtml).join("");
+        lastAnimatedTeacherStudentsKey = null;
+        lastAnimatedTeacherReviewsKey = null;
+        return;
+      }
+
+      // Mount first viewport cards immediately so tab transitions stay smooth on older devices
+      resultsContainer.innerHTML = matchingTeachers.slice(0, INITIAL_CHUNK).map(renderTeacherCardHtml).join("");
+      lastAnimatedTeacherStudentsKey = null;
+      lastAnimatedTeacherReviewsKey = null;
+
+      let offset = INITIAL_CHUNK;
+      const BATCH_SIZE = 32;
+      function appendNextBatch() {
+        if (token !== _teacherRenderToken) return;
+        const nextSlice = matchingTeachers.slice(offset, offset + BATCH_SIZE);
+        if (!nextSlice.length) return;
+        resultsContainer.insertAdjacentHTML("beforeend", nextSlice.map(renderTeacherCardHtml).join(""));
+        offset += BATCH_SIZE;
+        if (offset < matchingTeachers.length) {
+          requestAnimationFrame(appendNextBatch);
+        }
+      }
+
+      _teacherChunkTimer = setTimeout(() => {
+        requestAnimationFrame(appendNextBatch);
+      }, 220);
     }
 
     /**
@@ -9469,23 +9651,28 @@
       }
     }
 
-    function showReviewToast(msg) {
+    let reviewToastTimer = null;
+    function showReviewToast(msg, duration = 3500) {
       const toast = document.getElementById("reviewToast");
       const msgEl = document.getElementById("reviewToastMsg");
       if (toast && msgEl) {
+        if (reviewToastTimer) clearTimeout(reviewToastTimer);
         msgEl.textContent = msg;
         toast.classList.remove("hidden");
-        setTimeout(() => {
+        reviewToastTimer = setTimeout(() => {
           toast.classList.add("hidden");
-        }, 3500);
+          reviewToastTimer = null;
+        }, duration);
       }
     }
 
     function toggleTeacherStudents(safeKey) {
       if (expandedTeacherStudents.has(safeKey)) {
         expandedTeacherStudents.delete(safeKey);
+        lastAnimatedTeacherStudentsKey = null;
       } else {
         expandedTeacherStudents.add(safeKey);
+        lastAnimatedTeacherStudentsKey = safeKey;
       }
       renderTeacherFinder();
     }
@@ -9493,8 +9680,10 @@
     function toggleTeacherReviews(safeKey) {
       if (expandedTeacherReviews.has(safeKey)) {
         expandedTeacherReviews.delete(safeKey);
+        lastAnimatedTeacherReviewsKey = null;
       } else {
         expandedTeacherReviews.add(safeKey);
+        lastAnimatedTeacherReviewsKey = safeKey;
       }
       renderTeacherFinder();
     }
@@ -10411,13 +10600,17 @@
     }
 
     function selectParcelDay(day) {
+      if (selectedParcelDay === day) return;
       selectedParcelDay = day;
       renderParcelHelper();
+      animateFluidEnter("parcelHelpersList");
     }
 
     function selectParcelSlot(slotIdx) {
+      if (selectedParcelSlotIndex === slotIdx) return;
       selectedParcelSlotIndex = slotIdx;
       renderParcelHelper();
+      animateFluidEnter("parcelHelpersList");
     }
 
     function resetParcelToLiveSlot() {
@@ -10425,11 +10618,14 @@
       const today = DAYS_ORDER[new Date().getDay() - 1];
       if (today) selectedParcelDay = today;
       renderParcelHelper();
+      animateFluidEnter("parcelHelpersList");
     }
 
     function setParcelFilter(filterKey) {
+      if (selectedParcelFilter === filterKey) return;
       selectedParcelFilter = filterKey;
       renderParcelHelper();
+      animateFluidEnter("parcelHelpersList");
     }
 
     function renderParcelHelper() {
@@ -10703,7 +10899,7 @@
         </div>
 
         <!-- Helpers List -->
-        <div class="space-y-2">
+        <div id="parcelHelpersList" class="space-y-2">
           ${filteredHelpers.length === 0 ? `
             <div class="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-xs">
               No squad members match this filter in Slot ${activeSlotIdx + 1}. Try viewing 'All'.
@@ -10978,6 +11174,8 @@
     let payLaterMultiSplitType = "total"; // 'total' or 'per_person'
 
     function setPayLaterEntryMode(mode) {
+      const modal = document.getElementById("payLaterModal");
+      const isModalVisible = modal && !modal.classList.contains("hidden") && payLaterEntryMode !== mode;
       payLaterEntryMode = mode;
       const singleBtn = document.getElementById("payLaterModeSingleBtn");
       const multiBtn = document.getElementById("payLaterModeMultiBtn");
@@ -10994,6 +11192,7 @@
         }
         if (singleSec) singleSec.classList.remove("hidden");
         if (multiSec) multiSec.classList.add("hidden");
+        if (isModalVisible && singleSec) animateFluidEnter(singleSec);
         if (submitText) submitText.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Save &amp; Notify Friend';
       } else {
         if (singleBtn) {
@@ -11004,6 +11203,7 @@
         }
         if (singleSec) singleSec.classList.add("hidden");
         if (multiSec) multiSec.classList.remove("hidden");
+        if (isModalVisible && multiSec) animateFluidEnter(multiSec);
         updateMultiPayPreview();
       }
     }
@@ -11082,6 +11282,7 @@
     }
 
     function setMultiPaySplitType(type) {
+      const changed = payLaterMultiSplitType !== type;
       payLaterMultiSplitType = type;
       const totalBtn = document.getElementById("payLaterSplitTypeTotalBtn");
       const perBtn = document.getElementById("payLaterSplitTypePerBtn");
@@ -11093,11 +11294,13 @@
         if (perBtn) perBtn.className = "py-1 px-2.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900";
         if (totalSec) totalSec.classList.remove("hidden");
         if (perSec) perSec.classList.add("hidden");
+        if (changed && totalSec) animateFluidEnter(totalSec);
       } else {
         if (totalBtn) totalBtn.className = "py-1 px-2.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900";
         if (perBtn) perBtn.className = "py-1 px-2.5 rounded-lg text-xs font-bold transition bg-emerald-600 text-white shadow-2xs";
         if (totalSec) totalSec.classList.add("hidden");
         if (perSec) perSec.classList.remove("hidden");
+        if (changed && perSec) animateFluidEnter(perSec);
       }
       updateMultiPayPreview();
     }
@@ -11761,7 +11964,10 @@
         }
         if (fullIcon) fullIcon.className = "fa-regular fa-circle text-slate-300 text-xs";
         if (customIcon) customIcon.className = "fa-solid fa-circle-check text-emerald-600 text-xs";
-        if (customContainer) customContainer.classList.remove("hidden");
+        if (customContainer) {
+          customContainer.classList.remove("hidden");
+          animateFluidEnter(customContainer);
+        }
         if (customInput && !customInput.value && activePayNowRecord) {
           customInput.value = Math.min(50, activePayNowRecord.amount);
         }
@@ -11880,9 +12086,13 @@
     }
 
     function setPayLaterFilter(filter) {
+      const prevFilter = payLaterActiveFilter;
       hasUserManuallySelectedPayLaterFilter = true;
       payLaterActiveFilter = (filter === "i_owe") ? "i_owe" : "owed_to_me";
       renderPayLaterUI();
+      if (payLaterActiveFilter !== prevFilter) {
+        animateFluidEnter("payLaterCardsFeed");
+      }
     }
 
     function handlePayLaterSearch(query) {
@@ -12172,7 +12382,7 @@
           </div>
 
           <!-- Dues Cards Feed -->
-          <div class="space-y-2.5">
+          <div id="payLaterCardsFeed" class="space-y-2.5">
             ${displayList.length === 0 ? `
               <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-8 text-center space-y-3">
                 <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl mx-auto">
@@ -12633,8 +12843,12 @@ function getCurrentMealSlotInfo() {
 }
 
 async function fetchMessMenu(messId, dateStr) {
+  const prevMessId = selectedMessId;
+  const prevDateStr = selectedMessDateStr;
   if (!messId) messId = getUserMess() || "mayuri_boys";
   if (!dateStr) dateStr = getTodayDateStr();
+
+  const isUserSelectionChange = Boolean(prevDateStr && (messId !== prevMessId || dateStr !== prevDateStr));
 
   selectedMessId = messId;
   selectedMessDateStr = dateStr;
@@ -12642,6 +12856,7 @@ async function fetchMessMenu(messId, dateStr) {
   const cacheKey = `vitb_mess_${messId}_${dateStr}`;
   if (MESS_MENU_DATA_CACHE[cacheKey]) {
     renderMessMenuUI();
+    if (isUserSelectionChange) animateFluidEnter("messMealCardsStack");
     return;
   }
 
@@ -12706,8 +12921,12 @@ async function fetchMessMenu(messId, dateStr) {
       messMenuError = "Unable to fetch live menu. Please check connection.";
     }
   } finally {
+    const wasLoading = isMessMenuLoading;
     isMessMenuLoading = false;
     renderMessMenuUI();
+    if (isUserSelectionChange || wasLoading) {
+      animateFluidEnter("messMealCardsStack");
+    }
   }
 }
 
@@ -12896,7 +13115,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     if (isMessMenuLoading) {
       return `
         <div class="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2">
-          <i class="fa-solid fa-utensils text-2xl text-brandBlue animate-bounce"></i>
+          <i class="fa-solid fa-utensils text-2xl text-brandBlue animate-pulse"></i>
           <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Loading today's mess menu...</p>
           <p class="text-[11px] text-slate-400">Syncing live dishes from HAC VITB</p>
         </div>
@@ -12922,7 +13141,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
   ];
 
   return `
-    <div class="space-y-3">
+    <div id="messMealCardsStack" class="space-y-3">
       ${mealSections.map(meal => {
         const isLive = isViewingToday && liveSlot && (liveSlot.current === meal.key);
         const hasItems = meal.items.length > 0;
@@ -13209,13 +13428,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
           if (modalContent) modalContent.classList.remove("ring-2", "ring-rose-500", "scale-[1.01]");
         }, 300);
       }
-      const toast = document.getElementById("reviewToast");
-      const toastMsg = document.getElementById("reviewToastMsg");
-      if (toast && toastMsg) {
-        toastMsg.textContent = "Name setup is mandatory to access Campus Saathi!";
-        toast.classList.remove("hidden");
-        setTimeout(() => { if (toast) toast.classList.add("hidden"); }, 2500);
-      }
+      showReviewToast("Name setup is mandatory to access Campus Saathi!", 2500);
     }
 
     function handleIdentityBackdropClick(event) {
@@ -13319,6 +13532,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       }
       updateUserProfileBtn();
       renderLiveStatusBanner();
+      animateFluidEnter("liveBannerWidget");
       closeUserIdentityModal(true); // Force close since identity is now safely set!
 
       if (typeof checkDeviceAccessAuthorization === "function") {
@@ -13340,15 +13554,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       }
 
       // Show friendly confirmation toast
-      const toast = document.getElementById("reviewToast");
-      const toastMsg = document.getElementById("reviewToastMsg");
-      if (toast && toastMsg) {
-        toastMsg.textContent = `Welcome, ${identity.name}! Profile saved locally.`;
-        toast.classList.remove("hidden");
-        setTimeout(() => {
-          toast.classList.add("hidden");
-        }, 3000);
-      }
+      showReviewToast(`Welcome, ${identity.name}! Profile saved locally.`, 3000);
     }
 
     function checkUserIdentityPrompt() {
@@ -13462,6 +13668,58 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     let lastLoggedBlockedDeviceId = "";
     let lastLoggedBlockedAttemptTime = 0;
     let lastDeviceSeenUpdateTime = 0;
+    let expandedAuthorizedStudents = new Set();
+    let lastAnimatedAuthorizedStudentKey = null;
+
+    function findVerifiedPresetStudent(idOrName) {
+      if (!idOrName || typeof FRIENDS_DATA === "undefined" || !Array.isArray(FRIENDS_DATA)) return null;
+      const needle = String(idOrName).trim().toLowerCase();
+      if (!needle || needle.startsWith("dev_") || needle.startsWith("guest") || needle === "unknown" || needle === "student") {
+        return null;
+      }
+      return FRIENDS_DATA.find(s =>
+        (s.id && s.id.toLowerCase() === needle) ||
+        (s.name && s.name.toLowerCase() === needle)
+      ) || null;
+    }
+
+    function getFriendlyDevicePlatform(userAgent) {
+      const ua = String(userAgent || "");
+      let os = "Web Device";
+      let icon = "fa-laptop";
+      if (/iPhone/i.test(ua)) { os = "iPhone"; icon = "fa-mobile-screen-button"; }
+      else if (/iPad/i.test(ua)) { os = "iPad"; icon = "fa-tablet-screen-button"; }
+      else if (/Android/i.test(ua)) {
+        os = /Mobile/i.test(ua) ? "Android Phone" : "Android Tablet";
+        icon = /Mobile/i.test(ua) ? "fa-mobile-screen-button" : "fa-tablet-screen-button";
+      } else if (/Windows/i.test(ua)) { os = "Windows PC"; icon = "fa-laptop"; }
+      else if (/Macintosh|Mac OS X/i.test(ua)) { os = "Mac"; icon = "fa-laptop"; }
+      else if (/Linux/i.test(ua)) { os = "Linux PC"; icon = "fa-laptop"; }
+
+      let browser = "";
+      if (/Edg\//i.test(ua)) browser = "Edge";
+      else if (/OPR\/|Opera/i.test(ua)) browser = "Opera";
+      else if (/SamsungBrowser/i.test(ua)) browser = "Samsung Internet";
+      else if (/CriOS|Chrome\//i.test(ua)) browser = "Chrome";
+      else if (/FxiOS|Firefox\//i.test(ua)) browser = "Firefox";
+      else if (/Safari\//i.test(ua) && !/Chrome|CriOS/i.test(ua)) browser = "Safari";
+
+      return {
+        label: browser ? `${os} • ${browser}` : os,
+        icon
+      };
+    }
+
+    function toggleAuthorizedStudentExpand(studentKey) {
+      if (expandedAuthorizedStudents.has(studentKey)) {
+        expandedAuthorizedStudents.delete(studentKey);
+        lastAnimatedAuthorizedStudentKey = null;
+      } else {
+        expandedAuthorizedStudents.add(studentKey);
+        lastAnimatedAuthorizedStudentKey = studentKey;
+      }
+      renderUserTrackerUI();
+    }
 
     function getOrCreateDeviceId() {
       let id = "";
@@ -13714,6 +13972,11 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     }
 
     async function autoRegisterCurrentDevice(studentName, studentId) {
+      const preset = findVerifiedPresetStudent(studentId) || findVerifiedPresetStudent(studentName);
+      if (!preset) return;
+      const verifiedId = preset.id.toLowerCase().trim();
+      const verifiedName = preset.name.trim();
+
       const deviceId = getOrCreateDeviceId();
       const authUid = (typeof ensureAnonymousAuth === "function") ? (await ensureAnonymousAuth()) : null;
       const primaryKey = authUid || deviceId;
@@ -13728,14 +13991,12 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         data.devices = data.devices || {};
 
         const existing = data.devices[primaryKey] || data.devices[deviceId] || {};
-        const lowerSid = (studentId || "").toLowerCase();
-        const lowerSname = (studentName || "").toLowerCase();
-        const isAdmin = lowerSid === "dhruba" || lowerSname.includes("dhruba") || lowerSid === "ajay" || lowerSname.includes("ajay");
+        const isAdmin = verifiedId === "dhruba" || verifiedName.toLowerCase().includes("dhruba") || verifiedId === "ajay" || verifiedName.toLowerCase().includes("ajay");
         const devRecord = {
           uid: authUid || primaryKey,
           deviceId: deviceId,
-          studentId: (studentId || "student").toLowerCase().trim(),
-          studentName: (studentName || "Student").trim(),
+          studentId: verifiedId,
+          studentName: verifiedName,
           isAdmin: isAdmin,
           registeredAt: existing.registeredAt || Date.now(),
           lastSeen: Date.now(),
@@ -13876,7 +14137,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
           await firestore.collection(DEVICE_LOGS_DOC_PATH.collection).doc(DEVICE_LOGS_DOC_PATH.doc).set(cachedDeviceLogs, { merge: true });
         }
 
-        showReviewToast(`✅ Device ${deviceId} approved for ${studentName}!`);
+        showReviewToast(`✅ Device approved for ${studentName}!`);
         renderUserTrackerUI();
       } catch (err) {
         alert("Error approving device: " + err.message);
@@ -13914,19 +14175,41 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       }
     }
 
-    async function revokeAuthorizedDevice(deviceId) {
-      if (!confirm(`Are you sure you want to revoke access for device "${deviceId}"? This device will be blocked from accessing the database.`)) {
+    async function revokeAuthorizedDevice(deviceId, uid = "", studentName = "") {
+      const currentDevId = (typeof getOrCreateDeviceId === "function") ? getOrCreateDeviceId() : "";
+      const isRemovingSelf = Boolean(deviceId && currentDevId && deviceId === currentDevId);
+      const confirmMsg = isRemovingSelf
+        ? "This is your current device. Remove it from the Authorized Registry?"
+        : (studentName
+          ? `Are you sure you want to remove this device for ${studentName}? It will be blocked from accessing the database until re-authorized.`
+          : "Are you sure you want to revoke access for this device? It will be blocked from accessing the database.");
+      if (!confirm(confirmMsg)) {
         return;
       }
       const firestore = (typeof getDb === "function") ? getDb() : null;
       if (!firestore) return;
 
       try {
-        if (cachedAuthorizedDevices && cachedAuthorizedDevices.devices && cachedAuthorizedDevices.devices[deviceId]) {
-          delete cachedAuthorizedDevices.devices[deviceId];
-          await firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).set(cachedAuthorizedDevices);
-          showReviewToast(`🚫 Access revoked for device ${deviceId}`);
-          renderUserTrackerUI();
+        if (cachedAuthorizedDevices && cachedAuthorizedDevices.devices) {
+          const devicesMap = cachedAuthorizedDevices.devices;
+          let removedAny = false;
+          for (const [key, dev] of Object.entries(devicesMap)) {
+            if (!dev) continue;
+            const matchesDeviceId = deviceId && (key === deviceId || dev.deviceId === deviceId);
+            const matchesUid = uid && (key === uid || dev.uid === uid);
+            if (matchesDeviceId || matchesUid) {
+              delete devicesMap[key];
+              removedAny = true;
+            }
+          }
+          if (removedAny) {
+            await firestore.collection(DEVICE_REGISTRY_DOC_PATH.collection).doc(DEVICE_REGISTRY_DOC_PATH.doc).set(cachedAuthorizedDevices);
+            if (isRemovingSelf) {
+              try { localStorage.setItem("vitb_device_authorized", "false"); } catch (e) { }
+            }
+            showReviewToast(studentName ? `🚫 Removed device for ${studentName}.` : "🚫 Device access revoked.");
+            renderUserTrackerUI();
+          }
         }
       } catch (err) {
         alert("Error revoking device: " + err.message);
@@ -14032,9 +14315,11 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
             const lowerSid = (dev.studentId || "").toLowerCase();
             const lowerSname = (dev.studentName || "").toLowerCase();
             const isAdmin = (lowerSid === "dhruba" || lowerSname.includes("dhruba") || lowerSid === "ajay" || lowerSname.includes("ajay") || dev.isAdmin === true);
+            const preset = findVerifiedPresetStudent(dev.studentId) || findVerifiedPresetStudent(dev.studentName);
             const isAnon = !isAdmin && (
-              lowerSid === "unknown" || lowerSid === "student" || lowerSid.startsWith("dev_anon") ||
-              lowerSname.includes("visitor") || lowerSname.includes("unknown") || !dev.studentName
+              !preset ||
+              lowerSid === "unknown" || lowerSid === "student" || lowerSid.startsWith("dev_") ||
+              lowerSname.includes("visitor") || lowerSname.includes("unknown") || lowerSname.startsWith("guest") || !dev.studentName
             );
             if (isAnon) {
               cleanedCount++;
@@ -14051,7 +14336,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         cachedDeviceLogs = { blockedAttempts: [] };
         await firestore.collection(DEVICE_LOGS_DOC_PATH.collection).doc(DEVICE_LOGS_DOC_PATH.doc).set(cachedDeviceLogs).catch(() => {});
 
-        // 3. Clear anonymous visitors from user_activity_tracker
+        // 3. Clear anonymous visitors & Guest entries from user_activity_tracker
         const trkSnap = await firestore.collection(TRACKER_DOC_PATH.collection).doc(TRACKER_DOC_PATH.doc).get();
         if (trkSnap && trkSnap.exists) {
           const trkData = trkSnap.data() || {};
@@ -14061,7 +14346,8 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
             if (!u) continue;
             const uName = (u.name || "").toLowerCase();
             const uId = (u.id || "").toLowerCase();
-            if (uName.includes("visitor") || uName.includes("unknown") || uId === "unknown" || uId.startsWith("anon")) {
+            const preset = findVerifiedPresetStudent(uid) || findVerifiedPresetStudent(u.id) || findVerifiedPresetStudent(u.name);
+            if (!preset || uName.includes("visitor") || uName.includes("unknown") || uName.startsWith("guest") || uId === "unknown" || uId.startsWith("anon") || uId.startsWith("dev_")) {
               cleanedCount++;
             } else {
               cleanUsers[uid] = u;
@@ -14112,8 +14398,10 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     }
 
     function setUserTrackerView(view) {
+      if (userTrackerActiveView === view) return;
       userTrackerActiveView = view;
       renderUserTrackerUI();
+      animateFluidEnter("userTrackerModalBody");
     }
 
     function handleDeviceSecuritySearch(q) {
@@ -14149,22 +14437,13 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
     function getCurrentTrackerUser() {
       const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
-      let storedName = "";
-      let storedId = "";
-      try {
-        storedName = localStorage.getItem("vitb_user_name") || "";
-        storedId = localStorage.getItem("vitb_user_id") || "";
-      } catch (e) { }
-
-      let userId = (identity && identity.id) || storedId || getOrCreateDeviceId();
-      let userName = (identity && identity.name) || storedName;
-      if (!userName) {
-        userName = "Guest (" + userId.slice(-4) + ")";
-      }
+      if (!identity || !identity.id || !identity.name) return null;
+      const preset = findVerifiedPresetStudent(identity.id) || findVerifiedPresetStudent(identity.name);
+      if (!preset) return null;
 
       return {
-        userId: userId.toLowerCase().trim(),
-        userName: userName.trim()
+        userId: preset.id.toLowerCase().trim(),
+        userName: preset.name.trim()
       };
     }
 
@@ -14191,9 +14470,20 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
     function queueTrackerEvent(type, payload) {
       try {
+        const trackerUser = getCurrentTrackerUser();
+        if (!trackerUser) return;
+        const { userId, userName } = trackerUser;
+
         const pending = getPendingTrackerEvents();
         pending.users = pending.users || {};
-        const { userId, userName } = getCurrentTrackerUser();
+
+        // Purge any stale unverified/guest keys that may exist in localStorage
+        for (const k of Object.keys(pending.users)) {
+          const entry = pending.users[k];
+          if (!findVerifiedPresetStudent(k) && !findVerifiedPresetStudent(entry && entry.name)) {
+            delete pending.users[k];
+          }
+        }
 
         if (!pending.users[userId]) {
           pending.users[userId] = {
@@ -14207,9 +14497,8 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         }
 
         const pUser = pending.users[userId];
-        if (userName && !userName.startsWith("Guest (")) {
-          pUser.name = userName;
-        }
+        pUser.id = userId;
+        pUser.name = userName;
         pUser.lastSeen = Date.now();
 
         if (type === "open") {
@@ -14235,6 +14524,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     async function flushTrackerEventsToFirebase() {
       if (isTrackerFlushing) return;
       if (typeof isCurrentDeviceAuthorized === "function" && !isCurrentDeviceAuthorized()) return;
+      if (typeof getUserIdentity === "function" && !getUserIdentity()) return;
       const firestore = (typeof getDb === "function") ? getDb() : null;
       if (!firestore) return;
 
@@ -14249,15 +14539,36 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         if (snap && snap.exists) {
           existing = snap.data() || {};
         }
-        const users = existing.users || {};
+        const rawExistingUsers = existing.users || {};
+        const users = {};
+        let hadInvalidKeys = false;
+        for (const [eUid, eUser] of Object.entries(rawExistingUsers)) {
+          if (!eUser) { hadInvalidKeys = true; continue; }
+          const preset = findVerifiedPresetStudent(eUid) || findVerifiedPresetStudent(eUser.id) || findVerifiedPresetStudent(eUser.name);
+          if (!preset) {
+            hadInvalidKeys = true;
+            continue;
+          }
+          const cleanKey = preset.id.toLowerCase().trim();
+          users[cleanKey] = { ...eUser, id: cleanKey, name: preset.name.trim() };
+          if (cleanKey !== eUid) hadInvalidKeys = true;
+        }
+
         const now = Date.now();
         const cutoff60Days = now - (60 * 24 * 60 * 60 * 1000);
+        let wroteAny = false;
 
         for (const [uid, pUser] of Object.entries(pending.users)) {
-          if (!users[uid]) {
-            users[uid] = {
-              id: uid,
-              name: pUser.name || "Student",
+          const preset = findVerifiedPresetStudent(uid) || findVerifiedPresetStudent(pUser && pUser.name);
+          if (!preset) continue;
+          const verifiedUid = preset.id.toLowerCase().trim();
+          const verifiedName = preset.name.trim();
+          wroteAny = true;
+
+          if (!users[verifiedUid]) {
+            users[verifiedUid] = {
+              id: verifiedUid,
+              name: verifiedName,
               totalOpens: 0,
               openTimestamps: [],
               sections: {},
@@ -14267,10 +14578,9 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
             };
           }
 
-          const u = users[uid];
-          if (pUser.name && !pUser.name.startsWith("Guest (")) {
-            u.name = pUser.name;
-          }
+          const u = users[verifiedUid];
+          u.id = verifiedUid;
+          u.name = verifiedName;
 
           if (Array.isArray(pUser.newOpens) && pUser.newOpens.length > 0) {
             u.openTimestamps = (u.openTimestamps || []).concat(pUser.newOpens);
@@ -14292,13 +14602,16 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
           }
         }
 
-        await docRef.set({
-          lastUpdated: now,
-          users: users
-        }, { merge: true });
+        if (wroteAny || hadInvalidKeys) {
+          if (hadInvalidKeys) {
+            await docRef.set({ lastUpdated: now, users: users });
+          } else {
+            await docRef.set({ lastUpdated: now, users: users }, { merge: true });
+          }
+          cachedTrackerData = users;
+        }
 
         clearPendingTrackerEvents();
-        cachedTrackerData = users;
       } catch (err) {
         console.warn("Tracker Firebase sync notice:", err);
       } finally {
@@ -14308,6 +14621,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
     function trackAppOpen() {
       try {
+        if (!getCurrentTrackerUser()) return;
         const now = Date.now();
         let lastSessionOpen = 0;
         try {
@@ -14331,6 +14645,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     function trackSectionUsage(section) {
       try {
         if (!section) return;
+        if (!getCurrentTrackerUser()) return;
         const normalized = (section === "individual") ? "master" : section;
         queueTrackerEvent("section", { section: normalized });
       } catch (e) { }
@@ -14339,7 +14654,15 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     function trackUserIdentityAssigned(identity) {
       try {
         if (!identity) return;
-        queueTrackerEvent("section", { section: (typeof activeTab !== "undefined" && activeTab) ? activeTab : "master" });
+        let hasSessionOpen = false;
+        try {
+          hasSessionOpen = !!sessionStorage.getItem("vitb_session_open_time");
+        } catch (e) { }
+        if (!hasSessionOpen) {
+          trackAppOpen();
+        } else {
+          queueTrackerEvent("section", { section: (typeof activeTab !== "undefined" && activeTab) ? activeTab : "master" });
+        }
         flushTrackerEventsToFirebase();
       } catch (e) { }
     }
@@ -14394,7 +14717,29 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
           ]);
           if (snap && snap.exists) {
             const data = snap.data() || {};
-            cachedTrackerData = data.users || {};
+            const rawUsers = data.users || {};
+            const cleanedUsers = {};
+            let removedGuests = false;
+            for (const [uid, u] of Object.entries(rawUsers)) {
+              if (!u) {
+                removedGuests = true;
+                continue;
+              }
+              const preset = findVerifiedPresetStudent(uid) || findVerifiedPresetStudent(u.id) || findVerifiedPresetStudent(u.name);
+              const uName = (u.name || "").toLowerCase();
+              const uId = (u.id || "").toLowerCase();
+              if (!preset || uName.startsWith("guest") || uName.includes("visitor") || uName.includes("unknown") || uId.startsWith("dev_") || uId.startsWith("anon")) {
+                removedGuests = true;
+              } else {
+                const verifiedKey = preset.id.toLowerCase().trim();
+                cleanedUsers[verifiedKey] = { ...u, id: verifiedKey, name: preset.name.trim() };
+                if (uid !== verifiedKey) removedGuests = true;
+              }
+            }
+            if (removedGuests) {
+              docRef.set({ lastUpdated: Date.now(), users: cleanedUsers }).catch(() => {});
+            }
+            cachedTrackerData = cleanedUsers;
           } else {
             cachedTrackerData = {};
           }
@@ -14408,13 +14753,17 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     }
 
     function setUserTrackerTimeframe(tf) {
+      if (userTrackerActiveTimeframe === tf) return;
       userTrackerActiveTimeframe = tf;
       renderUserTrackerUI();
+      animateFluidEnter("userTrackerModalBody");
     }
 
     function setUserTrackerSort(sort) {
+      if (userTrackerSortBy === sort) return;
       userTrackerSortBy = sort;
       renderUserTrackerUI();
+      animateFluidEnter("userTrackerModalBody");
     }
 
     function handleUserTrackerSearch(q) {
@@ -14446,7 +14795,13 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       if (!body) return;
 
       const usersObj = cachedTrackerData || {};
-      const userList = Object.values(usersObj);
+      const userList = Object.values(usersObj).filter(u => {
+        if (!u) return false;
+        const uName = (u.name || "").toLowerCase();
+        const uId = (u.id || "").toLowerCase();
+        if (uName.startsWith("guest") || uId.startsWith("dev_") || uId.startsWith("anon")) return false;
+        return !!(findVerifiedPresetStudent(u.id) || findVerifiedPresetStudent(u.name));
+      });
 
       const isRegOpen = cachedDeviceConfig && cachedDeviceConfig.registrationOpen === true;
       const blockedAttempts = (cachedDeviceLogs && Array.isArray(cachedDeviceLogs.blockedAttempts)) ? cachedDeviceLogs.blockedAttempts : [];
@@ -14465,16 +14820,56 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         }
       }
 
-      let filteredDevices = devicesList;
+      // Group authorized devices student-name-wise
+      const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+      const studentGroupMap = new Map();
+      devicesList.forEach(dev => {
+        const preset = findVerifiedPresetStudent(dev.studentId) || findVerifiedPresetStudent(dev.studentName);
+        const studentKey = preset
+          ? preset.id.toLowerCase().trim()
+          : (dev.studentId || dev.studentName || "student").toLowerCase().trim();
+        const studentName = preset ? preset.name.trim() : (dev.studentName || "Student").trim();
+        const lowerSid = studentKey;
+        const lowerSname = studentName.toLowerCase();
+        const isAdmin = (lowerSid === "dhruba" || lowerSname.includes("dhruba") ||
+                         lowerSid === "ajay" || lowerSname.includes("ajay") || dev.isAdmin === true);
+
+        if (!studentGroupMap.has(studentKey)) {
+          studentGroupMap.set(studentKey, {
+            key: studentKey,
+            studentName,
+            preset,
+            avatarBg: (preset && preset.avatarBg) ? preset.avatarBg : "from-blue-600 to-indigo-600",
+            isAdmin,
+            devices: [],
+            latestActive: 0,
+            minDaysLeft: 7
+          });
+        }
+
+        const grp = studentGroupMap.get(studentKey);
+        if (isAdmin) grp.isAdmin = true;
+        const lastActive = Number(dev.lastSeen || dev.registeredAt || 0);
+        if (lastActive > grp.latestActive) grp.latestActive = lastActive;
+        if (!isAdmin) {
+          const msLeft = Math.max(0, SEVEN_DAYS_MS - (Date.now() - lastActive));
+          const daysLeft = Math.ceil(msLeft / (24 * 60 * 60 * 1000));
+          if (daysLeft < grp.minDaysLeft) grp.minDaysLeft = daysLeft;
+        }
+        grp.devices.push(dev);
+      });
+
+      const allStudentGroups = Array.from(studentGroupMap.values()).map(grp => {
+        grp.devices.sort((a, b) => (b.lastSeen || b.registeredAt || 0) - (a.lastSeen || a.registeredAt || 0));
+        return grp;
+      }).sort((a, b) => (b.latestActive - a.latestActive) || a.studentName.localeCompare(b.studentName));
+
+      let filteredStudentGroups = allStudentGroups;
       if (deviceSecuritySearchQuery) {
-        filteredDevices = filteredDevices.filter(d => {
-          const name = (d.studentName || "").toLowerCase();
-          const sid = (d.studentId || "").toLowerCase();
-          const did = (d.deviceId || "").toLowerCase();
-          return name.includes(deviceSecuritySearchQuery) || sid.includes(deviceSecuritySearchQuery) || did.includes(deviceSecuritySearchQuery);
+        filteredStudentGroups = filteredStudentGroups.filter(grp => {
+          return grp.studentName.toLowerCase().includes(deviceSecuritySearchQuery) || grp.key.includes(deviceSecuritySearchQuery);
         });
       }
-      filteredDevices.sort((a, b) => (b.lastSeen || b.registeredAt || 0) - (a.lastSeen || a.registeredAt || 0));
 
       const warningBannerHTML = isRegOpen ? `
         <!-- High-Priority Warning Banner when Registration is OPEN -->
@@ -14520,7 +14915,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
             }">
             <i class="fa-solid fa-shield-halved text-xs"></i>
             <span>Device Security</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full ${devicesList.length > 0 ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-600'} font-black">${devicesList.length}</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full ${allStudentGroups.length > 0 ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-600'} font-black">${allStudentGroups.length}</span>
             ${blockedAttempts.length > 0 ? `<span class="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-rose-500 text-white ml-0.5 animate-pulse" title="${blockedAttempts.length} blocked attempts">${blockedAttempts.length}</span>` : ''}
           </button>
         </div>
@@ -14637,22 +15032,21 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
               </div>
             ` : `
               <div class="space-y-2 max-h-56 overflow-y-auto no-scrollbar">
-                ${blockedAttempts.map(att => `
+                ${blockedAttempts.map(att => {
+                  const platform = getFriendlyDevicePlatform(att.userAgent);
+                  return `
                   <div class="p-2.5 rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 flex items-center justify-between gap-2">
                     <div class="min-w-0">
                       <div class="flex items-center gap-1.5 flex-wrap">
                         <strong class="text-xs font-black text-slate-900 dark:text-white truncate">
-                          ${att.studentName || 'Unknown Student'}
+                          ${att.studentName || 'Unregistered Visitor'}
                         </strong>
-                        <span class="text-[9px] px-1 py-0.2 rounded font-mono bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                          ${att.studentId || 'unknown'}
-                        </span>
                       </div>
-                      <div class="text-[10px] font-mono text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                        ${att.deviceId}
-                      </div>
-                      <div class="text-[9px] text-slate-400 mt-0.5">
-                        ${formatTrackerTime(att.timestamp)} • ${att.userAgent ? att.userAgent.slice(0, 30) + '...' : 'Web'}
+                      <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
+                        <i class="fa-solid ${platform.icon} text-[9px]"></i>
+                        <span>${platform.label}</span>
+                        <span>•</span>
+                        <span>${formatTrackerTime(att.timestamp)}</span>
                       </div>
                     </div>
 
@@ -14668,26 +15062,27 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
                       </button>
                     </div>
                   </div>
-                `).join('')}
+                `;
+                }).join('')}
               </div>
             `}
           </div>
 
-          <!-- Authorized Devices Registry -->
+          <!-- Authorized Devices Registry (Student-Wise) -->
           <div class="p-3.5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
             <div class="flex items-center justify-between gap-2">
               <div>
                 <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5 flex-wrap">
-                  <span>Authorized Devices Registry</span>
+                  <span>Authorized Students</span>
                   <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-black">
-                    ${devicesList.length}
+                    ${allStudentGroups.length}
                   </span>
                   <span class="inline-flex items-center gap-1 text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded-md">
                     <i class="fa-solid fa-clock-rotate-left text-[8px]"></i> 7d Auto-Prune Active
                   </span>
                 </div>
                 <div class="text-[10px] text-slate-400">
-                  Devices with active Firestore read/write permissions
+                  ${devicesList.length} connected ${devicesList.length === 1 ? 'device' : 'devices'} across ${allStudentGroups.length} ${allStudentGroups.length === 1 ? 'student' : 'students'} • Tap a student to inspect
                 </div>
               </div>
 
@@ -14698,78 +15093,132 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
               </button>
             </div>
 
-            <!-- Search devices -->
+            <!-- Search students -->
             <div class="relative">
               <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
               <input type="text"
                 value="${deviceSecuritySearchQuery}"
                 oninput="handleDeviceSecuritySearch(this.value)"
-                placeholder="Search device ID or student name..."
+                placeholder="Search student name..."
                 class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brandBlue transition" />
             </div>
 
-            <!-- Devices List -->
-            <div class="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
-              ${filteredDevices.length === 0 ? `
+            <!-- Student-Wise Boxes List -->
+            <div class="space-y-2 max-h-72 overflow-y-auto no-scrollbar">
+              ${filteredStudentGroups.length === 0 ? `
                 <div class="py-6 text-center text-xs text-slate-400">
-                  ${deviceSecuritySearchQuery ? 'No verified devices match your search.' : 'No devices registered yet. Turn ON registration to let students connect.'}
+                  ${deviceSecuritySearchQuery ? 'No verified students match your search.' : 'No students connected yet. Turn ON registration to let students connect.'}
                 </div>
-              ` : filteredDevices.map(dev => {
-                const lowerDevSid = (dev.studentId || '').toLowerCase();
-                const lowerDevName = (dev.studentName || '').toLowerCase();
-                const isAdmin = (lowerDevSid === 'dhruba' || lowerDevName.includes('dhruba') ||
-                                 lowerDevSid === 'ajay' || lowerDevName.includes('ajay') || dev.isAdmin === true);
-                const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-                const lastActive = Number(dev.lastSeen || dev.registeredAt || 0);
-                const elapsed = Date.now() - lastActive;
-                const msLeft = Math.max(0, SEVEN_DAYS_MS - elapsed);
-                const daysLeft = Math.ceil(msLeft / (24 * 60 * 60 * 1000));
+              ` : filteredStudentGroups.map(grp => {
+                const isExpanded = expandedAuthorizedStudents.has(grp.key);
+                const shouldAnimateExpand = isExpanded && lastAnimatedAuthorizedStudentKey === grp.key;
+                const devCount = grp.devices.length;
+                const initial = grp.studentName.charAt(0).toUpperCase();
+                const courseCount = (grp.preset && Array.isArray(grp.preset.courses)) ? grp.preset.courses.length : null;
 
                 return `
-                  <div class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2 hover:border-slate-300 dark:hover:border-slate-600 transition">
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-1.5 flex-wrap">
-                        <strong class="text-xs font-black text-slate-900 dark:text-white truncate">
-                          ${dev.studentName || 'Student'}
-                        </strong>
-                        <span class="text-[9px] px-1.5 py-0.2 rounded-md font-mono font-bold bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                          ${dev.studentId || 'student'}
-                        </span>
-                        ${isAdmin ? `
-                          <span class="text-[9px] px-1.5 py-0.2 rounded-full font-black bg-blue-100 dark:bg-blue-950/80 text-brandBlue dark:text-blue-300 border border-blue-200 dark:border-blue-900/50">
-                            Admin
-                          </span>
-                        ` : ''}
+                  <div class="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border ${isExpanded ? 'border-brandBlue/60 dark:border-blue-500/60 ring-1 ring-blue-500/15' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'} transition overflow-hidden">
+                    <!-- Clickable Student Summary Box -->
+                    <button type="button" onclick="toggleAuthorizedStudentExpand('${grp.key}')"
+                      class="w-full p-2.5 flex items-center justify-between gap-2 text-left cursor-pointer">
+                      <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr ${grp.avatarBg} text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                          ${initial}
+                        </div>
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-1.5 flex-wrap">
+                            <strong class="text-xs font-black text-slate-900 dark:text-white truncate">
+                              ${grp.studentName}
+                            </strong>
+                            ${grp.isAdmin ? `
+                              <span class="text-[9px] px-1.5 py-0.2 rounded-full font-black bg-blue-100 dark:bg-blue-950/80 text-brandBlue dark:text-blue-300 border border-blue-200 dark:border-blue-900/50">
+                                Admin
+                              </span>
+                            ` : ''}
+                          </div>
+                          <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                            <span>Active ${formatTrackerTime(grp.latestActive)}</span>
+                            <span>•</span>
+                            ${grp.isAdmin ? `
+                              <span class="text-brandBlue dark:text-blue-300 font-bold">Permanent</span>
+                            ` : (grp.minDaysLeft <= 2 ? `
+                              <span class="text-amber-700 dark:text-amber-300 font-bold">Expires in ${grp.minDaysLeft}d</span>
+                            ` : `
+                              <span>Expires in ${grp.minDaysLeft}d</span>
+                            `)}
+                          </div>
+                        </div>
                       </div>
-                      <div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-600 dark:text-slate-300 mt-0.5">
-                        <span class="truncate">${dev.deviceId || dev.uid}</span>
-                      </div>
-                      <div class="text-[9px] text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
-                        <span>Active ${formatTrackerTime(dev.lastSeen || dev.registeredAt)}</span>
-                        <span>•</span>
-                        <span>Reg ${formatTrackerTime(dev.registeredAt)}</span>
-                        <span>•</span>
-                        ${isAdmin ? `
-                          <span class="text-[9px] px-1 py-0.2 rounded font-black bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-300">Permanent</span>
-                        ` : (daysLeft <= 2 ? `
-                          <span class="text-[9px] px-1 py-0.2 rounded font-black bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700 animate-pulse">Expires in ${daysLeft}d</span>
-                        ` : `
-                          <span class="text-[9px] text-slate-500 dark:text-slate-400 font-medium">Expires in ${daysLeft}d</span>
-                        `)}
-                      </div>
-                    </div>
 
-                    <div class="shrink-0 flex items-center gap-1.5">
-                      <button onclick="prompt('Device ID:', '${dev.deviceId}')" class="w-7 h-7 rounded-xl bg-white dark:bg-slate-900 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition flex items-center justify-center text-xs" title="View / Copy Device ID">
-                        <i class="fa-regular fa-copy"></i>
-                      </button>
-                      ${!isAdmin ? `
-                        <button onclick="revokeAuthorizedDevice('${dev.deviceId}')"
-                          class="w-7 h-7 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 hover:text-rose-700 hover:bg-rose-100 transition flex items-center justify-center text-xs" title="Revoke Device Access">
-                          <i class="fa-regular fa-trash-can"></i>
-                        </button>
-                      ` : ''}
-                    </div>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60">
+                          ${devCount} ${devCount === 1 ? 'device' : 'devices'}
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-brandBlue' : ''}"></i>
+                      </div>
+                    </button>
+
+                    <!-- Expanded Student & Connected Devices Details -->
+                    ${isExpanded ? `
+                      <div class="px-2.5 pb-2.5 pt-2 border-t border-slate-200/80 dark:border-slate-700/80 bg-white/80 dark:bg-slate-900/60 space-y-2 ${shouldAnimateExpand ? 'fluid-enter' : ''}">
+                        <div class="flex items-center justify-between text-[10px] px-1 text-slate-500 dark:text-slate-400">
+                          <span class="font-bold text-slate-700 dark:text-slate-200">
+                            ${grp.studentName}${courseCount !== null ? ` • ${courseCount} registered courses` : ''}
+                          </span>
+                          <span class="font-semibold">${devCount} connected</span>
+                        </div>
+
+                        <div class="space-y-1.5">
+                          ${grp.devices.map((dev, idx) => {
+                            const platform = getFriendlyDevicePlatform(dev.userAgent);
+                            const lastActive = Number(dev.lastSeen || dev.registeredAt || 0);
+                            const msLeft = Math.max(0, SEVEN_DAYS_MS - (Date.now() - lastActive));
+                            const daysLeft = Math.ceil(msLeft / (24 * 60 * 60 * 1000));
+                            const safeDevId = (dev.deviceId || "").replace(/'/g, "\\'");
+                            const safeUid = (dev.uid || "").replace(/'/g, "\\'");
+                            const safeStudentName = (grp.studentName || "").replace(/'/g, "\\'");
+                            const currentDevId = (typeof getOrCreateDeviceId === "function") ? getOrCreateDeviceId() : "";
+                            const isThisDevice = Boolean(currentDevId && dev.deviceId && dev.deviceId === currentDevId);
+
+                            return `
+                              <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2 min-w-0">
+                                  <div class="w-7 h-7 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[11px] shrink-0">
+                                    <i class="fa-solid ${platform.icon}"></i>
+                                  </div>
+                                  <div class="min-w-0">
+                                    <div class="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate flex items-center gap-1.5">
+                                      <span class="truncate">Device ${idx + 1} • ${platform.label}</span>
+                                      ${isThisDevice ? `
+                                        <span class="px-1.5 py-0.2 rounded-md text-[9px] font-bold bg-blue-100 dark:bg-blue-950/70 text-brandBlue dark:text-blue-300 shrink-0">This Device</span>
+                                      ` : ''}
+                                    </div>
+                                    <div class="text-[9.5px] text-slate-400 flex items-center gap-1.5 flex-wrap">
+                                      <span>Active ${formatTrackerTime(lastActive)}</span>
+                                      <span>•</span>
+                                      <span>Added ${formatTrackerTime(dev.registeredAt)}</span>
+                                      <span>•</span>
+                                      ${grp.isAdmin ? `
+                                        <span class="text-brandBlue dark:text-blue-300 font-bold">Permanent</span>
+                                      ` : (daysLeft <= 2 ? `
+                                        <span class="text-amber-600 dark:text-amber-300 font-bold">Expires in ${daysLeft}d</span>
+                                      ` : `
+                                        <span>Expires in ${daysLeft}d</span>
+                                      `)}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <button type="button" onclick="revokeAuthorizedDevice('${safeDevId}', '${safeUid}', '${safeStudentName}')"
+                                  class="w-7 h-7 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 hover:text-rose-700 hover:bg-rose-100 transition flex items-center justify-center text-xs shrink-0" title="Remove Device">
+                                  <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                              </div>
+                            `;
+                          }).join('')}
+                        </div>
+                      </div>
+                    ` : ''}
                   </div>
                 `;
               }).join('')}
@@ -14862,6 +15311,7 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
             </div>
           </div>
         `;
+        lastAnimatedAuthorizedStudentKey = null;
         return;
       }
 
@@ -15081,9 +15531,6 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
                         <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">
                           ${u.name}
                         </span>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                          ${u.id}
-                        </span>
                       </div>
                       <div class="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5">
                         <i class="fa-regular fa-clock text-[9px]"></i>
@@ -15171,11 +15618,12 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       try {
         updateThemeToggleIcon();
         updateUserProfileBtn();
-        if (typeof trackAppOpen === "function") {
+        if (typeof trackAppOpen === "function" && getUserIdentity()) {
           trackAppOpen();
         }
         updateTopSummaryMetrics();
         renderLiveStatusBanner();
+        animateFluidEnter("liveBannerWidget");
         applyRoute();
       } catch (e) {
         console.warn("Fast UI mount notice:", e);
