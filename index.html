@@ -12095,6 +12095,56 @@
       });
 
       await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      showReviewToast("⚠️ Payment claim declined. Due status reverted to unpaid.");
+      renderPayLaterUI();
+    }
+
+    async function cancelPaymentClaim(pairKeyOrDocId) {
+      const grp = findPayLaterGroupOrRecord(pairKeyOrDocId);
+      if (!grp || grp.claimedRecords.length === 0) return;
+
+      if (!confirm("Cancel your payment confirmation request?")) return;
+
+      grp.claimedRecords.forEach(record => {
+        record.status = (record.originalAmount && record.amount < record.originalAmount) ? "partially_paid" : "unpaid";
+        record.paymentClaimedAt = null;
+        record.paymentClaimedBy = null;
+        record.paymentClaimedAmount = null;
+      });
+
+      await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      showReviewToast("Payment confirmation request cancelled.");
+      renderPayLaterUI();
+    }
+
+    async function markPayLaterAsPaid(pairKeyOrDocId, friendName, amount) {
+      const grp = findPayLaterGroupOrRecord(pairKeyOrDocId);
+      if (!grp) return;
+
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
+      const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
+      const myKey = getPayLaterPersonKey(myId, myName);
+      const isLender = myKey && grp.lenderKey === myKey;
+
+      if (isLender) {
+        await confirmPaymentReceived(grp.pairKey);
+      } else {
+        await requestPaymentConfirmation(grp.pairKey);
+      }
+    }
+
+    function sendPayLaterReminderWhatsApp(docIdOrName, amount, note, upiId) {
+      const grp = findPayLaterGroupOrRecord(docIdOrName);
+      const friendName = grp ? grp.borrowerName : docIdOrName;
+      const dueAmount = grp ? grp.amount : amount;
+      const dueNote = grp
+        ? grp.records.map(r => (r.note || "Due") + " (₹" + Number(r.amount || 0) + ")").join(", ")
+        : note;
+      const lenderUpi = grp ? grp.lenderUpi : upiId;
+
+      let text = "Hey " + (friendName || "friend") + "! Friendly reminder to clear ₹" + dueAmount + (dueNote ? (" (" + dueNote + ")") : "") + " on Pay Me Later (Campus Saathi).";
+      if (lenderUpi) {
         text += " You can pay directly via UPI: " + lenderUpi;
       }
       text += " Thank you! 😊";
