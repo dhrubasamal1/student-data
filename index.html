@@ -268,12 +268,28 @@
       transform: scale3d(1, 1, 1);
     }
 
+    @keyframes fluidIslandEnter {
+      0% {
+        opacity: 0;
+        transform: translate3d(-50%, -14px, 0) scale3d(0.92, 0.92, 1);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(-50%, 0, 0) scale3d(1, 1, 1);
+      }
+    }
+
+    #featureDynamicIsland:not(.hidden) {
+      animation: fluidIslandEnter 240ms var(--fluid-ease) backwards;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .fluid-enter,
       .fluid-enter-alt,
       .fluid-modal-backdrop:not(.hidden),
       .fluid-modal-backdrop:not(.hidden) > .fluid-modal-card,
-      #reviewToast:not(.hidden) {
+      #reviewToast:not(.hidden),
+      #featureDynamicIsland:not(.hidden) {
         animation: none !important;
       }
       *, *::before, *::after {
@@ -1688,6 +1704,28 @@
       class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-lg border border-slate-700 text-xs font-bold flex items-center gap-2 pointer-events-none">
       <i class="fa-solid fa-circle-check text-emerald-400"></i>
       <span id="reviewToastMsg">Review submitted successfully!</span>
+    </div>
+
+    <!-- Dynamic Island Feature Announcement Banner (Shown once per user per feature) -->
+    <div id="featureDynamicIsland" role="status" aria-live="polite"
+      style="top: max(12px, env(safe-area-inset-top, 12px));"
+      class="hidden fixed left-1/2 -translate-x-1/2 z-50 w-max max-w-[calc(100vw-24px)] sm:max-w-sm bg-slate-950 text-white border border-slate-800 rounded-full pl-2.5 pr-2 py-2 shadow-xl flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+        <i id="featureIslandIcon" class="fa-solid fa-bolt text-xs"></i>
+      </div>
+      <div class="min-w-0 flex-1 pr-1">
+        <div class="flex items-center gap-1.5">
+          <span id="featureIslandTitle" class="text-xs font-bold tracking-tight text-white truncate">Now Works Offline!</span>
+          <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 shrink-0">New</span>
+        </div>
+        <p id="featureIslandSubtitle" class="text-[10.5px] text-slate-300 leading-tight truncate">
+          Schedule, Calendar &amp; Teachers work offline
+        </p>
+      </div>
+      <button type="button" onclick="dismissFeatureAnnouncement()" aria-label="Dismiss new feature banner"
+        class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition cursor-pointer">
+        <i class="fa-solid fa-xmark text-[11px]"></i>
+      </button>
     </div>
 
   </div>
@@ -12057,55 +12095,6 @@
       });
 
       await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
-      showReviewToast("⚠️ Payment claim declined. Due status reverted to unpaid.");
-      renderPayLaterUI();
-    }
-
-    async function cancelPaymentClaim(pairKeyOrDocId) {
-      const grp = findPayLaterGroupOrRecord(pairKeyOrDocId);
-      if (!grp || grp.claimedRecords.length === 0) return;
-
-      if (!confirm("Cancel your payment confirmation request?")) return;
-
-      grp.claimedRecords.forEach(record => {
-        record.status = (record.originalAmount && record.amount < record.originalAmount) ? "partially_paid" : "unpaid";
-        record.paymentClaimedAt = null;
-        record.paymentClaimedBy = null;
-        record.paymentClaimedAmount = null;
-      });
-
-      await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
-      showReviewToast("Payment confirmation request cancelled.");
-      renderPayLaterUI();
-    }
-
-    async function markPayLaterAsPaid(pairKeyOrDocId, friendName, amount) {
-      const grp = findPayLaterGroupOrRecord(pairKeyOrDocId);
-      if (!grp) return;
-
-      const identity = getUserIdentity();
-      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
-      const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
-      const myKey = getPayLaterPersonKey(myId, myName);
-      const isLender = myKey && grp.lenderKey === myKey;
-
-      if (isLender) {
-        await confirmPaymentReceived(grp.pairKey);
-      } else {
-        await requestPaymentConfirmation(grp.pairKey);
-      }
-    }
-
-    function sendPayLaterReminderWhatsApp(docIdOrName, amount, note, upiId) {
-      const grp = findPayLaterGroupOrRecord(docIdOrName);
-      const friendName = grp ? grp.borrowerName : docIdOrName;
-      const dueAmount = grp ? grp.amount : amount;
-      const dueNote = grp
-        ? grp.records.map(r => (r.note || "Due") + " (₹" + Number(r.amount || 0) + ")").join(", ")
-        : note;
-      const lenderUpi = grp ? grp.lenderUpi : upiId;
-
-      if (lenderUpi) {
         text += " You can pay directly via UPI: " + lenderUpi;
       }
       text += " Thank you! 😊";
@@ -13055,6 +13044,9 @@ function openMessSelectorModal() {
 function closeMessSelectorModal() {
   const modal = document.getElementById("messSelectorModal");
   if (modal) modal.classList.add("hidden");
+  if (typeof maybeShowFeatureAnnouncement === "function") {
+    setTimeout(maybeShowFeatureAnnouncement, 300);
+  }
 }
 
 function renderMessSelectorList() {
@@ -14015,6 +14007,8 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       switchTab(activeTab || "master");
       if (!getUserMess()) {
         setTimeout(openMessSelectorModal, 450);
+      } else if (typeof maybeShowFeatureAnnouncement === "function") {
+        setTimeout(maybeShowFeatureAnnouncement, 400);
       }
 
       // If notifications haven't been prompted yet, show notification banner shortly after onboarding
@@ -16136,6 +16130,92 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       }
     }
 
+    const LATEST_FEATURE_ANNOUNCEMENT = {
+      id: "offline_support_v1",
+      title: "Now Works Offline!",
+      subtitle: "Schedule, Calendar & Teachers work offline.",
+      icon: "fa-bolt"
+    };
+    let featureIslandTimer = null;
+
+    function getSeenFeatureMap() {
+      try {
+        const raw = localStorage.getItem("vitb_seen_features");
+        const parsed = raw ? JSON.parse(raw) : {};
+        return (parsed && typeof parsed === "object" && !Array.isArray(parsed)) ? parsed : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function hasSeenFeatureAnnouncement(featureId, userId) {
+      if (!featureId || !userId) return false;
+      const map = getSeenFeatureMap();
+      const userKey = String(userId).toLowerCase().trim();
+      return Array.isArray(map[userKey]) && map[userKey].includes(featureId);
+    }
+
+    function markFeatureAnnouncementSeen(featureId, userId) {
+      if (!featureId || !userId) return;
+      try {
+        const map = getSeenFeatureMap();
+        const userKey = String(userId).toLowerCase().trim();
+        const seen = Array.isArray(map[userKey]) ? map[userKey] : [];
+        if (!seen.includes(featureId)) {
+          seen.push(featureId);
+          map[userKey] = seen.slice(-20);
+          localStorage.setItem("vitb_seen_features", JSON.stringify(map));
+        }
+      } catch (e) { }
+    }
+
+    function dismissFeatureAnnouncement() {
+      if (featureIslandTimer) {
+        clearTimeout(featureIslandTimer);
+        featureIslandTimer = null;
+      }
+      const island = document.getElementById("featureDynamicIsland");
+      if (island) island.classList.add("hidden");
+      const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
+      if (identity && identity.id && LATEST_FEATURE_ANNOUNCEMENT && LATEST_FEATURE_ANNOUNCEMENT.id) {
+        markFeatureAnnouncementSeen(LATEST_FEATURE_ANNOUNCEMENT.id, identity.id);
+      }
+    }
+
+    function maybeShowFeatureAnnouncement() {
+      if (!LATEST_FEATURE_ANNOUNCEMENT || !LATEST_FEATURE_ANNOUNCEMENT.id) return;
+      const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
+      if (!identity || !identity.id) return;
+
+      // Avoid clashing with blocking onboarding or device restriction modals
+      for (const blockingId of ["userIdentityModal", "messSelectorModal", "deviceAccessRestrictedModal"]) {
+        const m = document.getElementById(blockingId);
+        if (m && !m.classList.contains("hidden")) return;
+      }
+
+      if (hasSeenFeatureAnnouncement(LATEST_FEATURE_ANNOUNCEMENT.id, identity.id)) return;
+
+      const island = document.getElementById("featureDynamicIsland");
+      if (!island) return;
+
+      const titleEl = document.getElementById("featureIslandTitle");
+      const subEl = document.getElementById("featureIslandSubtitle");
+      const iconEl = document.getElementById("featureIslandIcon");
+      if (titleEl) titleEl.textContent = LATEST_FEATURE_ANNOUNCEMENT.title;
+      if (subEl) subEl.textContent = LATEST_FEATURE_ANNOUNCEMENT.subtitle;
+      if (iconEl && LATEST_FEATURE_ANNOUNCEMENT.icon) {
+        iconEl.className = "fa-solid " + LATEST_FEATURE_ANNOUNCEMENT.icon + " text-xs";
+      }
+
+      markFeatureAnnouncementSeen(LATEST_FEATURE_ANNOUNCEMENT.id, identity.id);
+      island.classList.remove("hidden");
+
+      if (featureIslandTimer) clearTimeout(featureIslandTimer);
+      featureIslandTimer = setTimeout(() => {
+        dismissFeatureAnnouncement();
+      }, 8500);
+    }
+
     // Fast Synchronous UI Mount: Renders schedule data INSTANTLY in 0ms without waiting for external fonts/images/CDNs
     function initAppImmediate() {
       window.__csAppBooted = true;
@@ -16160,6 +16240,8 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       // Mandatory Setup Check: if identity is not set, restrict access immediately
       if (!getUserIdentity()) {
         openUserIdentityModal(true);
+      } else {
+        setTimeout(maybeShowFeatureAnnouncement, 350);
       }
       // Check device authorization
       if (typeof checkDeviceAccessAuthorization === "function") {
