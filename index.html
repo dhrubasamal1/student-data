@@ -988,11 +988,11 @@
           <div class="flex items-center gap-2.5">
             <div
               class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-              <i class="fa-solid fa-hand-holding-dollar"></i>
+              <i id="payLaterModalHeaderIcon" class="fa-solid fa-hand-holding-dollar"></i>
             </div>
             <div>
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white">Pay Me Later</h3>
-              <p class="text-[10px] text-slate-500 dark:text-slate-400">Record money lent or split an expense</p>
+              <h3 id="payLaterModalTitle" class="text-sm font-bold text-slate-900 dark:text-white">Pay Me Later</h3>
+              <p id="payLaterModalSubtitle" class="text-[10px] text-slate-500 dark:text-slate-400">Record money lent or split an expense</p>
             </div>
           </div>
           <button onclick="closePayLaterModal()" aria-label="Close Modal"
@@ -1007,13 +1007,13 @@
             <div class="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
               Paid by: <span id="payLaterLenderLabel" class="font-bold text-slate-900 dark:text-white">You</span>
             </div>
-            <button type="button" onclick="openUserIdentityModal()" class="text-[10px] font-bold text-brandBlue dark:text-blue-400 hover:underline">
+            <button type="button" id="payLaterSwitchIdentityBtn" onclick="openUserIdentityModal()" class="text-[10px] font-bold text-brandBlue dark:text-blue-400 hover:underline">
               Switch
             </button>
           </div>
 
           <!-- Mode Selector Switch: Single Friend vs Multi-Person Split -->
-          <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold">
+          <div id="payLaterModeToggleRow" class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold">
             <button type="button" id="payLaterModeSingleBtn" onclick="setPayLaterEntryMode('single')"
               class="py-1.5 px-3 rounded-xl transition shadow-2xs flex items-center justify-center gap-1.5 bg-white dark:bg-slate-700 text-slate-900 dark:text-white">
               <i class="fa-solid fa-user text-[11px]"></i>
@@ -1053,6 +1053,7 @@
                 <input type="number" id="payLaterAmountInput" min="1" step="any" placeholder="0"
                   class="w-full pl-8 pr-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-base font-bold focus:outline-none focus:border-emerald-500" />
               </div>
+              <p id="payLaterEditPartialHint" class="hidden text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-1"></p>
               <!-- Quick preset amounts -->
               <div class="flex items-center gap-1.5 mt-2 overflow-x-auto no-scrollbar">
                 <button type="button" onclick="setQuickPayLaterAmount(20)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition border border-slate-200 dark:border-slate-700">+₹20</button>
@@ -1231,15 +1232,22 @@
           </div>
 
           <!-- Submit Buttons -->
-          <div class="pt-2 flex items-center justify-end gap-2">
-            <button type="button" onclick="closePayLaterModal()"
-              class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-              Cancel
+          <div class="pt-2 flex items-center justify-between gap-2">
+            <button type="button" id="deletePayLaterRecordBtn" onclick="deleteEditingPayLaterRecord()"
+              class="hidden px-3 py-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200/80 dark:border-rose-800/60 transition active:scale-95 flex items-center gap-1.5">
+              <i class="fa-solid fa-trash-can text-[11px]"></i>
+              <span>Delete</span>
             </button>
-            <button type="submit" id="submitPayLaterBtn"
-              class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm active:scale-95 flex items-center gap-1.5">
-              <span id="submitPayLaterBtnText"><i class="fa-solid fa-check mr-1"></i>Save &amp; Notify Friend</span>
-            </button>
+            <div class="flex items-center gap-2 ml-auto">
+              <button type="button" onclick="closePayLaterModal()"
+                class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                Cancel
+              </button>
+              <button type="submit" id="submitPayLaterBtn"
+                class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm active:scale-95 flex items-center gap-1.5">
+                <span id="submitPayLaterBtnText"><i class="fa-solid fa-check mr-1"></i>Save &amp; Notify Friend</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -11686,6 +11694,20 @@
     }
     const shareGroupContriWhatsApp = shareGroupSplitWhatsApp;
 
+    let editingPayLaterRecordId = null;
+
+    function populatePayLaterBorrowerOptions(borrowerSelect, selfId) {
+      if (!borrowerSelect) return;
+      const myId = (selfId || "").toLowerCase();
+      const sortedSquad = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
+      borrowerSelect.innerHTML = '<option value="">-- Choose a friend --</option>' +
+        sortedSquad.map(s => {
+          const isSelf = myId && s.id.toLowerCase() === myId;
+          const isJudwe = s.id.toLowerCase() === "judwe" || s.name.toLowerCase() === "judwe";
+          return '<option value="' + s.id + '" data-name="' + s.name + '" ' + (isSelf ? "disabled" : "") + '>' + s.name + (isJudwe ? " (Twins • 2x)" : "") + (isSelf ? " (You)" : "") + '</option>';
+        }).join("");
+    }
+
     function openPayLaterModal(mode = "single") {
       if (!getUserIdentity()) {
         openUserIdentityModal(true);
@@ -11694,25 +11716,36 @@
       const modal = document.getElementById("payLaterModal");
       if (!modal) return;
 
+      editingPayLaterRecordId = null;
       const identity = getUserIdentity();
       const myId = identity && identity.id ? identity.id.toLowerCase() : "";
       const myName = identity && identity.name ? identity.name : "";
+
+      const titleEl = document.getElementById("payLaterModalTitle");
+      if (titleEl) titleEl.textContent = "Pay Me Later";
+      const subEl = document.getElementById("payLaterModalSubtitle");
+      if (subEl) subEl.textContent = "Record money lent or split an expense";
+      const headerIcon = document.getElementById("payLaterModalHeaderIcon");
+      if (headerIcon) headerIcon.className = "fa-solid fa-hand-holding-dollar";
+
+      const modeRow = document.getElementById("payLaterModeToggleRow");
+      if (modeRow) modeRow.classList.remove("hidden");
+      const switchBtn = document.getElementById("payLaterSwitchIdentityBtn");
+      if (switchBtn) switchBtn.classList.remove("hidden");
+      const delBtn = document.getElementById("deletePayLaterRecordBtn");
+      if (delBtn) delBtn.classList.add("hidden");
+      const partialHint = document.getElementById("payLaterEditPartialHint");
+      if (partialHint) {
+        partialHint.textContent = "";
+        partialHint.classList.add("hidden");
+      }
 
       const lenderLabel = document.getElementById("payLaterLenderLabel");
       if (lenderLabel) {
         lenderLabel.textContent = myName ? (myName + " (You)") : "You";
       }
 
-      const borrowerSelect = document.getElementById("payLaterBorrowerSelect");
-      if (borrowerSelect) {
-        const sortedSquad = [...FRIENDS_DATA].sort((a, b) => a.name.localeCompare(b.name));
-        borrowerSelect.innerHTML = '<option value="">-- Choose a friend --</option>' +
-          sortedSquad.map(s => {
-            const isSelf = myId && s.id.toLowerCase() === myId;
-            const isJudwe = s.id.toLowerCase() === "judwe" || s.name.toLowerCase() === "judwe";
-            return '<option value="' + s.id + '" data-name="' + s.name + '" ' + (isSelf ? "disabled" : "") + '>' + s.name + (isJudwe ? " (Twins • 2x)" : "") + (isSelf ? " (You)" : "") + '</option>';
-          }).join("");
-      }
+      populatePayLaterBorrowerOptions(document.getElementById("payLaterBorrowerSelect"), myId);
 
       const amountInput = document.getElementById("payLaterAmountInput");
       if (amountInput) amountInput.value = "";
@@ -11733,7 +11766,115 @@
       modal.classList.remove("hidden");
     }
 
+    function openEditPayLaterModal(recordId) {
+      if (!getUserIdentity()) {
+        openUserIdentityModal(true);
+        return;
+      }
+      const record = PAY_ME_LATER_LIST.find(r => r && r.id === recordId);
+      if (!record) return;
+
+      const identity = getUserIdentity();
+      const myId = identity && identity.id ? identity.id.toLowerCase() : "";
+      const myName = identity && identity.name ? identity.name : "";
+      const myKey = getPayLaterPersonKey(myId, myName);
+      const lenderKey = getPayLaterPersonKey(record.lenderId, record.lenderName);
+      if (!myKey || myKey !== lenderKey) {
+        alert("Only " + (record.lenderName || "the lender") + " can edit this payment request.");
+        return;
+      }
+
+      const modal = document.getElementById("payLaterModal");
+      if (!modal) return;
+
+      editingPayLaterRecordId = record.id;
+      const titleEl = document.getElementById("payLaterModalTitle");
+      if (titleEl) titleEl.textContent = "Edit Payment Request";
+      const subEl = document.getElementById("payLaterModalSubtitle");
+      if (subEl) subEl.textContent = "Update friend, amount, note, or UPI ID";
+      const headerIcon = document.getElementById("payLaterModalHeaderIcon");
+      if (headerIcon) headerIcon.className = "fa-solid fa-pen-to-square";
+
+      const modeRow = document.getElementById("payLaterModeToggleRow");
+      if (modeRow) modeRow.classList.add("hidden");
+      const switchBtn = document.getElementById("payLaterSwitchIdentityBtn");
+      if (switchBtn) switchBtn.classList.add("hidden");
+      const delBtn = document.getElementById("deletePayLaterRecordBtn");
+      if (delBtn) delBtn.classList.remove("hidden");
+
+      const lenderLabel = document.getElementById("payLaterLenderLabel");
+      if (lenderLabel) {
+        lenderLabel.textContent = (record.lenderName || myName || "You") + " (You)";
+      }
+
+      const borrowerSelect = document.getElementById("payLaterBorrowerSelect");
+      populatePayLaterBorrowerOptions(borrowerSelect, myId);
+      if (borrowerSelect) {
+        const presetBorrower = (typeof findVerifiedPresetStudent === "function")
+          ? (findVerifiedPresetStudent(record.borrowerId) || findVerifiedPresetStudent(record.borrowerName))
+          : null;
+        borrowerSelect.value = presetBorrower ? presetBorrower.id : (record.borrowerId || "").toLowerCase();
+      }
+
+      const amountInput = document.getElementById("payLaterAmountInput");
+      if (amountInput) amountInput.value = Number(record.amount || 0) || "";
+
+      const partialHint = document.getElementById("payLaterEditPartialHint");
+      if (partialHint) {
+        const curAmt = Number(record.amount || 0);
+        const origAmt = Number(record.originalAmount || curAmt);
+        const alreadyPaid = (record.status === "partially_paid" && origAmt > curAmt) ? roundCurrency(origAmt - curAmt) : 0;
+        if (alreadyPaid > 0) {
+          partialHint.textContent = `Remaining balance shown (Original ₹${origAmt} • ₹${alreadyPaid} already received)`;
+          partialHint.classList.remove("hidden");
+        } else {
+          partialHint.textContent = "";
+          partialHint.classList.add("hidden");
+        }
+      }
+
+      const noteInput = document.getElementById("payLaterNoteInput");
+      if (noteInput) noteInput.value = record.note || "";
+
+      const upiInput = document.getElementById("payLaterUpiInput");
+      if (upiInput) {
+        upiInput.value = record.lenderUpi || localStorage.getItem("vitb_user_upi_id") || "";
+      }
+
+      setPayLaterEntryMode("single");
+      const submitText = document.getElementById("submitPayLaterBtnText");
+      if (submitText) submitText.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Save Changes';
+      modal.classList.remove("hidden");
+    }
+
+    async function deleteEditingPayLaterRecord() {
+      if (!editingPayLaterRecordId) return;
+      const target = PAY_ME_LATER_LIST.find(r => r && r.id === editingPayLaterRecordId);
+      if (!target) return;
+
+      const confirmed = confirm(
+        "Delete this payment request (₹" + Number(target.amount || 0) + " from " + (target.borrowerName || "Friend") + ")?\n\n" +
+        "This will permanently remove the due."
+      );
+      if (!confirmed) return;
+
+      const delBtn = document.getElementById("deletePayLaterRecordBtn");
+      if (delBtn) delBtn.disabled = true;
+      try {
+        const updatedList = PAY_ME_LATER_LIST.filter(r => r && r.id !== editingPayLaterRecordId);
+        await syncPayLaterRecordsToFirebase(updatedList);
+        closePayLaterModal();
+        showReviewToast("🗑️ Payment request deleted.");
+        renderPayLaterUI();
+      } catch (err) {
+        console.warn("Exception deleting Pay Me Later entry:", err);
+      } finally {
+        if (delBtn) delBtn.disabled = false;
+      }
+    }
+
     function closePayLaterModal() {
+      editingPayLaterRecordId = null;
       const modal = document.getElementById("payLaterModal");
       if (modal) modal.classList.add("hidden");
     }
@@ -11772,6 +11913,84 @@
         } catch (e) { }
       }
 
+      if (editingPayLaterRecordId) {
+        const targetIndex = PAY_ME_LATER_LIST.findIndex(r => r && r.id === editingPayLaterRecordId);
+        if (targetIndex === -1) {
+          closePayLaterModal();
+          return;
+        }
+        const existing = PAY_ME_LATER_LIST[targetIndex];
+        const borrowerSelect = document.getElementById("payLaterBorrowerSelect");
+        const amountInput = document.getElementById("payLaterAmountInput");
+
+        let borrowerId = existing.borrowerId || "";
+        let borrowerName = existing.borrowerName || "";
+        if (borrowerSelect && borrowerSelect.value) {
+          borrowerId = borrowerSelect.value;
+          const selectedOpt = borrowerSelect.options && borrowerSelect.options[borrowerSelect.selectedIndex];
+          const matchedPreset = (typeof findVerifiedPresetStudent === "function") ? findVerifiedPresetStudent(borrowerId) : null;
+          borrowerName = (selectedOpt ? (selectedOpt.getAttribute("data-name") || selectedOpt.text) : "") || (matchedPreset && matchedPreset.name) || borrowerId;
+        }
+        if (!borrowerName) {
+          alert("Please choose who took money from you.");
+          return;
+        }
+
+        const amount = roundCurrency(parseFloat(amountInput ? amountInput.value : 0));
+        if (!amount || amount <= 0) {
+          alert("Please enter a valid amount in ₹.");
+          return;
+        }
+
+        if (submitBtn) submitBtn.disabled = true;
+        if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving changes...';
+
+        const prevAmount = Number(existing.amount || 0);
+        const prevOrig = Number(existing.originalAmount || prevAmount);
+        const alreadyPaid = (existing.status === "partially_paid" && prevOrig > prevAmount) ? roundCurrency(prevOrig - prevAmount) : 0;
+        const borrowerChanged = getPayLaterPersonKey(existing.borrowerId, existing.borrowerName) !== getPayLaterPersonKey(borrowerId, borrowerName);
+        const amountChanged = roundCurrency(prevAmount) !== amount;
+
+        const updatedRec = {
+          ...existing,
+          borrowerId: borrowerId,
+          borrowerName: borrowerName,
+          shares: getFriendShares(borrowerId, borrowerName),
+          amount: amount,
+          originalAmount: alreadyPaid > 0 ? roundCurrency(alreadyPaid + amount) : amount,
+          note: note || "Money borrowed",
+          lenderUpi: upiId || localStorage.getItem("vitb_user_upi_id") || ""
+        };
+
+        let resetClaimNotice = false;
+        if (existing.status === "awaiting_confirmation" && (amountChanged || borrowerChanged)) {
+          updatedRec.status = alreadyPaid > 0 ? "partially_paid" : "unpaid";
+          updatedRec.paymentClaimedAt = null;
+          updatedRec.paymentClaimedBy = null;
+          updatedRec.paymentClaimedAmount = null;
+          resetClaimNotice = true;
+        }
+
+        try {
+          const updatedList = [...PAY_ME_LATER_LIST];
+          updatedList[targetIndex] = updatedRec;
+          await syncPayLaterRecordsToFirebase(updatedList);
+          closePayLaterModal();
+          showReviewToast(
+            resetClaimNotice
+              ? "✏️ Updated! ₹" + amount + " with " + borrowerName + " saved (pending claim reset)."
+              : "✏️ Payment request updated! ₹" + amount + " with " + borrowerName + "."
+          );
+          renderPayLaterUI();
+        } catch (err) {
+          console.warn("Exception updating Pay Me Later entry:", err);
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+          if (btnText) btnText.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Save &amp; Notify Friend';
+        }
+        return;
+      }
+
       if (payLaterEntryMode === "single") {
         const borrowerSelect = document.getElementById("payLaterBorrowerSelect");
         const amountInput = document.getElementById("payLaterAmountInput");
@@ -11781,8 +12000,9 @@
 
         if (borrowerSelect && borrowerSelect.value) {
           borrowerId = borrowerSelect.value;
-          const selectedOpt = borrowerSelect.options[borrowerSelect.selectedIndex];
-          borrowerName = selectedOpt ? selectedOpt.getAttribute("data-name") || selectedOpt.text : borrowerId;
+          const selectedOpt = borrowerSelect.options && borrowerSelect.options[borrowerSelect.selectedIndex];
+          const matchedPreset = (typeof findVerifiedPresetStudent === "function") ? findVerifiedPresetStudent(borrowerId) : null;
+          borrowerName = (selectedOpt ? (selectedOpt.getAttribute("data-name") || selectedOpt.text) : "") || (matchedPreset && matchedPreset.name) || borrowerId;
         }
 
         if (!borrowerName) {
@@ -12915,16 +13135,24 @@
                           const rOrig = Number(r.originalAmount || r.amount || 0);
                           const rPartial = rOrig > rAmt && rAmt > 0;
                           const rClaimed = r.status === "awaiting_confirmation" || !!r.paymentClaimedAt;
+                          const safeRecId = String(r.id || "").replace(/'/g, "\\'");
                           return `
                             <div class="pt-1 first:pt-0 flex items-center justify-between gap-2 text-[11px]">
                               <div class="min-w-0 flex-1">
                                 <span class="font-semibold text-slate-700 dark:text-slate-200 break-words">${r.note || 'Money borrowed'}</span>
                                 <span class="text-[10px] text-slate-400 dark:text-slate-500 ml-1">• ${formatRelativePayLaterTime(r.createdAt)}</span>
                               </div>
-                              <div class="text-right shrink-0 flex items-center gap-1">
+                              <div class="text-right shrink-0 flex items-center gap-1.5">
                                 ${rClaimed ? `<span class="text-[9px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold">claimed</span>` : ''}
                                 <span class="font-mono font-bold text-slate-800 dark:text-slate-100">₹${rAmt.toLocaleString("en-IN")}</span>
                                 ${rPartial ? `<span class="text-[9px] text-slate-400 line-through">₹${rOrig}</span>` : ''}
+                                ${isLender && !isPaid && safeRecId ? `
+                                  <button type="button" onclick="openEditPayLaterModal('${safeRecId}')"
+                                    class="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/50 border border-slate-200/80 dark:border-slate-700 text-slate-500 hover:text-brandBlue dark:text-slate-400 dark:hover:text-blue-400 flex items-center justify-center transition active:scale-95"
+                                    title="Edit this payment request">
+                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                                  </button>
+                                ` : ''}
                               </div>
                             </div>
                           `;
@@ -12975,7 +13203,17 @@
                       ${isLender ? ('Lent by You' + (item.lenderUpi ? (' • UPI: ' + item.lenderUpi) : '')) : ('Lent by ' + item.lenderName + (item.lenderUpi ? (' • UPI: ' + item.lenderUpi) : ''))}
                     </div>
 
-                    <div class="flex items-center gap-1.5 shrink-0">
+                    <div class="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                      <!-- Edit Button (For Lender on single-due card; multi-due cards have per-item Edit in Dues History) -->
+                      ${isLender && !isPaid && singleRecord ? `
+                        <button onclick="openEditPayLaterModal('${String(singleRecord.id || "").replace(/'/g, "\\'")}')"
+                          class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-700 dark:text-slate-300 hover:text-brandBlue dark:hover:text-blue-400 text-[11px] font-bold transition flex items-center gap-1 shadow-2xs active:scale-95"
+                          title="Edit this payment request">
+                          <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                          <span>Edit</span>
+                        </button>
+                      ` : ''}
+
                       <!-- Remind Button (Lender WhatsApp Reminder, when unclaimed balance exists) -->
                       ${isLender && !isPaid && hasUnclaimed ? `
                         <button onclick="sendPayLaterReminderWhatsApp('${safePairKey}')"
