@@ -195,17 +195,6 @@
       }
     }
 
-    @keyframes fluidIslandEnter {
-      0% {
-        opacity: 0;
-        transform: translate3d(-50%, -14px, 0) scale3d(0.92, 0.92, 1);
-      }
-      100% {
-        opacity: 1;
-        transform: translate3d(-50%, 0, 0) scale3d(1, 1, 1);
-      }
-    }
-
     @keyframes fluidBackdropFade {
       0% {
         opacity: 0;
@@ -233,10 +222,6 @@
 
     #reviewToast:not(.hidden) {
       animation: fluidToastEnter var(--fluid-duration) var(--fluid-ease) backwards;
-    }
-
-    #featureDynamicIsland:not(.hidden) {
-      animation: fluidIslandEnter 240ms var(--fluid-ease) backwards;
     }
 
     /* Consistent light tactile press & state transitions across all buttons */
@@ -288,8 +273,7 @@
       .fluid-enter-alt,
       .fluid-modal-backdrop:not(.hidden),
       .fluid-modal-backdrop:not(.hidden) > .fluid-modal-card,
-      #reviewToast:not(.hidden),
-      #featureDynamicIsland:not(.hidden) {
+      #reviewToast:not(.hidden) {
         animation: none !important;
       }
       *, *::before, *::after {
@@ -1697,29 +1681,6 @@
           Done
         </button>
       </div>
-    </div>
-
-    <!-- Dynamic Island Feature Announcement Banner (shown once per user) -->
-    <div id="featureDynamicIsland" role="status" aria-live="polite"
-      class="hidden fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-24px)] max-w-sm bg-slate-950 text-white border border-slate-800 rounded-full px-3.5 py-2 shadow-xl flex items-center justify-between gap-2.5">
-      <div onclick="dismissFeatureIsland()" class="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer">
-        <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
-          <i id="featureIslandIcon" class="fa-solid fa-bolt text-xs"></i>
-        </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-1.5">
-            <span id="featureIslandBadge" class="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 shrink-0">New</span>
-            <span id="featureIslandTitle" class="text-xs font-bold text-white truncate">Now works offline</span>
-          </div>
-          <p id="featureIslandSubtitle" class="text-[10.5px] text-slate-300 truncate leading-tight">
-            Schedule, Calendar & Teachers work offline now.
-          </p>
-        </div>
-      </div>
-      <button type="button" onclick="dismissFeatureIsland()" aria-label="Dismiss new feature notification"
-        class="w-7 h-7 rounded-full bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center shrink-0 transition active:scale-95">
-        <i class="fa-solid fa-xmark text-[11px]"></i>
-      </button>
     </div>
 
     <!-- Review Success / Info Toast -->
@@ -12093,6 +12054,58 @@
         record.paymentClaimedAt = null;
         record.paymentClaimedBy = null;
         record.paymentClaimedAmount = null;
+      });
+
+      await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      showReviewToast("⚠️ Payment claim declined. Due status reverted to unpaid.");
+      renderPayLaterUI();
+    }
+
+    async function cancelPaymentClaim(pairKeyOrDocId) {
+      const grp = findPayLaterGroupOrRecord(pairKeyOrDocId);
+      if (!grp || grp.claimedRecords.length === 0) return;
+
+      if (!confirm("Cancel your payment confirmation request?")) return;
+
+      grp.claimedRecords.forEach(record => {
+        record.status = (record.originalAmount && record.amount < record.originalAmount) ? "partially_paid" : "unpaid";
+        record.paymentClaimedAt = null;
+        record.paymentClaimedBy = null;
+        record.paymentClaimedAmount = null;
+      });
+
+      await syncPayLaterRecordsToFirebase(PAY_ME_LATER_LIST);
+      showReviewToast("Payment confirmation request cancelled.");
+      renderPayLaterUI();
+    }
+
+    async function markPayLaterAsPaid(pairKeyOrDocId, friendName, amount) {
+      const grp = findPayLaterGroupOrRecord(pairKeyOrDocId);
+      if (!grp) return;
+
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
+      const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
+      const myKey = getPayLaterPersonKey(myId, myName);
+      const isLender = myKey && grp.lenderKey === myKey;
+
+      if (isLender) {
+        await confirmPaymentReceived(grp.pairKey);
+      } else {
+        await requestPaymentConfirmation(grp.pairKey);
+      }
+    }
+
+    function sendPayLaterReminderWhatsApp(docIdOrName, amount, note, upiId) {
+      const grp = findPayLaterGroupOrRecord(docIdOrName);
+      const friendName = grp ? grp.borrowerName : docIdOrName;
+      const dueAmount = grp ? grp.amount : amount;
+      const dueNote = grp
+        ? grp.records.map(r => (r.note || "Due") + " (₹" + Number(r.amount || 0) + ")").join(", ")
+        : note;
+      const lenderUpi = grp ? grp.lenderUpi : upiId;
+
+      if (lenderUpi) {
         text += " You can pay directly via UPI: " + lenderUpi;
       }
       text += " Thank you! 😊";
@@ -14013,9 +14026,6 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
       // Show friendly confirmation toast
       showReviewToast(`Welcome, ${identity.name}! Profile saved locally.`, 3000);
-      setTimeout(() => {
-        if (typeof checkAndShowFeatureIsland === "function") checkAndShowFeatureIsland();
-      }, 650);
     }
 
     function checkUserIdentityPrompt() {
@@ -16126,77 +16136,6 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       }
     }
 
-    const FEATURE_ISLAND_CONFIG = {
-      id: "offline_support_v1",
-      badge: "New",
-      icon: "fa-bolt",
-      title: "App now works offline!",
-      subtitle: "Schedule, Calendar & Teachers work offline now."
-    };
-    let featureIslandTimer = null;
-
-    function getSeenFeatureIslandsMap() {
-      try {
-        const raw = localStorage.getItem("vitb_seen_feature_islands");
-        const parsed = raw ? JSON.parse(raw) : {};
-        return (parsed && typeof parsed === "object") ? parsed : {};
-      } catch (e) {
-        return {};
-      }
-    }
-
-    function markFeatureIslandSeen(featureId, userKey) {
-      try {
-        const map = getSeenFeatureIslandsMap();
-        map[userKey] = map[userKey] || {};
-        map[userKey][featureId] = Date.now();
-        localStorage.setItem("vitb_seen_feature_islands", JSON.stringify(map));
-      } catch (e) { }
-    }
-
-    function dismissFeatureIsland() {
-      if (featureIslandTimer) {
-        clearTimeout(featureIslandTimer);
-        featureIslandTimer = null;
-      }
-      const el = document.getElementById("featureDynamicIsland");
-      if (el) el.classList.add("hidden");
-    }
-
-    function checkAndShowFeatureIsland() {
-      const identity = getUserIdentity();
-      if (!identity || !identity.id) return false;
-      const idModal = document.getElementById("userIdentityModal");
-      if (idModal && !idModal.classList.contains("hidden")) return false;
-      const island = document.getElementById("featureDynamicIsland");
-      if (!island) return false;
-
-      const userKey = String(identity.id).toLowerCase().trim();
-      const seenMap = getSeenFeatureIslandsMap();
-      if (seenMap[userKey] && seenMap[userKey][FEATURE_ISLAND_CONFIG.id]) {
-        return false;
-      }
-
-      const badgeEl = document.getElementById("featureIslandBadge");
-      const iconEl = document.getElementById("featureIslandIcon");
-      const titleEl = document.getElementById("featureIslandTitle");
-      const subtitleEl = document.getElementById("featureIslandSubtitle");
-
-      if (badgeEl) badgeEl.textContent = FEATURE_ISLAND_CONFIG.badge;
-      if (iconEl) iconEl.className = `fa-solid ${FEATURE_ISLAND_CONFIG.icon} text-xs`;
-      if (titleEl) titleEl.textContent = FEATURE_ISLAND_CONFIG.title;
-      if (subtitleEl) subtitleEl.textContent = FEATURE_ISLAND_CONFIG.subtitle;
-
-      markFeatureIslandSeen(FEATURE_ISLAND_CONFIG.id, userKey);
-      island.classList.remove("hidden");
-
-      if (featureIslandTimer) clearTimeout(featureIslandTimer);
-      featureIslandTimer = setTimeout(() => {
-        dismissFeatureIsland();
-      }, 7000);
-      return true;
-    }
-
     // Fast Synchronous UI Mount: Renders schedule data INSTANTLY in 0ms without waiting for external fonts/images/CDNs
     function initAppImmediate() {
       window.__csAppBooted = true;
@@ -16243,9 +16182,6 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       checkUserIdentityPrompt();
       checkMessOnboardingPrompt();
       checkNotificationState();
-      setTimeout(() => {
-        if (typeof checkAndShowFeatureIsland === "function") checkAndShowFeatureIsland();
-      }, 450);
 
       // Lifecycle listeners to keep notifications alive across tab switches and network reconnects
       if (typeof document !== "undefined") {
