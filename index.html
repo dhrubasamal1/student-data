@@ -1792,42 +1792,80 @@
       return `<span class="relative flex h-2 w-2 ${cls} inline-flex shrink-0" title="${liveTitle || 'Live Firebase Connected'}"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>`;
     }
 
-    // Silent background anonymous authentication (0ms, zero UI)
+    // Silent background anonymous authentication (single-flight; restores persisted IndexedDB session before creating a new UID)
     let currentAuthUid = null;
-    let isAuthSigningIn = false;
+    let authReadyPromise = null;
 
     async function ensureAnonymousAuth() {
       if (currentAuthUid) return currentAuthUid;
-      try {
-        if (typeof firebase !== "undefined" && firebase.auth) {
+      if (authReadyPromise) return authReadyPromise;
+
+      authReadyPromise = (async () => {
+        try {
+          if (typeof firebase === "undefined" || !firebase.auth) return null;
           if (!firebase.apps || !firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
           }
           const auth = firebase.auth();
-          if (auth.currentUser) {
+
+          if (typeof auth.setPersistence === "function" && firebase.auth.Auth && firebase.auth.Auth.Persistence && firebase.auth.Auth.Persistence.LOCAL) {
+            await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+          }
+
+          // Wait for Firebase Auth to restore any existing persisted user from IndexedDB BEFORE calling signInAnonymously()
+          if (typeof auth.authStateReady === "function") {
+            await auth.authStateReady();
+          } else if (typeof auth.onAuthStateChanged === "function") {
+            await new Promise((resolve) => {
+              let settled = false;
+              let unsub = null;
+              const finish = () => {
+                if (settled) return;
+                settled = true;
+                Promise.resolve().then(() => {
+                  try { if (typeof unsub === "function") unsub(); } catch (e) { }
+                });
+                resolve();
+              };
+              const timer = setTimeout(finish, 2500);
+              try {
+                unsub = auth.onAuthStateChanged(() => {
+                  clearTimeout(timer);
+                  finish();
+                }, () => {
+                  clearTimeout(timer);
+                  finish();
+                });
+              } catch (e) {
+                clearTimeout(timer);
+                finish();
+              }
+            });
+          }
+
+          if (auth.currentUser && auth.currentUser.uid) {
             currentAuthUid = auth.currentUser.uid;
             return currentAuthUid;
           }
-          if (isAuthSigningIn) {
-            for (let i = 0; i < 15; i++) {
-              await new Promise(r => setTimeout(r, 100));
-              if (auth.currentUser) {
-                currentAuthUid = auth.currentUser.uid;
-                return currentAuthUid;
-              }
-            }
+
+          if (typeof navigator !== "undefined" && navigator.onLine === false) {
+            return null;
           }
-          isAuthSigningIn = true;
+
           const cred = await auth.signInAnonymously();
-          currentAuthUid = cred.user.uid;
-          isAuthSigningIn = false;
-          return currentAuthUid;
+          if (cred && cred.user && cred.user.uid) {
+            currentAuthUid = cred.user.uid;
+            return currentAuthUid;
+          }
+        } catch (e) {
+          console.warn("Silent anonymous auth notice:", e);
+        } finally {
+          if (!currentAuthUid) authReadyPromise = null;
         }
-      } catch (e) {
-        console.warn("Silent anonymous auth notice:", e);
-        isAuthSigningIn = false;
-      }
-      return null;
+        return null;
+      })();
+
+      return authReadyPromise;
     }
 
     // Initialize Firebase early if script tag is loaded
