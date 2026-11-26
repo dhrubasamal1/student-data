@@ -25,48 +25,21 @@
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <!-- Google Fonts: Google Sans & Plus Jakarta Sans -->
+  <!-- Pre-compiled Tailwind CSS (works 100% offline & 0ms startup) -->
+  <link rel="stylesheet" href="./vendor/tailwind.css" />
+  <!-- Font Awesome Icons (local webfonts for offline icons) -->
+  <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css" />
+  <!-- Google Fonts (optional non-blocking online typography enhancement) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
+    rel="stylesheet" media="print" onload="this.media='all'">
 
-  <!-- Firebase App, Auth & Firestore (Compat for seamless browser integration) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <!-- Client-side Fast QR Code Generator -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Google Sans"', '"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace'],
-          },
-          colors: {
-            brandBlue: '#2563eb',
-            brandBlueHover: '#1d4ed8',
-            cardBlue: '#f0f6ff',
-            cardBlueBorder: '#dbeafe',
-            cardPink: '#fdf2f4',
-            cardPinkBorder: '#fce7eb',
-            cardNeutral: '#f8fafc',
-            cardNeutralBorder: '#e2e8f0',
-            tableHeader: '#e8f2fc',
-          }
-        }
-      }
-    };
-  </script>
+  <!-- Firebase App, Auth & Firestore (local vendored compat SDKs for offline support) -->
+  <script src="./vendor/firebase/firebase-app-compat.js"></script>
+  <script src="./vendor/firebase/firebase-auth-compat.js"></script>
+  <script src="./vendor/firebase/firebase-firestore-compat.js"></script>
 
   <script>
     // Immediate theme initialization to prevent flash
@@ -331,6 +304,11 @@
           <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white truncate">
             Campus Saathi
           </h1>
+          <span id="offlineStatusPill"
+            class="hidden inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70 shrink-0">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+            <span>Offline</span>
+          </span>
         </div>
 
         <!-- Right: Action Buttons -->
@@ -1678,6 +1656,7 @@
 
     let db = null;
     let firebaseReady = false;
+    let persistenceAttempted = false;
 
     function getDb() {
       if (db) return db;
@@ -1687,6 +1666,10 @@
             firebase.initializeApp(firebaseConfig);
           }
           db = firebase.firestore();
+          if (!persistenceAttempted && db && typeof db.enablePersistence === "function") {
+            persistenceAttempted = true;
+            db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+          }
           firebaseReady = true;
           return db;
         }
@@ -9322,6 +9305,11 @@
         return;
       }
 
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        isReviewsLoading = false;
+        return;
+      }
+
       isFirebaseReviewsListenerActive = true;
       isReviewsLoading = true;
       reviewsSyncError = null;
@@ -10317,6 +10305,11 @@
       const firestore = getDb();
       if (!firestore) return;
 
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        isParcelLoading = false;
+        return;
+      }
+
       isFirebaseParcelListenerActive = true;
       startParcelFirestoreListener(firestore, "deliveries");
     }
@@ -10451,6 +10444,7 @@
           startParcelFirestoreListener(firestore, "teacher_reviews");
           return;
         }
+        isFirebaseParcelListenerActive = false;
         parcelSyncError = err.message || "Offline";
         if (activeTab === "parcel") {
           renderParcelHelper();
@@ -11139,6 +11133,11 @@
       const firestore = getDb();
       if (!firestore) return;
 
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        isPayLaterLoading = false;
+        return;
+      }
+
       isFirebasePayLaterListenerActive = true;
       isPayLaterLoading = true;
       payLaterSyncError = null;
@@ -11185,6 +11184,7 @@
           }, (err) => {
             console.warn("Pay Me Later single doc listener error:", err);
             isPayLaterLoading = false;
+            isFirebasePayLaterListenerActive = false;
             payLaterSyncError = err.message || "Failed to sync with Firebase";
             if (activeTab === "paylater") {
               renderPayLaterUI();
@@ -11193,6 +11193,7 @@
       } catch (e) {
         console.warn("Pay Me Later listener init exception:", e);
         isPayLaterLoading = false;
+        isFirebasePayLaterListenerActive = false;
       }
     }
 
@@ -12119,14 +12120,6 @@
       activePayNowMode = "full";
 
       const modal = document.getElementById("payNowModal");
-      if (!modal) return;
-
-      const payeeName = document.getElementById("payNowPayeeName");
-      if (payeeName) payeeName.textContent = activePayNowRecord.lenderName;
-
-      const payeeUpi = document.getElementById("payNowPayeeUpi");
-      if (payeeUpi) payeeUpi.textContent = activePayNowRecord.lenderUpi;
-
       const totalBadge = document.getElementById("payNowTotalDueBadge");
       if (totalBadge) totalBadge.textContent = "Remaining Due: ₹" + activePayNowRecord.amount;
 
@@ -12504,9 +12497,11 @@
                     <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
                       Pay Me Later
                     </h2>
-                    ${isPayLaterLoading
-                      ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 animate-pulse"><i class="fa-solid fa-rotate text-[8px] fa-spin"></i> Syncing</span>'
-                      : '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live</span>'
+                    ${(typeof navigator !== "undefined" && navigator.onLine === false)
+                      ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Offline Cache</span>'
+                      : isPayLaterLoading
+                        ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 animate-pulse"><i class="fa-solid fa-rotate text-[8px] fa-spin"></i> Syncing</span>'
+                        : '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live</span>'
                     }
                   </div>
                   <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
@@ -13145,6 +13140,28 @@ function getCurrentMealSlotInfo() {
   };
 }
 
+function getMessDayOfWeek(dateStr) {
+  const targetDate = new Date(dateStr);
+  return isNaN(targetDate.getDay()) ? new Date().getDay() : targetDate.getDay();
+}
+
+function getMessWeeklyFallback(messId, dateStr) {
+  try {
+    const dayOfWeek = getMessDayOfWeek(dateStr);
+    const raw = localStorage.getItem(`vitb_mess_weekly_${messId}_day_${dayOfWeek}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return {
+      ...parsed,
+      messId: messId,
+      date: dateStr,
+      source: "weekly"
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
 async function fetchMessMenu(messId, dateStr) {
   const prevMessId = selectedMessId;
   const prevDateStr = selectedMessDateStr;
@@ -13166,18 +13183,37 @@ async function fetchMessMenu(messId, dateStr) {
     return;
   }
 
-  // Check localStorage cache
+  // Check localStorage exact date cache, then cached weekly fallback for that weekday
   try {
     const local = localStorage.getItem(cacheKey);
     if (local) {
       MESS_MENU_DATA_CACHE[cacheKey] = JSON.parse(local);
       renderMessMenuUI();
+    } else {
+      const weeklyFallback = getMessWeeklyFallback(messId, dateStr);
+      if (weeklyFallback) {
+        MESS_MENU_DATA_CACHE[cacheKey] = weeklyFallback;
+        renderMessMenuUI();
+      }
     }
   } catch (e) { }
+
+  const isOffline = (typeof navigator !== "undefined" && navigator.onLine === false);
+  if (isOffline) {
+    isMessMenuLoading = false;
+    messMenuError = MESS_MENU_DATA_CACHE[cacheKey]
+      ? null
+      : "You're offline. Open this mess once while online to cache menus.";
+    renderMessMenuUI();
+    if (isUserSelectionChange) animateFluidEnter("messMealCardsStack");
+    return;
+  }
 
   isMessMenuLoading = !MESS_MENU_DATA_CACHE[cacheKey];
   messMenuError = null;
   renderMessMenuUI();
+
+  const dayOfWeek = getMessDayOfWeek(dateStr);
 
   try {
     // 1. First attempt to fetch today's daily_menus doc
@@ -13191,8 +13227,6 @@ async function fetchMessMenu(messId, dateStr) {
     } else {
       // 2. Fall back to weekly template in mess_menus
       isDaily = false;
-      const targetDate = new Date(dateStr);
-      const dayOfWeek = isNaN(targetDate.getDay()) ? new Date().getDay() : targetDate.getDay();
       const weeklyUrl = `https://firestore.googleapis.com/v1/projects/messmenu-a387b/databases/(default)/documents/mess_menus/${messId}_day_${dayOfWeek}`;
       res = await fetch(weeklyUrl);
       if (res.ok) {
@@ -13215,16 +13249,30 @@ async function fetchMessMenu(messId, dateStr) {
       MESS_MENU_DATA_CACHE[cacheKey] = parsedMenu;
       try {
         localStorage.setItem(cacheKey, JSON.stringify(parsedMenu));
+        // Also persist by weekday so offline opens work for any future/past date of this weekday
+        if (!isDaily || !localStorage.getItem(`vitb_mess_weekly_${messId}_day_${dayOfWeek}`)) {
+          localStorage.setItem(`vitb_mess_weekly_${messId}_day_${dayOfWeek}`, JSON.stringify(parsedMenu));
+        }
       } catch (e) { }
     } else {
       if (!MESS_MENU_DATA_CACHE[cacheKey]) {
-        messMenuError = "Menu not available for this date yet.";
+        const weeklyFallback = getMessWeeklyFallback(messId, dateStr);
+        if (weeklyFallback) {
+          MESS_MENU_DATA_CACHE[cacheKey] = weeklyFallback;
+        } else {
+          messMenuError = "Menu not available for this date yet.";
+        }
       }
     }
   } catch (err) {
     console.warn("Mess menu fetch notice:", err);
     if (!MESS_MENU_DATA_CACHE[cacheKey]) {
-      messMenuError = "Unable to fetch live menu. Please check connection.";
+      const weeklyFallback = getMessWeeklyFallback(messId, dateStr);
+      if (weeklyFallback) {
+        MESS_MENU_DATA_CACHE[cacheKey] = weeklyFallback;
+      } else {
+        messMenuError = "Unable to fetch live menu. Please check connection.";
+      }
     }
   } finally {
     const wasLoading = isMessMenuLoading;
@@ -13290,7 +13338,7 @@ function renderMessMenuUI() {
   const menu = MESS_MENU_DATA_CACHE[cacheKey] || (() => {
     try {
       const saved = localStorage.getItem(cacheKey);
-      return saved ? JSON.parse(saved) : null;
+      return saved ? JSON.parse(saved) : getMessWeeklyFallback(currentMess, selectedMessDateStr);
     } catch (e) {
       return null;
     }
@@ -13336,9 +13384,11 @@ function renderMessMenuUI() {
               </h2>
               ${isMessMenuLoading
                 ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 animate-pulse"><i class="fa-solid fa-rotate fa-spin text-[8px]"></i> Fetching</span>'
-                : menu && menu.source === 'daily'
-                  ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live Daily</span>'
-                  : '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">Weekly Schedule</span>'
+                : (typeof navigator !== "undefined" && navigator.onLine === false && menu)
+                  ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Offline Cache</span>'
+                  : menu && menu.source === 'daily'
+                    ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live Daily</span>'
+                    : '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">Weekly Schedule</span>'
               }
             </div>
             <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
@@ -14209,9 +14259,21 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
         const identity = (typeof getUserIdentity === "function") ? getUserIdentity() : null;
         const adminId = (identity && identity.id) || "dhruba";
         const adminName = (identity && identity.name) || "Dhruba";
-        autoRegisterCurrentDevice(adminName, adminId).catch(() => {});
+        if (typeof navigator === "undefined" || navigator.onLine !== false) {
+          autoRegisterCurrentDevice(adminName, adminId).catch(() => {});
+        }
         startAuthorizedFirebaseListeners();
         return true;
+      }
+
+      // Offline fast-path: skip hanging on anonymous auth / network registry checks
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        if (isCurrentDeviceAuthorized()) {
+          hideDeviceAccessRestrictedModal();
+          startAuthorizedFirebaseListeners();
+          return true;
+        }
+        return false;
       }
 
       const deviceId = getOrCreateDeviceId();
@@ -15947,11 +16009,47 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
       }
     }
 
+    function updateOnlineOfflineStatus() {
+      const pill = document.getElementById("offlineStatusPill");
+      const isOffline = (typeof navigator !== "undefined" && navigator.onLine === false);
+      if (pill) {
+        if (isOffline) pill.classList.remove("hidden");
+        else pill.classList.add("hidden");
+      }
+      if (!isOffline) {
+        if (typeof checkDeviceAccessAuthorization === "function") {
+          checkDeviceAccessAuthorization().catch(() => {});
+        }
+        if (typeof ensureNotificationListenersActive === "function") {
+          ensureNotificationListenersActive();
+        }
+        if (activeTab === "mess") {
+          fetchMessMenu(selectedMessId, selectedMessDateStr);
+        } else if (activeTab === "paylater") {
+          initFirebasePayLaterRequests();
+          renderPayLaterUI();
+        } else if (activeTab === "parcel") {
+          initFirebaseParcelRequests();
+          renderParcelHelper();
+        } else if (activeTab === "teacher") {
+          initFirebaseReviews();
+        }
+      } else {
+        if (activeTab === "mess") renderMessMenuUI();
+        else if (activeTab === "paylater") renderPayLaterUI();
+      }
+    }
+
     // Fast Synchronous UI Mount: Renders schedule data INSTANTLY in 0ms without waiting for external fonts/images/CDNs
     function initAppImmediate() {
       try {
         updateThemeToggleIcon();
         updateUserProfileBtn();
+        const pill = document.getElementById("offlineStatusPill");
+        if (pill && typeof navigator !== "undefined") {
+          if (navigator.onLine === false) pill.classList.remove("hidden");
+          else pill.classList.add("hidden");
+        }
         if (typeof trackAppOpen === "function" && getUserIdentity()) {
           trackAppOpen();
         }
@@ -15977,6 +16075,8 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
 
     if (typeof window !== "undefined") {
       window.addEventListener("hashchange", applyRoute);
+      window.addEventListener("online", updateOnlineOfflineStatus);
+      window.addEventListener("offline", updateOnlineOfflineStatus);
     }
 
     // Background listeners, SW message channels, and network tasks
