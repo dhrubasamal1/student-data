@@ -2,7 +2,7 @@
   "name": "Campus Saathi",
   "short_name": "Campus Saathi",
   "description": "Campus Saathi — Smart timetable, squad schedule sync, teacher finder, and parcel helper for VIT Bhopal.",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "id": "vitb-timetable-squad",
   "display": "standalone",
@@ -52,7 +52,7 @@
       "name": "Master Schedule",
       "short_name": "Schedule",
       "description": "View master schedule grid and free squad slots",
-      "url": "./index.html?tab=master",
+      "url": "./?tab=master",
       "icons": [
         {
           "src": "icons/icon-192.png",
@@ -64,7 +64,7 @@
       "name": "Individual View",
       "short_name": "Individual",
       "description": "View individual student course timetable",
-      "url": "./index.html?tab=individual",
+      "url": "./?tab=individual",
       "icons": [
         {
           "src": "icons/icon-192.png",
@@ -76,7 +76,7 @@
       "name": "Teacher Finder",
       "short_name": "Teachers",
       "description": "Find teachers and who has classes with them",
-      "url": "./index.html?tab=teacher",
+      "url": "./?tab=teacher",
       "icons": [
         {
           "src": "icons/icon-192.png",
@@ -88,7 +88,7 @@
       "name": "Pay Me Later",
       "short_name": "Pay Later",
       "description": "Track money borrowed and owed with friends",
-      "url": "./index.html?tab=paylater",
+      "url": "./?tab=paylater",
       "icons": [
         {
           "src": "icons/icon-192.png",
@@ -100,7 +100,7 @@
       "name": "Mess Menu",
       "short_name": "Mess",
       "description": "View today's campus hostel mess menu",
-      "url": "./index.html?tab=mess",
+      "url": "./?tab=mess",
       "icons": [
         {
           "src": "icons/icon-192.png",

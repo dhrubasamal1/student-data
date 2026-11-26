@@ -1,5 +1,5 @@
 // Service Worker for Campus Saathi (VIT Bhopal Timetable & Squad Sync PWA)
-const CACHE_NAME = 'vitb-timetable-v98';
+const CACHE_NAME = 'vitb-timetable-v99';
 
 const STATIC_ASSETS = [
   './',
@@ -39,6 +39,35 @@ async function verifyCompleteHtmlResponse(res) {
   }
 }
 
+async function toCleanResponse(res) {
+  if (!res || !res.redirected) return res;
+  try {
+    if (res.url && typeof Response.redirect === 'function') {
+      const resolved = new URL(res.url, self.location.origin);
+      if (resolved.origin !== self.location.origin) {
+        return Response.redirect(res.url, 302);
+      }
+    }
+    const headers = typeof Headers !== 'undefined' ? new Headers(res.headers || {}) : res.headers;
+    const body = typeof res.arrayBuffer === 'function'
+      ? await res.clone().arrayBuffer()
+      : await res.clone().text();
+    return new Response(body, {
+      status: res.status,
+      statusText: res.statusText || '',
+      headers
+    });
+  } catch (e) {
+    return res;
+  }
+}
+
+async function putCacheSafe(cache, key, res) {
+  try {
+    await cache.put(key, res);
+  } catch (e) { }
+}
+
 async function fetchNoCache(url) {
   return fetch(new Request(url, { cache: 'no-cache' }));
 }
@@ -49,12 +78,16 @@ self.addEventListener('install', (event) => {
     const cache = await caches.open(CACHE_NAME);
 
     // Fetch and validate complete index.html before committing cache (prevents partial CDN deploy corruption)
-    const indexRes = await verifyCompleteHtmlResponse(await fetchNoCache('./index.html'));
+    let indexRes = await verifyCompleteHtmlResponse(await fetchNoCache('./index.html').catch(() => null));
+    if (!indexRes) {
+      indexRes = await verifyCompleteHtmlResponse(await fetchNoCache('./').catch(() => null));
+    }
     if (!indexRes) {
       throw new Error('Incomplete or unavailable index.html during SW install');
     }
-    await cache.put('./index.html', indexRes.clone());
-    await cache.put('./', indexRes);
+    const cleanIndexRes = await toCleanResponse(indexRes);
+    await cache.put('./index.html', cleanIndexRes.clone());
+    await cache.put('./', cleanIndexRes);
 
     const otherAssets = STATIC_ASSETS.filter(a => a !== './' && a !== './index.html');
     await Promise.all(otherAssets.map(async (asset) => {
@@ -62,7 +95,7 @@ self.addEventListener('install', (event) => {
       if (!res || !res.ok) {
         throw new Error('Failed pre-cache asset: ' + asset);
       }
-      await cache.put(asset, res);
+      await cache.put(asset, await toCleanResponse(res));
     }));
 
     await self.skipWaiting();
@@ -81,11 +114,12 @@ self.addEventListener('activate', (event) => {
 });
 
 async function getCachedNavigationFallback(req) {
-  return (
+  const cached = (
     (await caches.match(req, { ignoreSearch: true })) ||
     (await caches.match('./index.html', { ignoreSearch: true })) ||
     (await caches.match('./', { ignoreSearch: true }))
   );
+  return cached ? toCleanResponse(cached) : null;
 }
 
 // Fetch: Atomic validated HTML + cache-first local vendor assets
@@ -113,17 +147,25 @@ self.addEventListener('fetch', (event) => {
       const networkFetch = (async () => {
         const networkRes = await fetchNoCache(req.url);
         if (!networkRes || !networkRes.ok) return null;
+        if (networkRes.redirected && networkRes.url) {
+          const targetOrigin = new URL(networkRes.url, self.location.origin).origin;
+          if (targetOrigin !== self.location.origin && typeof Response.redirect === 'function') {
+            return Response.redirect(networkRes.url, 302);
+          }
+        }
         if (isMainEntry) {
           const valid = await verifyCompleteHtmlResponse(networkRes);
           if (!valid) return null;
+          const cleanValid = await toCleanResponse(valid);
           const cache = await caches.open(CACHE_NAME);
-          await cache.put('./index.html', valid.clone());
-          await cache.put('./', valid.clone());
-          return valid;
+          await putCacheSafe(cache, './index.html', cleanValid.clone());
+          await putCacheSafe(cache, './', cleanValid.clone());
+          return cleanValid;
         }
+        const cleanRes = await toCleanResponse(networkRes);
         const cache = await caches.open(CACHE_NAME);
-        await cache.put(req, networkRes.clone());
-        return networkRes;
+        await putCacheSafe(cache, req, cleanRes.clone());
+        return cleanRes;
       })().catch(() => null);
 
       if (cachedFallback) {
@@ -133,7 +175,8 @@ self.addEventListener('fetch', (event) => {
       }
 
       const fresh = await networkFetch;
-      return fresh || Response.error();
+      if (fresh) return fresh;
+      return fetch(req).catch(() => Response.error());
     })());
     return;
   }
