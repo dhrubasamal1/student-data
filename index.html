@@ -12393,6 +12393,278 @@
       renderPayLaterUI();
     }
 
+    function formatPayLaterAmount(val) {
+      const num = roundCurrency(Number(val || 0));
+      return "₹" + num.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+    }
+
+    function getPayLaterMutualBalancesMap(groupedRecordsList, myKey) {
+      const mutualMap = new Map();
+      if (!myKey) return mutualMap;
+
+      const groups = Array.isArray(groupedRecordsList) ? groupedRecordsList : getGroupedPayLaterRecords(PAY_ME_LATER_LIST);
+      const owedToMeByFriend = new Map();
+      const iOweByFriend = new Map();
+
+      groups.forEach(grp => {
+        if (!grp || Number(grp.amount || 0) <= 0) return;
+        if (grp.lenderKey === myKey && grp.borrowerKey && grp.borrowerKey !== myKey) {
+          owedToMeByFriend.set(grp.borrowerKey, grp);
+        } else if (grp.borrowerKey === myKey && grp.lenderKey && grp.lenderKey !== myKey) {
+          iOweByFriend.set(grp.lenderKey, grp);
+        }
+      });
+
+      iOweByFriend.forEach((iOweGrp, friendKey) => {
+        const owedToMeGrp = owedToMeByFriend.get(friendKey);
+        if (!owedToMeGrp) return;
+
+        const owedToMeTotal = roundCurrency(owedToMeGrp.amount);
+        const iOweTotal = roundCurrency(iOweGrp.amount);
+        if (owedToMeTotal <= 0 || iOweTotal <= 0) return;
+
+        const owedToMeUnclaimed = roundCurrency(owedToMeGrp.unclaimedAmount);
+        const iOweUnclaimed = roundCurrency(iOweGrp.unclaimedAmount);
+        const adjustableOffset = roundCurrency(Math.min(owedToMeUnclaimed, iOweUnclaimed));
+
+        const friendName = owedToMeGrp.borrowerName || iOweGrp.lenderName || "Friend";
+        const netTotalSigned = roundCurrency(owedToMeTotal - iOweTotal);
+        const remainingOwedToMeAfterOffset = roundCurrency(Math.max(0, owedToMeTotal - adjustableOffset));
+        const remainingIOweAfterOffset = roundCurrency(Math.max(0, iOweTotal - adjustableOffset));
+
+        mutualMap.set(friendKey, {
+          friendKey,
+          friendName,
+          owedToMeGrp,
+          iOweGrp,
+          owedToMeTotal,
+          iOweTotal,
+          owedToMeUnclaimed,
+          iOweUnclaimed,
+          adjustableOffset,
+          netTotalSigned,
+          remainingOwedToMeAfterOffset,
+          remainingIOweAfterOffset
+        });
+      });
+
+      return mutualMap;
+    }
+
+    function applyFifoNetOffsetToRecords(unclaimedRecords, offsetAmount, payerLabel, settledIds, now) {
+      let remaining = roundCurrency(offsetAmount);
+      if (remaining <= 0 || !Array.isArray(unclaimedRecords) || unclaimedRecords.length === 0) return 0;
+
+      const sorted = unclaimedRecords
+        .slice()
+        .sort((a, b) => (Number(a.createdAt || 0) - Number(b.createdAt || 0)) || String(a.id || "").localeCompare(String(b.id || "")));
+
+      sorted.forEach(rec => {
+        if (remaining <= 0) return;
+        const recAmt = roundCurrency(Number(rec.amount || 0));
+        const alloc = roundCurrency(Math.min(recAmt, remaining));
+        if (alloc <= 0) return;
+
+        rec.originalAmount = roundCurrency(Number(rec.originalAmount || recAmt));
+        rec.payments = Array.isArray(rec.payments) ? rec.payments : [];
+        rec.payments.push({
+          amount: alloc,
+          paidAt: now,
+          payerName: payerLabel,
+          type: "net_adjustment"
+        });
+
+        const nextAmt = roundCurrency(recAmt - alloc);
+        if (nextAmt <= 0) {
+          settledIds.add(rec.id);
+        } else {
+          rec.amount = nextAmt;
+          rec.status = "partially_paid";
+          rec.paymentClaimedAt = null;
+          rec.paymentClaimedBy = null;
+          rec.paymentClaimedAmount = null;
+        }
+        remaining = roundCurrency(remaining - alloc);
+      });
+
+      return roundCurrency(offsetAmount - remaining);
+    }
+
+    async function adjustMutualNetBalance(friendKey) {
+      const identity = getUserIdentity();
+      const myName = (identity && identity.name) || localStorage.getItem("vitb_user_name") || "";
+      const myId = (identity && identity.id) || localStorage.getItem("vitb_user_id") || "";
+      const myKey = getPayLaterPersonKey(myId, myName);
+      if (!myKey) {
+        openUserIdentityModal();
+        return false;
+      }
+
+      const targetFriendKey = String(friendKey || "").trim().toLowerCase();
+      if (!targetFriendKey) return false;
+
+      const groupedRecords = getGroupedPayLaterRecords(PAY_ME_LATER_LIST);
+      const mutual = getPayLaterMutualBalancesMap(groupedRecords, myKey).get(targetFriendKey);
+      if (!mutual) {
+        showReviewToast("No mutual dues found to adjust.");
+        return false;
+      }
+
+      const friendName = mutual.friendName || "Friend";
+      if (mutual.adjustableOffset <= 0) {
+        showReviewToast("⏳ Confirm or cancel pending payment claims with " + friendName + " before adjusting net balance.");
+        return false;
+      }
+
+      const offsetAmount = mutual.adjustableOffset;
+      const remIOwe = mutual.remainingIOweAfterOffset;
+      const remTheyOwe = mutual.remainingOwedToMeAfterOffset;
+
+      let outcomeSummary = "Both mutual dues will be completely settled (₹0 remaining).";
+      if (remIOwe > 0 && remTheyOwe <= 0) {
+        outcomeSummary = "Net remaining to pay: You will owe " + friendName + " " + formatPayLaterAmount(remIOwe) + ".";
+      } else if (remTheyOwe > 0 && remIOwe <= 0) {
+        outcomeSummary = "Net remaining owed to you: " + friendName + " will owe you " + formatPayLaterAmount(remTheyOwe) + ".";
+      } else if (remIOwe > 0 || remTheyOwe > 0) {
+        outcomeSummary = "Remaining after unclaimed offset: You owe " + formatPayLaterAmount(remIOwe) + " • " + friendName + " owes you " + formatPayLaterAmount(remTheyOwe) + " (pending claim unchanged).";
+      }
+
+      const confirmMsg =
+        "Adjust mutual dues with " + friendName + "?\n\n" +
+        "• You owe " + friendName + ": " + formatPayLaterAmount(mutual.iOweTotal) + "\n" +
+        "• " + friendName + " owes you: " + formatPayLaterAmount(mutual.owedToMeTotal) + "\n" +
+        "• Net offset applied: " + formatPayLaterAmount(offsetAmount) + "\n\n" +
+        outcomeSummary;
+
+      if (!confirm(confirmMsg)) return false;
+
+      const now = Date.now();
+      const settledIds = new Set();
+      const offsetLabel = "Net Adjustment (" + (myName || myKey) + " ↔ " + friendName + ")";
+
+      applyFifoNetOffsetToRecords(mutual.iOweGrp.unclaimedRecords, offsetAmount, offsetLabel, settledIds, now);
+      applyFifoNetOffsetToRecords(mutual.owedToMeGrp.unclaimedRecords, offsetAmount, offsetLabel, settledIds, now);
+
+      const updatedList = PAY_ME_LATER_LIST.filter(item => !settledIds.has(item.id));
+      await syncPayLaterRecordsToFirebase(updatedList);
+
+      if (remIOwe <= 0 && remTheyOwe <= 0) {
+        showReviewToast("🎉 Mutual dues settled with " + friendName + "! Both balances cancelled out (" + formatPayLaterAmount(offsetAmount) + " offset).");
+      } else if (remIOwe > 0 && remTheyOwe <= 0) {
+        showReviewToast("⚖️ Adjusted " + formatPayLaterAmount(offsetAmount) + " with " + friendName + "! Net amount to pay: " + formatPayLaterAmount(remIOwe) + ".");
+      } else if (remTheyOwe > 0 && remIOwe <= 0) {
+        showReviewToast("⚖️ Adjusted " + formatPayLaterAmount(offsetAmount) + " with " + friendName + "! " + friendName + " now owes you " + formatPayLaterAmount(remTheyOwe) + ".");
+      } else {
+        showReviewToast("⚖️ Unclaimed mutual balance of " + formatPayLaterAmount(offsetAmount) + " adjusted with " + friendName + ".");
+      }
+
+      renderPayLaterUI();
+      return true;
+    }
+
+    function escapePayLaterHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function formatPayLaterNetOutcomeHtml(mutual) {
+      if (!mutual) return "";
+      const friendSafe = escapePayLaterHtml(mutual.friendName || "Friend");
+      const netAbs = formatPayLaterAmount(Math.abs(mutual.netTotalSigned));
+      if (mutual.netTotalSigned < 0) {
+        return `Net to pay: You owe ${friendSafe} <strong class="text-rose-600 dark:text-rose-400">${netAbs}</strong>`;
+      }
+      if (mutual.netTotalSigned > 0) {
+        return `Net owed to you: ${friendSafe} owes you <strong class="text-emerald-600 dark:text-emerald-400">${netAbs}</strong>`;
+      }
+      return `Net balance: <strong class="text-emerald-600 dark:text-emerald-400">₹0 (Settled Even)</strong>`;
+    }
+
+    function renderPayLaterMutualActionButton(mutual) {
+      if (!mutual) return "";
+      if (mutual.adjustableOffset <= 0) {
+        return `
+          <span class="px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-200/80 dark:border-amber-800/60 text-[10px] font-bold shrink-0">
+            Claim Pending
+          </span>
+        `;
+      }
+      const safeFriendKey = String(mutual.friendKey || "").replace(/'/g, "\\'");
+      const offsetStr = formatPayLaterAmount(mutual.adjustableOffset);
+      const isFullCancellation = mutual.remainingIOweAfterOffset <= 0 && mutual.remainingOwedToMeAfterOffset <= 0;
+      const btnLabel = isFullCancellation ? "Cancel Out (₹0)" : ("Adjust Net (-" + offsetStr + ")");
+      return `
+        <button onclick="adjustMutualNetBalance('${safeFriendKey}')"
+          class="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold shadow-2xs active:scale-95 transition flex items-center gap-1 shrink-0"
+          title="Offset ${offsetStr} against mutual dues with ${escapePayLaterHtml(mutual.friendName || 'Friend')}">
+          <i class="fa-solid fa-scale-balanced text-[10px]"></i>
+          <span>${btnLabel}</span>
+        </button>
+      `;
+    }
+
+    function renderPayLaterMutualBanner(mutualBalancesList) {
+      if (!Array.isArray(mutualBalancesList) || mutualBalancesList.length === 0) return "";
+      return `
+        <div class="p-3 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-800/60 space-y-2 shadow-2xs">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <div class="w-7 h-7 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xs shrink-0 shadow-2xs">
+                <i class="fa-solid fa-scale-balanced"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="text-xs font-extrabold text-indigo-900 dark:text-indigo-100 flex items-center gap-1.5 flex-wrap">
+                  <span>Mutual Net Adjustment</span>
+                  ${mutualBalancesList.length > 1 ? `<span class="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300">${mutualBalancesList.length} pairs</span>` : ''}
+                </div>
+                <p class="text-[10px] text-indigo-700/80 dark:text-indigo-300/80 truncate">
+                  Offset both-way dues so only the net balance stays active
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            ${mutualBalancesList.map(m => `
+              <div class="px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="text-[11px] font-bold text-slate-900 dark:text-slate-100 truncate">
+                    ${escapePayLaterHtml(m.friendName || 'Friend')} • ${formatPayLaterNetOutcomeHtml(m)}
+                  </div>
+                  <div class="text-[10px] text-slate-500 dark:text-slate-400">
+                    You owe ${formatPayLaterAmount(m.iOweTotal)} ↔ ${escapePayLaterHtml(m.friendName || 'Friend')} owes ${formatPayLaterAmount(m.owedToMeTotal)}
+                  </div>
+                </div>
+                ${renderPayLaterMutualActionButton(m)}
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPayLaterMutualCardCallout(mutual) {
+      if (!mutual) return "";
+      const friendSafe = escapePayLaterHtml(mutual.friendName || "Friend");
+      return `
+        <div class="p-2.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+          <div class="text-[11px] text-indigo-900 dark:text-indigo-200 leading-tight min-w-0 space-y-0.5">
+            <div class="font-extrabold flex items-center gap-1">
+              <i class="fa-solid fa-scale-balanced text-indigo-600 dark:text-indigo-400"></i>
+              <span>Mutual Net Adjustment</span>
+            </div>
+            <div>${formatPayLaterNetOutcomeHtml(mutual)}</div>
+            <div class="text-[10px] text-indigo-700/80 dark:text-indigo-300/80">
+              You owe ${formatPayLaterAmount(mutual.iOweTotal)} ↔ ${friendSafe} owes ${formatPayLaterAmount(mutual.owedToMeTotal)}${mutual.adjustableOffset <= 0 ? ' • Confirm or cancel pending claim first' : ''}
+            </div>
+          </div>
+          ${renderPayLaterMutualActionButton(mutual)}
+        </div>
+      `;
+    }
+
     async function markPayLaterAsPaid(pairKeyOrDocId, friendName, amount) {
       const grp = findPayLaterGroupOrRecord(pairKeyOrDocId);
       if (!grp) return;
@@ -12822,6 +13094,8 @@
         });
 
         const netBalance = roundCurrency(totalOwedToMe - totalIOwe);
+        const mutualBalancesMap = getPayLaterMutualBalancesMap(groupedRecords, myKey);
+        const mutualBalancesList = Array.from(mutualBalancesMap.values());
 
         // Auto-select tab with active dues when opening section or if current tab is empty
         if (!hasUserManuallySelectedPayLaterFilter) {
@@ -12979,6 +13253,8 @@
               ${netBalance > 0 ? '+₹' + netBalance.toLocaleString("en-IN") + ' (In Surplus)' : netBalance < 0 ? '-₹' + Math.abs(netBalance).toLocaleString("en-IN") + ' (In Due)' : 'All Settled (₹0)'}
             </span>
           </div>
+
+          ${renderPayLaterMutualBanner(mutualBalancesList)}
 
           <!-- Filter Buttons & Search -->
           <div class="space-y-2">
@@ -13178,6 +13454,9 @@
                       </div>
                     </div>
                   ` : ''}
+
+                  <!-- Mutual Net Adjustment Callout -->
+                  ${renderPayLaterMutualCardCallout(mutualBalancesMap.get(isLender ? item.borrowerKey : item.lenderKey))}
 
                   <!-- Awaiting Confirmation Callout Box -->
                   ${isAwaitingConfirmation ? (
