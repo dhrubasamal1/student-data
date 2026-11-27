@@ -6829,6 +6829,7 @@
       // Count remaining classes today
       const remainingClasses = todayClasses.filter(item => item.timeCol.endMin > currentMins);
       const remainingCount = remainingClasses.length;
+      const nextSlotCol = TIME_COLUMNS.find(c => c.startMin > currentMins);
 
       let isCurrentlyInClass = false;
       let currentHtml = "";
@@ -6858,6 +6859,23 @@
           <div class="flex items-center gap-1.5 min-w-0 text-slate-500 dark:text-slate-400 text-[11px]">
             <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
             <span class="font-medium truncate">Classes start at 8:30 AM (in ${formatDuration(minsToStart)})</span>
+          </div>
+        `;
+      } else if (nextSlotCol && remainingCount > 0) {
+        const minsToBreakEnd = nextSlotCol.startMin - currentMins;
+        const hasNextSlotClass = nextClassItem && nextClassItem.slotIndex === nextSlotCol.index;
+        currentHtml = `
+          <div class="flex items-center gap-1.5 min-w-0 text-slate-500 dark:text-slate-400 text-[11px]">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+            <span class="font-medium truncate">${hasNextSlotClass ? `Break • Next class in ${formatDuration(minsToBreakEnd)}` : `Short break • Free slot next (${nextSlotCol.start})`}</span>
+          </div>
+        `;
+      } else if (remainingCount > 0 && nextClassItem) {
+        const minsUntil = Math.max(0, nextClassItem.timeCol.startMin - currentMins);
+        currentHtml = `
+          <div class="flex items-center gap-1.5 min-w-0 text-slate-500 dark:text-slate-400 text-[11px]">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+            <span class="font-medium truncate">Free time • Next class in ${formatDuration(minsUntil)}</span>
           </div>
         `;
       } else {
