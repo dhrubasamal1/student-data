@@ -1744,7 +1744,7 @@
       onclick="if (event.target === this) closeWeeklyScheduleModal()"
       class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-end sm:items-center justify-center p-2 sm:p-4 fluid-modal-backdrop"
       role="dialog" aria-modal="true" aria-labelledby="weeklyScheduleTitle">
-      <div class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
         <!-- Header -->
         <div class="px-4 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2.5 shrink-0">
           <div class="flex items-center gap-2.5 min-w-0">
@@ -1753,14 +1753,14 @@
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
-                <h3 id="weeklyScheduleTitle" class="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
+                <h3 id="weeklyScheduleTitle" class="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-tight">
                   Weekly Schedule
                 </h3>
                 <span id="weeklyScheduleStatsBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-300 border border-blue-200/70 dark:border-blue-800/60 shrink-0">
                   Mon – Sat
                 </span>
               </div>
-              <p id="weeklyScheduleSubtitle" class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+              <p id="weeklyScheduleSubtitle" class="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
                 Full week timetable • Scroll sideways for evening slots
               </p>
             </div>
@@ -7149,7 +7149,7 @@
           if (!course) {
             return `
               <td class="p-1 border-b border-slate-100/80 dark:border-slate-800/80 align-top">
-                <div class="min-h-[64px] rounded-xl border border-dashed border-slate-200/70 dark:border-slate-800/70 px-2 py-1.5 flex items-center justify-center text-[10px] font-semibold text-slate-300 dark:text-slate-600 select-none">
+                <div class="min-h-[78px] h-full rounded-xl border border-dashed border-slate-200/70 dark:border-slate-800/70 px-2 py-1.5 flex items-center justify-center text-[10px] font-semibold text-slate-300 dark:text-slate-600 select-none">
                   ${escapeWeeklyHtml(slotCode)}
                 </div>
               </td>
@@ -7170,14 +7170,16 @@
           return `
             <td class="p-1 border-b border-slate-100/80 dark:border-slate-800/80 align-top">
               <button type="button" data-week-cell="${day}_${idx}" onclick="selectWeeklyScheduleCell('${day}', ${idx})"
-                class="w-full min-h-[64px] rounded-xl border p-1.5 text-left transition active:scale-95 flex flex-col justify-between gap-0.5 cursor-pointer hover:brightness-95 ${paletteCls}${liveRing}">
-                <div class="flex items-center justify-between gap-1 w-full">
-                  <span class="text-[9px] font-bold opacity-65 tracking-wide">${escapeWeeklyHtml(slotCode)}</span>
-                  ${isLiveNow ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>' : ''}
+                class="w-full h-full min-h-[78px] rounded-xl border p-2 text-left transition active:scale-95 flex flex-col justify-between gap-1 cursor-pointer hover:brightness-95 ${paletteCls}${liveRing}">
+                <div class="space-y-0.5 w-full">
+                  <div class="flex items-center justify-between gap-1 w-full">
+                    <span class="text-[9.5px] font-bold opacity-65 tracking-wide">${escapeWeeklyHtml(slotCode)}</span>
+                    ${isLiveNow ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>' : ''}
+                  </div>
+                  <div class="text-[11px] font-black tracking-tight leading-tight whitespace-normal break-words w-full">${escapeWeeklyHtml(course.code)}</div>
+                  <div class="text-[9.5px] font-semibold opacity-85 leading-snug whitespace-normal break-words w-full">${escapeWeeklyHtml(course.title)}</div>
                 </div>
-                <div class="text-[11px] font-black tracking-tight leading-tight truncate w-full">${escapeWeeklyHtml(course.code)}</div>
-                <div class="text-[9px] font-semibold opacity-80 leading-tight truncate w-full">${escapeWeeklyHtml(course.title)}</div>
-                <div class="text-[9px] font-medium opacity-70 truncate w-full">${escapeWeeklyHtml(course.venue || "Campus")}</div>
+                <div class="text-[9.5px] font-bold opacity-75 leading-tight whitespace-normal break-words w-full">${escapeWeeklyHtml(course.venue || "Campus")}</div>
               </button>
             </td>
           `;
@@ -7204,18 +7206,18 @@
       if (subEl) subEl.textContent = student.name + " • " + totalCredits.toFixed(1) + " Credits (Mon – Sat)";
 
       container.innerHTML = `
-        <table class="w-full border-separate border-spacing-0 table-fixed min-w-[760px]">
+        <table class="w-full border-separate border-spacing-0 table-fixed min-w-[940px]">
           <thead>
             <tr>
               <th scope="col"
-                class="sticky left-0 top-0 z-30 w-[54px] min-w-[54px] bg-slate-50 dark:bg-slate-800 px-2 py-2 text-left text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 border-b border-r border-slate-200/80 dark:border-slate-700/80">
+                class="sticky left-0 top-0 z-30 w-[56px] min-w-[56px] bg-slate-50 dark:bg-slate-800 px-2 py-2 text-left text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 border-b border-r border-slate-200/80 dark:border-slate-700/80">
                 DAY
               </th>
               ${TIME_COLUMNS.map(col => `
                 <th scope="col"
-                  class="sticky top-0 z-20 min-w-[104px] bg-slate-50 dark:bg-slate-800 px-1.5 py-2 text-left border-b border-slate-200/80 dark:border-slate-700/80">
-                  <div class="text-[11px] font-extrabold text-slate-800 dark:text-slate-100 leading-tight">${escapeWeeklyHtml(col.label)}</div>
-                  <div class="text-[9.5px] font-medium text-slate-400 dark:text-slate-400 font-mono leading-tight">${escapeWeeklyHtml(formatCompactSlotTime(col))}</div>
+                  class="sticky top-0 z-20 min-w-[126px] bg-slate-50 dark:bg-slate-800 px-2 py-2 text-left border-b border-slate-200/80 dark:border-slate-700/80">
+                  <div class="text-[11px] font-extrabold text-slate-800 dark:text-slate-100 leading-tight whitespace-nowrap">${escapeWeeklyHtml(col.label)}</div>
+                  <div class="text-[9.5px] font-medium text-slate-400 dark:text-slate-400 font-mono leading-tight whitespace-nowrap">${escapeWeeklyHtml(formatCompactSlotTime(col))}</div>
                 </th>
               `).join("")}
             </tr>
