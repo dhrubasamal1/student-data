@@ -228,7 +228,7 @@
       background-color: #2563eb;
       box-shadow: 0 1px 2px 0 rgba(37, 99, 235, 0.24);
       pointer-events: none;
-      transition: transform 240ms var(--fluid-ease), width 240ms var(--fluid-ease);
+      transition: transform 280ms var(--fluid-ease), width 280ms var(--fluid-ease);
       will-change: transform, width;
     }
 
@@ -267,7 +267,7 @@
     .tab-btn {
       position: relative;
       z-index: 1;
-      transition: color 140ms var(--fluid-ease), transform 140ms var(--fluid-ease);
+      transition: color 240ms var(--fluid-ease), transform 140ms var(--fluid-ease);
     }
 
     .tab-btn::before {
@@ -7313,9 +7313,9 @@
         const hiddenRightPx = btnRect.right - visibleRight;
 
         if (hiddenLeftPx > -2) {
-          delta = -(hiddenLeftPx + 8);
+          delta = -(hiddenLeftPx + 16);
         } else if (hiddenRightPx > -2) {
-          delta = hiddenRightPx + 8;
+          delta = hiddenRightPx + 16;
         } else {
           return;
         }
@@ -7323,9 +7323,9 @@
         const relLeft = Number(btn.offsetLeft || 0);
         const btnW = Number(btn.offsetWidth || 0);
         if (relLeft < currLeft + 2) {
-          delta = (relLeft - 8) - currLeft;
+          delta = (relLeft - 16) - currLeft;
         } else if ((relLeft + btnW) > (currLeft + listClientW - 2)) {
-          delta = (relLeft + btnW + 8) - (currLeft + listClientW);
+          delta = (relLeft + btnW + 16) - (currLeft + listClientW);
         } else {
           return;
         }
@@ -7347,8 +7347,8 @@
 
       const startLeft = currLeft;
       const diff = targetLeft - startLeft;
-      const startTime = (typeof performance !== "undefined" && typeof performance.now === "function") ? performance.now() : Date.now();
-      const duration = 180;
+      const duration = 280;
+      let scrollStartTs = null;
       let isSyncCall = true;
 
       function stepScroll(frameTs) {
@@ -7360,8 +7360,9 @@
         const now = (typeof frameTs === "number" && !isNaN(frameTs))
           ? frameTs
           : ((typeof performance !== "undefined" && typeof performance.now === "function") ? performance.now() : Date.now());
-        const t = Math.min(1, Math.max(0, (now - startTime) / duration));
-        const eased = 1 - Math.pow(1 - t, 3);
+        if (scrollStartTs === null) scrollStartTs = now;
+        const t = Math.min(1, Math.max(0, (now - scrollStartTs) / duration));
+        const eased = 1 - Math.pow(1 - t, 4);
         navList.scrollLeft = startLeft + diff * eased;
         if (t < 1) {
           navTabListScrollAnimId = requestAnimationFrame(stepScroll);
