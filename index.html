@@ -1742,9 +1742,9 @@
     <!-- ===================================================================== -->
     <div id="weeklyScheduleModal"
       onclick="if (event.target === this) closeWeeklyScheduleModal()"
-      class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-end sm:items-center justify-center p-2 sm:p-4 fluid-modal-backdrop"
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-end sm:items-center justify-center p-1.5 sm:p-4 fluid-modal-backdrop"
       role="dialog" aria-modal="true" aria-labelledby="weeklyScheduleTitle">
-      <div class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
         <!-- Header -->
         <div class="px-4 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2.5 shrink-0">
           <div class="flex items-center gap-2.5 min-w-0">
@@ -1772,7 +1772,7 @@
         </div>
 
         <!-- Scrollable Weekly Matrix Grid -->
-        <div id="weeklyScheduleGridContainer" class="flex-1 overflow-auto no-scrollbar p-3 sm:p-4">
+        <div id="weeklyScheduleGridContainer" class="flex-1 overflow-auto no-scrollbar p-0 overscroll-contain">
           <!-- Populated dynamically by renderWeeklyScheduleGrid() -->
         </div>
 
@@ -7144,12 +7144,14 @@
         const isToday = (day === todayCode);
 
         const cellsHtml = TIME_COLUMNS.map((col, idx) => {
+          const isLastCol = idx === TIME_COLUMNS.length - 1;
+          const cellPadCls = isLastCol ? "py-1 pl-1 pr-2.5" : "p-1";
           const slotCode = daySlots[idx] || "";
           const course = slotMap[slotCode];
           if (!course) {
             return `
-              <td class="p-1 border-b border-slate-100/80 dark:border-slate-800/80 align-top">
-                <div class="min-h-[78px] h-full rounded-xl border border-dashed border-slate-200/70 dark:border-slate-800/70 px-2 py-1.5 flex items-center justify-center text-[10px] font-semibold text-slate-300 dark:text-slate-600 select-none">
+              <td class="${cellPadCls} border-b border-slate-100/80 dark:border-slate-800/80 align-top">
+                <div class="min-h-[62px] h-full rounded-xl border border-dashed border-slate-200/70 dark:border-slate-800/70 px-2 py-1 flex items-center justify-center text-[10px] font-semibold text-slate-300 dark:text-slate-600 select-none">
                   ${escapeWeeklyHtml(slotCode)}
                 </div>
               </td>
@@ -7168,18 +7170,18 @@
           const liveRing = isLiveNow ? " ring-2 ring-emerald-500/80 dark:ring-emerald-400/80" : "";
 
           return `
-            <td class="p-1 border-b border-slate-100/80 dark:border-slate-800/80 align-top">
+            <td class="${cellPadCls} border-b border-slate-100/80 dark:border-slate-800/80 align-top">
               <button type="button" data-week-cell="${day}_${idx}" onclick="selectWeeklyScheduleCell('${day}', ${idx})"
-                class="w-full h-full min-h-[78px] rounded-xl border p-2 text-left transition active:scale-95 flex flex-col justify-between gap-1 cursor-pointer hover:brightness-95 ${paletteCls}${liveRing}">
+                class="w-full h-full min-h-[62px] rounded-xl border p-1.5 text-left transition active:scale-95 flex flex-col justify-between gap-0.5 cursor-pointer hover:brightness-95 ${paletteCls}${liveRing}">
                 <div class="space-y-0.5 w-full">
                   <div class="flex items-center justify-between gap-1 w-full">
-                    <span class="text-[9.5px] font-bold opacity-65 tracking-wide">${escapeWeeklyHtml(slotCode)}</span>
+                    <span class="text-[9px] font-bold opacity-65 tracking-wide">${escapeWeeklyHtml(slotCode)}</span>
                     ${isLiveNow ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>' : ''}
                   </div>
                   <div class="text-[11px] font-black tracking-tight leading-tight whitespace-normal break-words w-full">${escapeWeeklyHtml(course.code)}</div>
-                  <div class="text-[9.5px] font-semibold opacity-85 leading-snug whitespace-normal break-words w-full">${escapeWeeklyHtml(course.title)}</div>
+                  <div class="text-[9.5px] font-semibold opacity-85 leading-tight whitespace-normal break-words w-full">${escapeWeeklyHtml(course.title)}</div>
                 </div>
-                <div class="text-[9.5px] font-bold opacity-75 leading-tight whitespace-normal break-words w-full">${escapeWeeklyHtml(course.venue || "Campus")}</div>
+                <div class="text-[9px] font-bold opacity-75 leading-tight whitespace-normal break-words w-full">${escapeWeeklyHtml(course.venue || "Campus")}</div>
               </button>
             </td>
           `;
@@ -7188,8 +7190,8 @@
         return `
           <tr>
             <th scope="row"
-              class="sticky left-0 z-10 ${isToday ? 'bg-blue-50/95 dark:bg-blue-950/95 text-brandBlue dark:text-blue-300' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200'} px-2 py-2 text-left text-[11px] font-extrabold border-r border-b border-slate-100 dark:border-slate-800 align-middle whitespace-nowrap">
-              <div class="flex items-center gap-1">
+              class="sticky left-0 z-20 w-[52px] bg-white dark:bg-slate-900 px-2 py-1.5 text-left text-[11px] font-extrabold border-r border-b border-slate-200/80 dark:border-slate-800 align-middle whitespace-nowrap shadow-[2px_0_6px_-2px_rgba(15,23,42,0.08)] dark:shadow-[2px_0_6px_-2px_rgba(0,0,0,0.4)]">
+              <div class="inline-flex items-center gap-1 ${isToday ? 'px-1.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950 text-brandBlue dark:text-blue-300' : 'text-slate-700 dark:text-slate-200'}">
                 <span>${dayShortNames[day] || day}</span>
                 ${isToday ? '<span class="w-1.5 h-1.5 rounded-full bg-brandBlue dark:bg-blue-400 shrink-0"></span>' : ''}
               </div>
@@ -7206,16 +7208,16 @@
       if (subEl) subEl.textContent = student.name + " • " + totalCredits.toFixed(1) + " Credits (Mon – Sat)";
 
       container.innerHTML = `
-        <table class="w-full border-separate border-spacing-0 table-fixed min-w-[940px]">
+        <table class="w-max min-w-full border-separate border-spacing-0 table-fixed">
           <thead>
             <tr>
               <th scope="col"
-                class="sticky left-0 top-0 z-30 w-[56px] min-w-[56px] bg-slate-50 dark:bg-slate-800 px-2 py-2 text-left text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 border-b border-r border-slate-200/80 dark:border-slate-700/80">
+                class="sticky left-0 top-0 z-30 w-[52px] bg-slate-50 dark:bg-slate-800 px-2 py-2 text-left text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 border-b border-r border-slate-200 dark:border-slate-700 shadow-[2px_0_6px_-2px_rgba(15,23,42,0.08)] dark:shadow-[2px_0_6px_-2px_rgba(0,0,0,0.4)]">
                 DAY
               </th>
-              ${TIME_COLUMNS.map(col => `
+              ${TIME_COLUMNS.map((col, idx) => `
                 <th scope="col"
-                  class="sticky top-0 z-20 min-w-[126px] bg-slate-50 dark:bg-slate-800 px-2 py-2 text-left border-b border-slate-200/80 dark:border-slate-700/80">
+                  class="sticky top-0 z-10 w-[138px] bg-slate-50 dark:bg-slate-800 ${idx === TIME_COLUMNS.length - 1 ? 'py-2 pl-2 pr-2.5' : 'px-2 py-2'} text-left border-b border-slate-200 dark:border-slate-700">
                   <div class="text-[11px] font-extrabold text-slate-800 dark:text-slate-100 leading-tight whitespace-nowrap">${escapeWeeklyHtml(col.label)}</div>
                   <div class="text-[9.5px] font-medium text-slate-400 dark:text-slate-400 font-mono leading-tight whitespace-nowrap">${escapeWeeklyHtml(formatCompactSlotTime(col))}</div>
                 </th>
