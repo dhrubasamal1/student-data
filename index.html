@@ -1737,6 +1737,53 @@
       </div>
     </div>
 
+    <!-- ===================================================================== -->
+    <!-- WEEKLY SCHEDULE MATRIX MODAL (FULL MON-SAT AT-A-GLANCE GRID)         -->
+    <!-- ===================================================================== -->
+    <div id="weeklyScheduleModal"
+      onclick="if (event.target === this) closeWeeklyScheduleModal()"
+      class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-end sm:items-center justify-center p-2 sm:p-4 fluid-modal-backdrop"
+      role="dialog" aria-modal="true" aria-labelledby="weeklyScheduleTitle">
+      <div class="fluid-modal-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        <!-- Header -->
+        <div class="px-4 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2.5 shrink-0">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-brandBlue dark:text-blue-400 flex items-center justify-center text-sm shrink-0">
+              <i class="fa-solid fa-table-cells"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 id="weeklyScheduleTitle" class="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
+                  Weekly Schedule
+                </h3>
+                <span id="weeklyScheduleStatsBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-300 border border-blue-200/70 dark:border-blue-800/60 shrink-0">
+                  Mon – Sat
+                </span>
+              </div>
+              <p id="weeklyScheduleSubtitle" class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                Full week timetable • Scroll sideways for evening slots
+              </p>
+            </div>
+          </div>
+          <button type="button" onclick="closeWeeklyScheduleModal()" aria-label="Close weekly schedule"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition shrink-0">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Scrollable Weekly Matrix Grid -->
+        <div id="weeklyScheduleGridContainer" class="flex-1 overflow-auto no-scrollbar p-3 sm:p-4">
+          <!-- Populated dynamically by renderWeeklyScheduleGrid() -->
+        </div>
+
+        <!-- Selected Slot Details Footer -->
+        <div id="weeklyScheduleSelectedDetail"
+          class="px-4 py-2.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-950/60 text-[11px] text-slate-600 dark:text-slate-300 shrink-0">
+          Tap any class block to view course name, room, time &amp; faculty.
+        </div>
+      </div>
+    </div>
+
     <!-- Review Success / Info Toast -->
     <div id="reviewToast"
       class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-lg border border-slate-700 text-xs font-bold flex items-center gap-2 pointer-events-none">
@@ -6779,37 +6826,57 @@
       freeEl.textContent = freeCount;
     }
 
+    function resolveWeeklyScheduleStudent(studentId) {
+      if (studentId) {
+        const byArg = FRIENDS_DATA.find(f => f.id === studentId || f.name.toLowerCase() === String(studentId).toLowerCase());
+        if (byArg) return byArg;
+      }
+      const identity = getUserIdentity();
+      if (identity && identity.id) {
+        const byIdentity = FRIENDS_DATA.find(f => f.id === identity.id || f.name.toLowerCase() === (identity.name || "").toLowerCase());
+        if (byIdentity) return byIdentity;
+      }
+      if (selectedIndividualFriendId) {
+        const bySelected = FRIENDS_DATA.find(f => f.id === selectedIndividualFriendId);
+        if (bySelected) return bySelected;
+      }
+      return FRIENDS_DATA[0];
+    }
+
+    function escapeWeeklyHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function renderLiveBannerScheduleBtn(student, dotClass) {
+      const studentFirstName = student ? student.name.split(" ")[0] : "You";
+      const safeId = String((student && student.id) || "dhruba").replace(/'/g, "\\'");
+      return `
+        <button type="button" onclick="openWeeklyScheduleModal('${safeId}')" title="View ${escapeWeeklyHtml(studentFirstName)}'s full week schedule"
+          class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-400 font-bold hover:bg-blue-100 dark:hover:bg-blue-900/60 transition active:scale-95 truncate max-w-[170px] cursor-pointer">
+          <span class="w-1.5 h-1.5 rounded-full ${dotClass}"></span>
+          <span class="truncate">${escapeWeeklyHtml(studentFirstName)}'s Schedule</span>
+          <i class="fa-solid fa-table-cells text-[9px] opacity-75 shrink-0"></i>
+        </button>
+      `;
+    }
+
     function renderLiveStatusBanner() {
       const widget = document.getElementById("liveBannerWidget");
       if (!widget) return;
 
-      const identity = getUserIdentity();
-      // Look for identified squad student, or fallback to selected individual student, or first squad student
-      let student = null;
-      if (identity && identity.id) {
-        student = FRIENDS_DATA.find(f => f.id === identity.id || f.name.toLowerCase() === (identity.name || "").toLowerCase());
-      }
-      if (!student && selectedIndividualFriendId) {
-        student = FRIENDS_DATA.find(f => f.id === selectedIndividualFriendId);
-      }
-      if (!student) {
-        student = FRIENDS_DATA[0];
-      }
-
+      const student = resolveWeeklyScheduleStudent();
       const { jsDay, currentMins } = getISTTime();
       const timeFormatted = minutesToTimeStr(currentMins);
-      const studentFirstName = student ? student.name.split(" ")[0] : "You";
 
       if (jsDay === 0) {
         widget.innerHTML = `
           <div class="w-full p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-1.5 text-xs">
             <div class="flex items-center justify-between gap-2 text-[11px]">
-              <button onclick="openUserIdentityModal()" title="Click to change student"
-                class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-400 font-bold hover:bg-blue-100 transition active:scale-95 truncate max-w-[160px]">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span class="truncate">${studentFirstName}'s Schedule</span>
-                <i class="fa-solid fa-chevron-down text-[8px] opacity-60"></i>
-              </button>
+              ${renderLiveBannerScheduleBtn(student, 'bg-emerald-500')}
               <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate">
                 Sunday ${timeFormatted} • Weekend
               </div>
@@ -6954,14 +7021,9 @@
 
       widget.innerHTML = `
         <div class="w-full p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-1.5 text-xs">
-          <!-- Top Row: Student selector & Day details -->
+          <!-- Top Row: Week schedule button & Day details -->
           <div class="flex items-center justify-between gap-2 text-[11px]">
-            <button onclick="openUserIdentityModal()" title="Click to change student"
-              class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-brandBlue dark:text-blue-400 font-bold hover:bg-blue-100 dark:hover:bg-blue-900/60 transition active:scale-95 truncate max-w-[170px]">
-              <span class="w-1.5 h-1.5 rounded-full ${isCurrentlyInClass ? 'bg-emerald-500 animate-pulse' : 'bg-blue-600'}"></span>
-              <span class="truncate">${studentFirstName}'s Schedule</span>
-              <i class="fa-solid fa-chevron-down text-[8px] opacity-60"></i>
-            </button>
+            ${renderLiveBannerScheduleBtn(student, isCurrentlyInClass ? 'bg-emerald-500 animate-pulse' : 'bg-blue-600')}
             <div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium shrink-0 text-[10px]">
               <span>${dayCode} ${timeFormatted}</span>
               <span class="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 font-bold text-slate-600 dark:text-slate-300">
@@ -7012,6 +7074,206 @@
               </div>
             </div>
           `}
+        </div>
+      `;
+    }
+
+    const WEEKLY_COURSE_PALETTE = [
+      "bg-sky-100/90 dark:bg-sky-950/60 border-sky-200/90 dark:border-sky-800/70 text-sky-950 dark:text-sky-100",
+      "bg-amber-100/90 dark:bg-amber-950/60 border-amber-200/90 dark:border-amber-800/70 text-amber-950 dark:text-amber-100",
+      "bg-rose-100/90 dark:bg-rose-950/60 border-rose-200/90 dark:border-rose-800/70 text-rose-950 dark:text-rose-100",
+      "bg-emerald-100/90 dark:bg-emerald-950/60 border-emerald-200/90 dark:border-emerald-800/70 text-emerald-950 dark:text-emerald-100",
+      "bg-purple-100/90 dark:bg-purple-950/60 border-purple-200/90 dark:border-purple-800/70 text-purple-950 dark:text-purple-100",
+      "bg-blue-100/90 dark:bg-blue-950/60 border-blue-200/90 dark:border-blue-800/70 text-blue-950 dark:text-blue-100",
+      "bg-teal-100/90 dark:bg-teal-950/60 border-teal-200/90 dark:border-teal-800/70 text-teal-950 dark:text-teal-100",
+      "bg-indigo-100/90 dark:bg-indigo-950/60 border-indigo-200/90 dark:border-indigo-800/70 text-indigo-950 dark:text-indigo-100",
+      "bg-orange-100/90 dark:bg-orange-950/60 border-orange-200/90 dark:border-orange-800/70 text-orange-950 dark:text-orange-100"
+    ];
+    let activeWeeklyScheduleStudentId = null;
+
+    function openWeeklyScheduleModal(studentId) {
+      const modal = document.getElementById("weeklyScheduleModal");
+      if (!modal) return;
+      const student = resolveWeeklyScheduleStudent(studentId);
+      activeWeeklyScheduleStudentId = student ? student.id : null;
+      renderWeeklyScheduleGrid(student);
+      modal.classList.remove("hidden");
+    }
+
+    function closeWeeklyScheduleModal() {
+      const modal = document.getElementById("weeklyScheduleModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function formatCompactSlotTime(col) {
+      if (!col) return "";
+      const start = String(col.start || "").replace(/\s*(AM|PM)/gi, "").trim();
+      const end = String(col.end || "").replace(/\s*(AM|PM)/gi, "").trim();
+      return start + " - " + end;
+    }
+
+    function renderWeeklyScheduleGrid(student) {
+      const container = document.getElementById("weeklyScheduleGridContainer");
+      const titleEl = document.getElementById("weeklyScheduleTitle");
+      const statsEl = document.getElementById("weeklyScheduleStatsBadge");
+      const subEl = document.getElementById("weeklyScheduleSubtitle");
+      const detailEl = document.getElementById("weeklyScheduleSelectedDetail");
+      if (!container || !student) return;
+
+      const slotMap = getFriendSlotMap(student);
+      const courseColorMap = new Map();
+      let colorCursor = 0;
+      (student.courses || []).forEach(c => {
+        const key = String(c.code || c.title || "").trim();
+        if (key && !courseColorMap.has(key)) {
+          courseColorMap.set(key, WEEKLY_COURSE_PALETTE[colorCursor % WEEKLY_COURSE_PALETTE.length]);
+          colorCursor++;
+        }
+      });
+
+      const { jsDay, currentMins } = getISTTime();
+      const todayCode = (jsDay >= 1 && jsDay <= 6) ? DAYS_ORDER[jsDay - 1] : null;
+      const dayShortNames = { MON: "Mon", TUE: "Tue", WED: "Wed", THU: "Thu", FRI: "Fri", SAT: "Sat" };
+
+      let totalWeeklyClasses = 0;
+      let autoHighlightDay = null;
+      let autoHighlightCol = -1;
+
+      const rowsHtml = DAYS_ORDER.map(day => {
+        const daySlots = DAY_MATRIX[day] || [];
+        const isToday = (day === todayCode);
+
+        const cellsHtml = TIME_COLUMNS.map((col, idx) => {
+          const slotCode = daySlots[idx] || "";
+          const course = slotMap[slotCode];
+          if (!course) {
+            return `
+              <td class="p-1 border-b border-slate-100/80 dark:border-slate-800/80 align-top">
+                <div class="min-h-[64px] rounded-xl border border-dashed border-slate-200/70 dark:border-slate-800/70 px-2 py-1.5 flex items-center justify-center text-[10px] font-semibold text-slate-300 dark:text-slate-600 select-none">
+                  ${escapeWeeklyHtml(slotCode)}
+                </div>
+              </td>
+            `;
+          }
+
+          totalWeeklyClasses++;
+          const isLiveNow = isToday && currentMins >= col.startMin && currentMins <= col.endMin;
+          if (isLiveNow && autoHighlightDay === null) {
+            autoHighlightDay = day;
+            autoHighlightCol = idx;
+          }
+
+          const courseKey = String(course.code || course.title || "").trim();
+          const paletteCls = courseColorMap.get(courseKey) || WEEKLY_COURSE_PALETTE[0];
+          const liveRing = isLiveNow ? " ring-2 ring-emerald-500/80 dark:ring-emerald-400/80" : "";
+
+          return `
+            <td class="p-1 border-b border-slate-100/80 dark:border-slate-800/80 align-top">
+              <button type="button" data-week-cell="${day}_${idx}" onclick="selectWeeklyScheduleCell('${day}', ${idx})"
+                class="w-full min-h-[64px] rounded-xl border p-1.5 text-left transition active:scale-95 flex flex-col justify-between gap-0.5 cursor-pointer hover:brightness-95 ${paletteCls}${liveRing}">
+                <div class="flex items-center justify-between gap-1 w-full">
+                  <span class="text-[9px] font-bold opacity-65 tracking-wide">${escapeWeeklyHtml(slotCode)}</span>
+                  ${isLiveNow ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>' : ''}
+                </div>
+                <div class="text-[11px] font-black tracking-tight leading-tight truncate w-full">${escapeWeeklyHtml(course.code)}</div>
+                <div class="text-[9px] font-semibold opacity-80 leading-tight truncate w-full">${escapeWeeklyHtml(course.title)}</div>
+                <div class="text-[9px] font-medium opacity-70 truncate w-full">${escapeWeeklyHtml(course.venue || "Campus")}</div>
+              </button>
+            </td>
+          `;
+        }).join("");
+
+        return `
+          <tr>
+            <th scope="row"
+              class="sticky left-0 z-10 ${isToday ? 'bg-blue-50/95 dark:bg-blue-950/95 text-brandBlue dark:text-blue-300' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200'} px-2 py-2 text-left text-[11px] font-extrabold border-r border-b border-slate-100 dark:border-slate-800 align-middle whitespace-nowrap">
+              <div class="flex items-center gap-1">
+                <span>${dayShortNames[day] || day}</span>
+                ${isToday ? '<span class="w-1.5 h-1.5 rounded-full bg-brandBlue dark:bg-blue-400 shrink-0"></span>' : ''}
+              </div>
+            </th>
+            ${cellsHtml}
+          </tr>
+        `;
+      }).join("");
+
+      const totalCredits = (student.courses || []).reduce((sum, c) => sum + Number(c.credit || 0), 0);
+      const firstName = student.name ? student.name.split(" ")[0] : "Student";
+      if (titleEl) titleEl.textContent = firstName + "'s Week Schedule";
+      if (statsEl) statsEl.textContent = totalWeeklyClasses + " classes • " + (student.courses || []).length + " courses";
+      if (subEl) subEl.textContent = student.name + " • " + totalCredits.toFixed(1) + " Credits (Mon – Sat)";
+
+      container.innerHTML = `
+        <table class="w-full border-separate border-spacing-0 table-fixed min-w-[760px]">
+          <thead>
+            <tr>
+              <th scope="col"
+                class="sticky left-0 top-0 z-30 w-[54px] min-w-[54px] bg-slate-50 dark:bg-slate-800 px-2 py-2 text-left text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 border-b border-r border-slate-200/80 dark:border-slate-700/80">
+                DAY
+              </th>
+              ${TIME_COLUMNS.map(col => `
+                <th scope="col"
+                  class="sticky top-0 z-20 min-w-[104px] bg-slate-50 dark:bg-slate-800 px-1.5 py-2 text-left border-b border-slate-200/80 dark:border-slate-700/80">
+                  <div class="text-[11px] font-extrabold text-slate-800 dark:text-slate-100 leading-tight">${escapeWeeklyHtml(col.label)}</div>
+                  <div class="text-[9.5px] font-medium text-slate-400 dark:text-slate-400 font-mono leading-tight">${escapeWeeklyHtml(formatCompactSlotTime(col))}</div>
+                </th>
+              `).join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      `;
+
+      if (autoHighlightDay && autoHighlightCol >= 0) {
+        selectWeeklyScheduleCell(autoHighlightDay, autoHighlightCol);
+      } else if (detailEl) {
+        detailEl.textContent = "Tap any class block to view course name, room, time & faculty.";
+      }
+    }
+
+    function selectWeeklyScheduleCell(day, colIndex) {
+      const detailEl = document.getElementById("weeklyScheduleSelectedDetail");
+      const student = resolveWeeklyScheduleStudent(activeWeeklyScheduleStudentId);
+      if (!detailEl || !student) return;
+
+      const slotCode = (DAY_MATRIX[day] && DAY_MATRIX[day][colIndex]) ? DAY_MATRIX[day][colIndex] : "";
+      const col = TIME_COLUMNS[colIndex];
+      const slotMap = getFriendSlotMap(student);
+      const course = slotMap[slotCode];
+      if (!course || !col) return;
+
+      const grid = document.getElementById("weeklyScheduleGridContainer");
+      if (grid && typeof grid.querySelectorAll === "function") {
+        grid.querySelectorAll("[data-week-cell]").forEach(btn => {
+          btn.classList.remove("ring-2", "ring-brandBlue", "dark:ring-blue-400");
+        });
+        const activeCell = grid.querySelector('[data-week-cell="' + day + '_' + colIndex + '"]');
+        if (activeCell) {
+          activeCell.classList.add("ring-2", "ring-brandBlue", "dark:ring-blue-400");
+        }
+      }
+
+      const dayName = DAY_FULL_NAMES[day] || day;
+      const venue = course.venue || "Campus";
+      const faculty = course.faculty || "Faculty";
+      detailEl.innerHTML = `
+        <div class="flex items-start justify-between gap-2 flex-wrap">
+          <div class="min-w-0 space-y-0.5">
+            <div class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 flex-wrap">
+              <span class="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/70 text-brandBlue dark:text-blue-300 text-[10px] font-black">${escapeWeeklyHtml(slotCode)}</span>
+              <span>${escapeWeeklyHtml(course.code)}</span>
+              <span class="text-slate-400">•</span>
+              <span class="font-semibold text-slate-700 dark:text-slate-200">${escapeWeeklyHtml(course.title)}</span>
+            </div>
+            <div class="text-[10.5px] text-slate-500 dark:text-slate-400">
+              ${escapeWeeklyHtml(dayName)} (${escapeWeeklyHtml(col.start)} – ${escapeWeeklyHtml(col.end)}) • 📍 ${escapeWeeklyHtml(venue)} • ${escapeWeeklyHtml(faculty)}
+            </div>
+          </div>
+          <span class="px-2 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-800 text-[10px] font-bold text-slate-700 dark:text-slate-300 shrink-0">
+            ${escapeWeeklyHtml(course.shortType || "Class")} • ${Number(course.credit || 0).toFixed(1)} Cr
+          </span>
         </div>
       `;
     }
@@ -15056,6 +15318,11 @@ function renderMealCardsStack(menu, liveSlot, isViewingToday) {
     if (typeof window !== "undefined") {
       window.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
+          const weeklyModal = document.getElementById("weeklyScheduleModal");
+          if (weeklyModal && !weeklyModal.classList.contains("hidden")) {
+            closeWeeklyScheduleModal();
+            return;
+          }
           const modal = document.getElementById("userIdentityModal");
           if (modal && !modal.classList.contains("hidden")) {
             if (!getUserIdentity()) {
